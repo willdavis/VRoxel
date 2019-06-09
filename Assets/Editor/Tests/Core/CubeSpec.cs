@@ -35,7 +35,7 @@ namespace Tests
         }
 
         // unit vectors for a face must be returned in a clockwise order
-        // it is important for the mesh normals are oriented correctly
+        // this is important so that the mesh normals are oriented correctly
         [Test]
         public void HasFaces()
         {
@@ -45,6 +45,69 @@ namespace Tests
             Assert.AreEqual(new int[4] { 2,1,5,6 }, Cube.Faces[(int)Cube.Direction.East]);
             Assert.AreEqual(new int[4] { 3,2,6,7 }, Cube.Faces[(int)Cube.Direction.South]);
             Assert.AreEqual(new int[4] { 0,3,7,4 }, Cube.Faces[(int)Cube.Direction.West]);
+        }
+
+        [Test]
+        public void CanCalculateFace()
+        {
+            Vector3[] face = new Vector3[4];
+            Vector3 position = new Vector3(0,0,0);
+            float scale = 1.0f;
+
+            Cube.Face(0, position, scale, ref face); // Top
+
+            Assert.AreEqual(new Vector3(-1, 1, 1), face[0]);
+            Assert.AreEqual(new Vector3( 1, 1, 1), face[1]);
+            Assert.AreEqual(new Vector3( 1, 1,-1), face[2]);
+            Assert.AreEqual(new Vector3(-1, 1,-1), face[3]);
+
+            Cube.Face(1, position, scale, ref face); // Bottom
+
+            Assert.AreEqual(new Vector3(-1,-1,-1), face[0]);
+            Assert.AreEqual(new Vector3( 1,-1,-1), face[1]);
+            Assert.AreEqual(new Vector3( 1,-1, 1), face[2]);
+            Assert.AreEqual(new Vector3(-1,-1, 1), face[3]);
+        }
+
+        [Test]
+        public void CanCalculateTransform()
+        {
+            Vector3[] cube = new Vector3[8];
+            Vector3 position = new Vector3(0,0,0);
+            Quaternion rotation = Quaternion.identity;
+            float scale = 1.0f;
+
+            Cube.Transform(position, scale, rotation, ref cube);
+
+            Assert.AreEqual(new Vector3(-1, 1, 1), cube[0]);
+            Assert.AreEqual(new Vector3( 1, 1, 1), cube[1]);
+            Assert.AreEqual(new Vector3( 1, 1,-1), cube[2]);
+            Assert.AreEqual(new Vector3(-1, 1,-1), cube[3]);
+            Assert.AreEqual(new Vector3(-1,-1, 1), cube[4]);
+            Assert.AreEqual(new Vector3( 1,-1, 1), cube[5]);
+            Assert.AreEqual(new Vector3( 1,-1,-1), cube[6]);
+            Assert.AreEqual(new Vector3(-1,-1,-1), cube[7]);
+        }
+
+        [Test]
+        public void CanCalculateTransformRectangle()
+        {
+            Vector3[] rectangle = new Vector3[8];
+            Vector3 start = new Vector3(-1,-1,-1);
+            Vector3 end = new Vector3(1,1,1);
+            Vector3 scale = new Vector3(1,1,1);
+            Quaternion rotation = Quaternion.identity;
+
+            Cube.TransformRectangle(start, end, scale, rotation, ref rectangle);
+
+            Assert.AreEqual(new Vector3(-1, 1, 1), rectangle[0]);
+            Assert.AreEqual(new Vector3( 1, 1, 1), rectangle[1]);
+            Assert.AreEqual(new Vector3( 1, 1,-1), rectangle[2]);
+            Assert.AreEqual(new Vector3(-1, 1,-1), rectangle[3]);
+            Assert.AreEqual(new Vector3(-1,-1, 1), rectangle[4]);
+            Assert.AreEqual(new Vector3( 1,-1, 1), rectangle[5]);
+            Assert.AreEqual(new Vector3( 1,-1,-1), rectangle[6]);
+            Assert.AreEqual(new Vector3(-1,-1,-1), rectangle[7]);
         }
     }
 }

@@ -65,4 +65,48 @@ public static class Cube
         new int[] { 3, 2, 6, 7 }, // South
         new int[] { 0, 3, 7, 4 }  // West
     };
+
+    /// <summary>
+    /// Calculates the face vertices for a Cube
+    /// </summary>
+    public static void Face(int direction, Vector3 position, float scale, ref Vector3[] face)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            face[i] = Vectors[Faces[direction][i]];
+            face[i] *= scale;
+            face[i] += position;
+        }
+    }
+
+    /// <summary>
+    /// Calculates the transform for a Cube
+    /// </summary>
+    public static void Transform(Vector3 position, float scale, Quaternion rotation, ref Vector3[] cube)
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            cube[i] = Vectors[i];
+            cube[i] *= scale;
+            cube[i] = rotation * cube[i];
+            cube[i] += position;
+        }
+    }
+
+    /// <summary>
+    /// Calculates the transform for a rectangle
+    /// </summary>
+    public static void TransformRectangle(Vector3 start, Vector3 end, Vector3 scale, Quaternion rotation, ref Vector3[] rectangle)
+    {
+        Vector3 center = Vector3.Lerp(start, end, 0.5f);
+        for (int i = 0; i < 8; i++)
+        {
+            rectangle[i] = Vectors[i];
+            rectangle[i].x *= scale.x;
+            rectangle[i].y *= scale.y;
+            rectangle[i].z *= scale.z;
+            rectangle[i] = rotation * rectangle[i];
+            rectangle[i] += center;
+        }
+    }
 }
