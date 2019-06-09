@@ -1,0 +1,50 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
+
+namespace Tests
+{
+    public class CubeSpec
+    {
+        // Direction order is important for accessing Cube.Faces
+        [Test]
+        public void HasDirections()
+        {
+            Assert.AreEqual(0, (int)Cube.Direction.Top);
+            Assert.AreEqual(1, (int)Cube.Direction.Bottom);
+            Assert.AreEqual(2, (int)Cube.Direction.North);
+            Assert.AreEqual(3, (int)Cube.Direction.East);
+            Assert.AreEqual(4, (int)Cube.Direction.South);
+            Assert.AreEqual(5, (int)Cube.Direction.West);
+        }
+
+        // unit vector order is important for accessing Cube.Faces
+        [Test]
+        public void HasUnitVectors()
+        {
+            Assert.AreEqual(new Vector3(-1, 1, 1), Cube.Vectors[0]);
+            Assert.AreEqual(new Vector3( 1, 1, 1), Cube.Vectors[1]);
+            Assert.AreEqual(new Vector3( 1, 1,-1), Cube.Vectors[2]);
+            Assert.AreEqual(new Vector3(-1, 1,-1), Cube.Vectors[3]);
+            Assert.AreEqual(new Vector3(-1,-1, 1), Cube.Vectors[4]);
+            Assert.AreEqual(new Vector3( 1,-1, 1), Cube.Vectors[5]);
+            Assert.AreEqual(new Vector3( 1,-1,-1), Cube.Vectors[6]);
+            Assert.AreEqual(new Vector3(-1,-1,-1), Cube.Vectors[7]);
+        }
+
+        // unit vectors for a face must be returned in a clockwise order
+        // it is important for the mesh normals are oriented correctly
+        [Test]
+        public void HasFaces()
+        {
+            Assert.AreEqual(new int[4] { 0,1,2,3 }, Cube.Faces[(int)Cube.Direction.Top]);
+            Assert.AreEqual(new int[4] { 7,6,5,4 }, Cube.Faces[(int)Cube.Direction.Bottom]);
+            Assert.AreEqual(new int[4] { 1,0,4,5 }, Cube.Faces[(int)Cube.Direction.North]);
+            Assert.AreEqual(new int[4] { 2,1,5,6 }, Cube.Faces[(int)Cube.Direction.East]);
+            Assert.AreEqual(new int[4] { 3,2,6,7 }, Cube.Faces[(int)Cube.Direction.South]);
+            Assert.AreEqual(new int[4] { 0,3,7,4 }, Cube.Faces[(int)Cube.Direction.West]);
+        }
+    }
+}
