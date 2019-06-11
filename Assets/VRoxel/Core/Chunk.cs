@@ -5,15 +5,22 @@ using UnityEngine;
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
 public class Chunk : MonoBehaviour
 {
+    [HideInInspector] public bool needsUpdate;
+
+    private World _world;
+    private Vector3Int _offset;
     private MeshFilter _meshFilter;
+    private MeshRenderer _meshRenderer;
     private MeshCollider _meshCollider;
 
     /// <summary>
-    /// Initialize a new Chunk in a World
+    /// Initialize a Chunk in the World
     /// </summary>
-    public void Initialize(World world, Vector3Int position)
+    public void Initialize(World world, Vector3Int offset)
     {
-
+        _world = world;
+        _offset = offset;
+        _meshRenderer.material = world.material;
     }
 
     /// <summary>
@@ -22,7 +29,7 @@ public class Chunk : MonoBehaviour
     private void GenerateMesh()
     {
         // TODO: something like this
-        //Mesh mesh = _meshGenerator.build(data);
+        //Mesh mesh = _meshGenerator.build(_world, offset);
         //_meshFilter.sharedMesh = mesh;
         //_meshCollider.sharedMesh = mesh;
     }
@@ -30,11 +37,21 @@ public class Chunk : MonoBehaviour
     void Awake()
     {
         _meshFilter = GetComponent<MeshFilter>();
+        _meshRenderer = GetComponent<MeshRenderer>();
         _meshCollider = GetComponent<MeshCollider>();
     }
 
     void Start()
     {
         GenerateMesh();
+    }
+
+    void Update()
+    {
+        if (needsUpdate)
+        {
+            GenerateMesh();
+            needsUpdate = false;
+        }
     }
 }
