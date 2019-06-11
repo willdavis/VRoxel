@@ -4,21 +4,23 @@ using UnityEngine;
 
 public class World : MonoBehaviour
 {
+    /// <summary>
+    /// The size of the world in voxels
+    /// </summary>
+    public Vector3Int size = new Vector3Int(16, 16, 16);
 
     /// <summary>
-    /// The Voxel count for each dimension
+    /// The scale factor for the world
     /// </summary>
-    public Vector3Int size;
+    public float scale = 1.0f;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    /// <summary>
+    /// The size of each chunk in voxels
+    /// </summary>
+    public Vector3Int chunkSize = new Vector3Int(16, 16, 16);
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    /// <summary>
+    /// Unity prefab for a Chunk
+    /// </summary>
+    public Chunk chunk;
 }
