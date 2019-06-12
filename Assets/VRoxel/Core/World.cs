@@ -33,4 +33,17 @@ public class World : MonoBehaviour
     /// Unity Material to use as the texture atlas
     /// </summary>
     public Material material;
+
+    void OnDrawGizmos()
+    {
+        Vector3 bounds = new Vector3(
+            size.x * scale,
+            size.y * scale,
+            size.z * scale
+        );
+
+        Gizmos.color = Color.green;
+        Gizmos.matrix = transform.localToWorldMatrix;
+        Gizmos.DrawWireCube(Vector3.zero, bounds);
+    }
 }
