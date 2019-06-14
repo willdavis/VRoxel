@@ -15,6 +15,11 @@ public class World : MonoBehaviour
     public Material material;
 
     /// <summary>
+    /// The seed for random noise generation
+    /// </summary>
+    public int seed = 0;
+
+    /// <summary>
     /// The scale factor for the world
     /// </summary>
     public float scale = 1f;
@@ -33,6 +38,16 @@ public class World : MonoBehaviour
     /// The number of chunks in a region
     /// </summary>
     public Vector3Int regionSize = new Vector3Int(8, 8, 8);
+
+    /// <summary>
+    /// The Terrain generator for the world
+    /// </summary>
+    private Terrain _terrain;
+
+    public void Initialize()
+    {
+        _terrain = new Terrain(seed);
+    }
 
     void OnDrawGizmos()
     {
