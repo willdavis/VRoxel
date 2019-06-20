@@ -44,9 +44,15 @@ public class World : MonoBehaviour
     /// </summary>
     private Terrain _terrain;
 
+    /// <summary>
+    /// Voxel data for the World
+    /// </summary>
+    private WorldData _data;
+
     public void Initialize()
     {
         _terrain = new Terrain(seed);
+        _data = new WorldData(size);
     }
 
     void OnDrawGizmos()
