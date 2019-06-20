@@ -8,21 +8,17 @@ namespace Tests
 {
     public class WorldSpec
     {
-        // A Test behaves as an ordinary method
         [Test]
-        public void WorldSpecSimplePasses()
+        public void HasData()
         {
-            // Use the Assert class to test conditions
-        }
+            World world = new World();
+            world.size = Vector3Int.one;
+            world.Initialize();
 
-        // A UnityTest behaves like a coroutine in Play Mode. In Edit Mode you can use
-        // `yield return null;` to skip a frame.
-        [UnityTest]
-        public IEnumerator WorldSpecWithEnumeratorPasses()
-        {
-            // Use the Assert class to test conditions.
-            // Use yield to skip a frame.
-            yield return null;
+            Assert.AreEqual(
+                new Vector3(0.5f, 0.5f, 0.5f),
+                world.Data().Center()
+            );
         }
     }
 }

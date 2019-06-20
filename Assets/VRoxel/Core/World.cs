@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class World : MonoBehaviour
 {
+    private Terrain _terrain;
+    private WorldData _data;
+
+
     /// <summary>
     /// Unity prefab for a Chunk
     /// </summary>
@@ -40,20 +44,18 @@ public class World : MonoBehaviour
     public Vector3Int regionSize = new Vector3Int(8, 8, 8);
 
     /// <summary>
-    /// The Terrain generator for the world
+    /// Initialize a new World
     /// </summary>
-    private Terrain _terrain;
-
-    /// <summary>
-    /// Voxel data for the World
-    /// </summary>
-    private WorldData _data;
-
     public void Initialize()
     {
         _terrain = new Terrain(seed);
         _data = new WorldData(size);
     }
+
+    /// <summary>
+    /// The voxel data for the World
+    /// </summary>
+    public WorldData Data() { return _data; }
 
     void OnDrawGizmos()
     {
