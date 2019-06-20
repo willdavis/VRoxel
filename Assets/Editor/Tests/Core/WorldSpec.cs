@@ -17,7 +17,7 @@ namespace Tests
 
             Assert.AreEqual(
                 new Vector3(0.5f, 0.5f, 0.5f),
-                world.Data().Center()
+                world.data.Center()
             );
         }
     }

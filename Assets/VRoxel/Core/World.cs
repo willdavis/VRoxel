@@ -44,6 +44,11 @@ public class World : MonoBehaviour
     public Vector3Int regionSize = new Vector3Int(8, 8, 8);
 
     /// <summary>
+    /// The voxel data for the World
+    /// </summary>
+    public WorldData data { get { return _data;} }
+
+    /// <summary>
     /// Initialize a new World
     /// </summary>
     public void Initialize()
@@ -51,11 +56,6 @@ public class World : MonoBehaviour
         _terrain = new Terrain(seed);
         _data = new WorldData(size);
     }
-
-    /// <summary>
-    /// The voxel data for the World
-    /// </summary>
-    public WorldData Data() { return _data; }
 
     void OnDrawGizmos()
     {
