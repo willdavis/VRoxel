@@ -46,7 +46,7 @@ public class World : MonoBehaviour
     /// <summary>
     /// The voxel data for the World
     /// </summary>
-    public WorldData data { get { return _data;} }
+    public WorldData data { get { return _data; } }
 
     /// <summary>
     /// Initialize a new World
