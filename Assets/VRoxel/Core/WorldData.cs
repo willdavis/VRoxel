@@ -35,12 +35,29 @@ public class WorldData
     /// Get a block type from the world data cache
     /// </summary>
     /// <param name="point">A point inside the world</param>
-    public byte Get(Vector3Int point) { return _cache[point.x, point.y, point.z]; }
+    public byte Get(Vector3Int point) { return Get(point.x, point.y, point.z); }
+
+    /// <summary>
+    /// Get a block type from the world data cache
+    /// </summary>
+    /// <param name="x">the X coordinate</param>
+    /// <param name="y">the Y coordinate</param>
+    /// <param name="z">the Z coordinate</param>
+    public byte Get(int x, int y, int z) { return _cache[x, y, z]; }
 
     /// <summary>
     /// Set a block type in the world data cache
     /// </summary>
     /// <param name="point">A point inside the world</param>
-    /// <param name="block">The block type to set in the world</param>
-    public void Set(Vector3Int point, byte block) { _cache[point.x, point.y, point.z] = block; }
+    /// <param name="block">The block type to be set</param>
+    public void Set(Vector3Int point, byte block) { Set(point.x, point.y, point.z, block); }
+
+    /// <summary>
+    /// Set a block type in the world data cache
+    /// </summary>
+    /// <param name="x">the X coordinate</param>
+    /// <param name="y">the Y coordinate</param>
+    /// <param name="z">the Z coordinate</param>
+    /// <param name="block">The block type to be set</param>
+    public void Set(int x, int y, int z, byte block) { _cache[x, y, z] = block; }
 }
