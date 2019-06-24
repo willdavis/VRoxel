@@ -57,6 +57,32 @@ public class World : MonoBehaviour
         _data = new WorldData(size);
     }
 
+    /// <summary>
+    /// Generate world data within the given bounds.
+    /// Any points outside the world will be skipped.
+    /// </summary>
+    /// <param name="bounds">The area to generate data</param>
+    /// <param name="offset">The offset from the world origin</param>
+    public void Generate(Vector3Int bounds, Vector3Int offset)
+    {
+        Vector3Int point = Vector3Int.zero;
+        for (int x = 0; x < bounds.x; x++)
+        {
+            for (int z = 0; z < bounds.z; z++)
+            {
+                for (int y = 0; y < bounds.y; y++)
+                {
+                    point.x = x + offset.x;
+                    point.y = y + offset.y;
+                    point.z = z + offset.z;
+
+                    if (!_data.Contains(point)) { continue; }
+                    _data.Set(point, 1); // default to (byte)1
+                }
+            }
+        }
+    }
+
     void OnDrawGizmos()
     {
         Vector3 bounds = new Vector3(
