@@ -9,6 +9,40 @@ namespace Tests
 {
     public class WorldSpec
     {
+
+        public class Chunks
+        {
+            [Test]
+            public void CanGetChunkPosition()
+            {
+                World world = new World();
+                Vector3 position = world.GetChunkPosition(Vector3Int.zero);
+                Assert.AreEqual(Vector3.zero, position);
+            }
+
+            [UnityTest]
+            public IEnumerator CanCreateChunk()
+            {
+                Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
+                World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
+
+                World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
+                world.chunk = prefab_chunk;
+                world.Initialize();
+
+                Vector3Int zero = Vector3Int.zero;
+                Chunk chunk = world.CreateChunk(zero);
+
+                Assert.AreSame(chunk, world.chunks[zero]);               // check that the chunk was added to the worlds chunks
+                Assert.AreSame(world.transform, chunk.transform.parent); // check that the chunk is attached to the worlds transform
+                Assert.AreEqual(Vector3.zero, chunk.transform.position); // confirm the chunks position in the Scene
+
+                yield return null;
+                Object.DestroyImmediate(chunk);
+                Object.DestroyImmediate(world);
+            }
+        }
+
         [Test]
         public void HasData()
         {
@@ -43,28 +77,6 @@ namespace Tests
                     }
                 }
             }
-        }
-
-        [UnityTest]
-        public IEnumerator CanCreateChunk()
-        {
-            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
-            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
-
-            World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
-            world.chunk = prefab_chunk;
-            world.Initialize();
-
-            Vector3Int zero = Vector3Int.zero;
-            Chunk chunk = world.CreateChunk(zero);
-
-            Assert.AreSame(chunk, world.chunks[zero]);               // check that the chunk was added to the worlds chunks
-            Assert.AreSame(world.transform, chunk.transform.parent); // check that the chunk is attached to the worlds transform
-            Assert.AreEqual(Vector3.zero, chunk.transform.position); // confirm the chunks position in the Scene
-
-            yield return null;
-            Object.DestroyImmediate(chunk);
-            Object.DestroyImmediate(world);
         }
     }
 }

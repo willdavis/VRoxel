@@ -89,16 +89,29 @@ public class World : MonoBehaviour
     }
 
     /// <summary>
-    /// Create a new Chunk in the World
+    /// Creates a new Chunk in the World
     /// </summary>
     /// <param name="offset">The chunk offset from the world origin</param>
     public Chunk CreateChunk(Vector3Int offset)
     {
-        Vector3 position = Vector3.zero;
-        Chunk newChunk = Instantiate(chunk, position, transform.rotation) as Chunk;
+        Vector3 position = GetChunkPosition(offset);
+        Quaternion rotation = transform.rotation;
+
+        Chunk newChunk = Instantiate(chunk, position, rotation) as Chunk;
         newChunk.transform.parent = transform;
+
         chunks.Add(offset, newChunk);
         return newChunk;
+    }
+
+    /// <summary>
+    /// Returns the Chunks position relative to the World
+    /// </summary>
+    /// <param name="offset">The chunk offset from the world origin</param>
+    public Vector3 GetChunkPosition(Vector3Int offset)
+    {
+        Vector3 position = Vector3.zero;
+        return position;
     }
 
     void OnDrawGizmos()
