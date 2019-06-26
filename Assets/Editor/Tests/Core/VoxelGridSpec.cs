@@ -1,18 +1,15 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace Tests
 {
-    public class WorldDataSpec
+    public class VoxelGridSpec
     {
         [Test]
         public void HasCenter()
         {
             Vector3Int size = new Vector3Int(10,8,6);
-            WorldData data = new WorldData(size);
+            VoxelGrid data = new VoxelGrid(size);
 
             Assert.AreEqual(5f, data.center.x);
             Assert.AreEqual(4f, data.center.y);
@@ -23,7 +20,7 @@ namespace Tests
         public void CanGetPoint()
         {
             Vector3Int size = new Vector3Int(1,1,1);
-            WorldData data = new WorldData(size);
+            VoxelGrid data = new VoxelGrid(size);
 
             Assert.AreEqual(0, data.Get(Vector3Int.zero));
         }
@@ -32,7 +29,7 @@ namespace Tests
         public void CanSetPoint()
         {
             Vector3Int size = new Vector3Int(1,1,1);
-            WorldData data = new WorldData(size);
+            VoxelGrid data = new VoxelGrid(size);
 
             data.Set(Vector3Int.zero, 12);
             Assert.AreEqual(12, data.Get(Vector3Int.zero));
@@ -42,7 +39,7 @@ namespace Tests
         public void CanContainPoint()
         {
             Vector3Int size = new Vector3Int(1,1,1);
-            WorldData data = new WorldData(size);
+            VoxelGrid data = new VoxelGrid(size);
 
             Assert.AreEqual(true, data.Contains(Vector3Int.zero));
             Assert.AreEqual(false, data.Contains(Vector3Int.right));

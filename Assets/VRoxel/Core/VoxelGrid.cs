@@ -1,15 +1,15 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// Contains the voxel data for a World and exposes methods to modify the data
+/// Contains voxel data, configuration, and helper methods
 /// </summary>
-public class WorldData
+public class VoxelGrid
 {
     private byte[,,] _cache;
     private Vector3 _center;
     private Vector3Int _size;
 
-    public WorldData(Vector3Int size)
+    public VoxelGrid(Vector3Int size)
     {
         _size = size;
         _cache = new byte[size.x, size.y, size.z];

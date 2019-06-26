@@ -5,7 +5,7 @@ using UnityEngine;
 public class World : MonoBehaviour
 {
     private Terrain _terrain;
-    private WorldData _data;
+    private VoxelGrid _data;
 
 
     /// <summary>
@@ -46,7 +46,7 @@ public class World : MonoBehaviour
     /// <summary>
     /// The voxel data for the World
     /// </summary>
-    public WorldData data { get { return _data; } }
+    public VoxelGrid data { get { return _data; } }
 
     /// <summary>
     /// The active Chunks in the World
@@ -59,7 +59,7 @@ public class World : MonoBehaviour
     public void Initialize()
     {
         _terrain = new Terrain(seed);
-        _data = new WorldData(size);
+        _data = new VoxelGrid(size);
     }
 
     /// <summary>
