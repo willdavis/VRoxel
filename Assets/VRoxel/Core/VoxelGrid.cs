@@ -22,7 +22,7 @@ public class VoxelGrid
     public Vector3 center { get { return _center; } }
 
     /// <summary>
-    /// Checks if the point is inside the bounds of the world data
+    /// Tests if a point is inside the voxel grid
     /// </summary>
     /// <param name="point">The point to compare</param>
     public bool Contains(Vector3Int point)
@@ -34,13 +34,13 @@ public class VoxelGrid
     }
 
     /// <summary>
-    /// Get a block type from the world data cache
+    /// Get a block type from the voxel grid cache
     /// </summary>
     /// <param name="point">A point inside the world</param>
     public byte Get(Vector3Int point) { return Get(point.x, point.y, point.z); }
 
     /// <summary>
-    /// Get a block type from the world data cache
+    /// Get a block type from the voxel grid cache
     /// </summary>
     /// <param name="x">the X coordinate</param>
     /// <param name="y">the Y coordinate</param>
@@ -48,14 +48,14 @@ public class VoxelGrid
     public byte Get(int x, int y, int z) { return _cache[x, y, z]; }
 
     /// <summary>
-    /// Set a block type in the world data cache
+    /// Set a block type in the voxel grid cache
     /// </summary>
     /// <param name="point">A point inside the world</param>
     /// <param name="block">The block type to be set</param>
     public void Set(Vector3Int point, byte block) { Set(point.x, point.y, point.z, block); }
 
     /// <summary>
-    /// Set a block type in the world data cache
+    /// Set a block type in the voxel grid cache
     /// </summary>
     /// <param name="x">the X coordinate</param>
     /// <param name="y">the Y coordinate</param>

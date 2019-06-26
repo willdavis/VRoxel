@@ -21,6 +21,9 @@ public class Chunk : MonoBehaviour
         _world = world;
         _offset = offset;
         _meshRenderer.material = world.material;
+
+        // TODO: configure mesh generator, for example:
+        //_meshGenerator = new MeshGenerator(_world.data, _world.textures);
     }
 
     /// <summary>
@@ -28,8 +31,8 @@ public class Chunk : MonoBehaviour
     /// </summary>
     private void GenerateMesh()
     {
-        // TODO: something like this
-        //Mesh mesh = _meshGenerator.build(_world, offset);
+        // TODO: run mesh generator, for example:
+        //Mesh mesh = _meshGenerator.build(bounds, offset);
         //_meshFilter.sharedMesh = mesh;
         //_meshCollider.sharedMesh = mesh;
     }
