@@ -96,6 +96,7 @@ public class World : MonoBehaviour
     {
         Vector3 position = Vector3.zero;
         Chunk newChunk = Instantiate(chunk, position, transform.rotation) as Chunk;
+        newChunk.transform.parent = transform;
         chunks.Add(offset, newChunk);
         return newChunk;
     }

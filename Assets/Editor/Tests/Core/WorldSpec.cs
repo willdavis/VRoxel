@@ -58,8 +58,9 @@ namespace Tests
             Vector3Int zero = Vector3Int.zero;
             Chunk chunk = world.CreateChunk(zero);
 
-            Assert.AreSame(chunk, world.chunks[zero]);
-            Assert.AreEqual(Vector3.zero, chunk.transform.position);
+            Assert.AreSame(chunk, world.chunks[zero]);               // check that the chunk was added to the worlds chunks
+            Assert.AreSame(world.transform, chunk.transform.parent); // check that the chunk is attached to the worlds transform
+            Assert.AreEqual(Vector3.zero, chunk.transform.position); // confirm the chunks position in the Scene
 
             yield return null;
             Object.DestroyImmediate(chunk);
