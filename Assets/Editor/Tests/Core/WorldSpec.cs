@@ -48,17 +48,22 @@ namespace Tests
         [UnityTest]
         public IEnumerator CanCreateChunk()
         {
-            Chunk prefab = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
+            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
+            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
 
-            World world = new World();
-            world.chunk = prefab;
+            World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
+            world.chunk = prefab_chunk;
             world.Initialize();
 
             Vector3Int zero = Vector3Int.zero;
             Chunk chunk = world.CreateChunk(zero);
 
             Assert.AreSame(chunk, world.chunks[zero]);
+            Assert.AreEqual(Vector3.zero, chunk.transform.position);
+
             yield return null;
+            Object.DestroyImmediate(chunk);
+            Object.DestroyImmediate(world);
         }
     }
 }

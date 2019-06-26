@@ -94,7 +94,8 @@ public class World : MonoBehaviour
     /// <param name="offset">The chunk offset from the world origin</param>
     public Chunk CreateChunk(Vector3Int offset)
     {
-        Chunk newChunk = Instantiate(chunk, Vector3.zero, Quaternion.identity) as Chunk;
+        Vector3 position = Vector3.zero;
+        Chunk newChunk = Instantiate(chunk, position, transform.rotation) as Chunk;
         chunks.Add(offset, newChunk);
         return newChunk;
     }
