@@ -17,7 +17,7 @@ public class WorldData
     /// <summary>
     /// The center point of the voxel grid
     /// </summary>
-    public Vector3 Center() { return _center; }
+    public Vector3 center { get { return _center; } }
 
     /// <summary>
     /// Checks if the point is inside the bounds of the world data

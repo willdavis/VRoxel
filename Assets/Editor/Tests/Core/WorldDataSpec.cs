@@ -14,9 +14,9 @@ namespace Tests
             Vector3Int size = new Vector3Int(10,8,6);
             WorldData data = new WorldData(size);
 
-            Assert.AreEqual(5f, data.Center().x);
-            Assert.AreEqual(4f, data.Center().y);
-            Assert.AreEqual(3f, data.Center().z);
+            Assert.AreEqual(5f, data.center.x);
+            Assert.AreEqual(4f, data.center.y);
+            Assert.AreEqual(3f, data.center.z);
         }
 
         [Test]

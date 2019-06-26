@@ -117,7 +117,7 @@ public class World : MonoBehaviour
         position.y *= chunkSize.y;
         position.z *= chunkSize.z;
 
-        position += _data.Center() * -1f;   // adjust for the worlds center
+        position += _data.center * -1f;     // adjust for the worlds center
         position = rotation * position;     // adjust for the worlds rotation
         position *= scale;                  // adjust for the worlds scale
         position += transform.position;     // adjust for the worlds position
