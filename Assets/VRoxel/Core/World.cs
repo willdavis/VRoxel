@@ -105,12 +105,23 @@ public class World : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns the Chunks position relative to the World
+    /// Returns the position for a Chunk in the Unity scene
     /// </summary>
     /// <param name="offset">The chunk offset from the world origin</param>
     public Vector3 GetChunkPosition(Vector3Int offset)
     {
-        Vector3 position = Vector3.zero;
+        Quaternion rotation = transform.rotation;
+
+        Vector3 position = offset;          // adjust for the chunks offset
+        position.x *= chunkSize.x;
+        position.y *= chunkSize.y;
+        position.z *= chunkSize.z;
+
+        position += _data.Center() * -1f;   // adjust for the worlds center
+        position = rotation * position;     // adjust for the worlds rotation
+        position *= scale;                  // adjust for the worlds scale
+        position += transform.position;     // adjust for the worlds position
+
         return position;
     }
 

@@ -9,15 +9,19 @@ namespace Tests
 {
     public class WorldSpec
     {
-
-        public class Chunks
+        public class HasChunks
         {
-            [Test]
-            public void CanGetChunkPosition()
+            [UnityTest]
+            public IEnumerator CanGetChunkPosition()
             {
-                World world = new World();
+                World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
+                World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
+                world.Initialize();
+
                 Vector3 position = world.GetChunkPosition(Vector3Int.zero);
                 Assert.AreEqual(Vector3.zero, position);
+
+                yield return null;
             }
 
             [UnityTest]
