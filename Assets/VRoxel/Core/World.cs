@@ -31,17 +31,17 @@ public class World : MonoBehaviour
     /// <summary>
     /// The voxel dimensions for the world
     /// </summary>
-    public Vector3Int size = new Vector3Int(256, 256, 256);
+    public Vector3Int size = Vector3Int.one;
 
     /// <summary>
     /// The number of voxels in a chunk
     /// </summary>
-    public Vector3Int chunkSize = new Vector3Int(32, 32, 32);
+    public Vector3Int chunkSize = Vector3Int.one;
 
     /// <summary>
     /// The number of chunks in a region
     /// </summary>
-    public Vector3Int regionSize = new Vector3Int(8, 8, 8);
+    public Vector3Int regionSize = Vector3Int.one;
 
     /// <summary>
     /// The voxel data for the World

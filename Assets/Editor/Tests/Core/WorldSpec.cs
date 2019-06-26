@@ -16,10 +16,15 @@ namespace Tests
             {
                 World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
                 World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
-                world.Initialize();
+                world.Initialize(); // default world size is (1,1,1)
 
                 Vector3 position = world.GetChunkPosition(Vector3Int.zero);
-                Assert.AreEqual(Vector3.zero, position);
+                Vector3 expected = new Vector3(-0.5f, -0.5f, -0.5f);
+                Assert.AreEqual(expected, position);
+
+                position = world.GetChunkPosition(Vector3Int.one);
+                expected = new Vector3(0.5f, 0.5f, 0.5f);
+                Assert.AreEqual(expected, position);
 
                 yield return null;
             }
@@ -37,9 +42,10 @@ namespace Tests
                 Vector3Int zero = Vector3Int.zero;
                 Chunk chunk = world.CreateChunk(zero);
 
-                Assert.AreSame(chunk, world.chunks[zero]);               // check that the chunk was added to the worlds chunks
-                Assert.AreSame(world.transform, chunk.transform.parent); // check that the chunk is attached to the worlds transform
-                Assert.AreEqual(Vector3.zero, chunk.transform.position); // confirm the chunks position in the Scene
+                Vector3 expected_position = new Vector3(-0.5f, -0.5f, -0.5f);
+                Assert.AreSame(chunk, world.chunks[zero]);                      // check that the chunk was added to the worlds chunks
+                Assert.AreSame(world.transform, chunk.transform.parent);        // check that the chunk is attached to the worlds transform
+                Assert.AreEqual(expected_position, chunk.transform.position);   // confirm the chunks position in the Scene
 
                 yield return null;
                 Object.DestroyImmediate(chunk);
