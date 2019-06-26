@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEditor;
 
 namespace Tests
 {
@@ -42,6 +43,22 @@ namespace Tests
                     }
                 }
             }
+        }
+
+        [UnityTest]
+        public IEnumerator CanCreateChunk()
+        {
+            Chunk prefab = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
+
+            World world = new World();
+            world.chunk = prefab;
+            world.Initialize();
+
+            Vector3Int zero = Vector3Int.zero;
+            Chunk chunk = world.CreateChunk(zero);
+
+            Assert.AreSame(chunk, world.chunks[zero]);
+            yield return null;
         }
     }
 }

@@ -49,6 +49,11 @@ public class World : MonoBehaviour
     public WorldData data { get { return _data; } }
 
     /// <summary>
+    /// The active Chunks in the World
+    /// </summary>
+    public Dictionary<Vector3Int, Chunk> chunks = new Dictionary<Vector3Int, Chunk>();
+
+    /// <summary>
     /// Initialize a new World
     /// </summary>
     public void Initialize()
@@ -81,6 +86,17 @@ public class World : MonoBehaviour
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Create a new Chunk in the World
+    /// </summary>
+    /// <param name="offset">The chunk offset from the world origin</param>
+    public Chunk CreateChunk(Vector3Int offset)
+    {
+        Chunk newChunk = Instantiate(chunk, Vector3.zero, Quaternion.identity) as Chunk;
+        chunks.Add(offset, newChunk);
+        return newChunk;
     }
 
     void OnDrawGizmos()
