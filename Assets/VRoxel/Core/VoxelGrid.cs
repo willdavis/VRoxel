@@ -52,18 +52,22 @@ public class VoxelGrid
     public byte Get(int x, int y, int z) { return _cache[x, y, z]; }
 
     /// <summary>
-    /// Set a block type in the voxel grid cache
+    /// Safely set a block index in the voxel grid cache
     /// </summary>
-    /// <param name="point">A point inside the world</param>
-    /// <param name="block">The block type to be set</param>
-    public void Set(Vector3Int point, byte block) { Set(point.x, point.y, point.z, block); }
+    /// <param name="point">A point inside the voxel grid</param>
+    /// <param name="block">The block index to be set</param>
+    public void Set(Vector3Int point, byte block)
+    {
+        if (!Contains(point)) { return; }
+        Set(point.x, point.y, point.z, block);
+    }
 
     /// <summary>
-    /// Set a block type in the voxel grid cache
+    /// Unsafely set a block index in the voxel grid cache
     /// </summary>
     /// <param name="x">the X coordinate</param>
     /// <param name="y">the Y coordinate</param>
     /// <param name="z">the Z coordinate</param>
-    /// <param name="block">The block type to be set</param>
+    /// <param name="block">The block index to be set</param>
     public void Set(int x, int y, int z, byte block) { _cache[x, y, z] = block; }
 }

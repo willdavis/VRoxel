@@ -19,30 +19,32 @@ namespace Tests
         [Test]
         public void CanGetPoint()
         {
-            Vector3Int size = new Vector3Int(1,1,1);
-            VoxelGrid data = new VoxelGrid(size);
+            VoxelGrid data = new VoxelGrid(Vector3Int.one);
+            data.Set(Vector3Int.zero, 1);
 
-            Assert.AreEqual(0, data.Get(Vector3Int.zero));
+            Assert.AreEqual(1, data.Get(Vector3Int.zero)); // check point inside the world
+            Assert.AreEqual(0, data.Get(Vector3Int.one));  // check point outside the world
         }
 
         [Test]
         public void CanSetPoint()
         {
-            Vector3Int size = new Vector3Int(1,1,1);
-            VoxelGrid data = new VoxelGrid(size);
+            VoxelGrid data = new VoxelGrid(Vector3Int.one);
 
-            data.Set(Vector3Int.zero, 12);
+            data.Set(Vector3Int.zero, 12); // set point inside the world
             Assert.AreEqual(12, data.Get(Vector3Int.zero));
+
+            data.Set(Vector3Int.one, 12);  // set point outside the world
+            Assert.AreEqual(0, data.Get(Vector3Int.one));
         }
 
         [Test]
         public void CanContainPoint()
         {
-            Vector3Int size = new Vector3Int(1,1,1);
-            VoxelGrid data = new VoxelGrid(size);
+            VoxelGrid data = new VoxelGrid(Vector3Int.one);
 
-            Assert.AreEqual(true, data.Contains(Vector3Int.zero));
-            Assert.AreEqual(false, data.Contains(Vector3Int.right));
+            Assert.AreEqual(true, data.Contains(Vector3Int.zero));   // check point inside the world
+            Assert.AreEqual(false, data.Contains(Vector3Int.right)); // check point outside the world
         }
     }
 }
