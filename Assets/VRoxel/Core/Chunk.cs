@@ -23,19 +23,18 @@ public class Chunk : MonoBehaviour
         GetComponent<MeshRenderer>().material = world.blocks.textures.material;
         _meshGenerator = new MeshGenerator(world.data, world.blocks);
         _mesh = new Mesh();
-
-        _world = world;
         _offset = offset;
+        _world = world;
     }
 
     /// <summary>
     /// Generates the render and collision mesh for the Chunk
     /// </summary>
-    private void GenerateMesh()
+    public void GenerateMesh()
     {
-        //_meshGenerator.BuildMesh(_world.chunkSize, _offset, ref _mesh);
-        //_meshFilter.sharedMesh = _mesh;
-        //_meshCollider.sharedMesh = _mesh;
+        _meshGenerator.BuildMesh(_world.chunkSize, _offset, _world.scale, ref _mesh);
+        _meshFilter.sharedMesh = _mesh;
+        _meshCollider.sharedMesh = _mesh;
     }
 
     void Awake()
