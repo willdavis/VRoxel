@@ -8,4 +8,9 @@ public class Block
 {
     public string name;
     public Dictionary<Cube.Direction, Vector2> textures;
+
+    public Block()
+    {
+        textures = new Dictionary<Cube.Direction, Vector2>();
+    }
 }

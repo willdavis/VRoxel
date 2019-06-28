@@ -34,13 +34,17 @@ public class VoxelGrid
     }
 
     /// <summary>
-    /// Get a block type from the voxel grid cache
+    /// Safely get a block type from the voxel grid cache
     /// </summary>
     /// <param name="point">A point inside the world</param>
-    public byte Get(Vector3Int point) { return Get(point.x, point.y, point.z); }
+    public byte Get(Vector3Int point)
+    {
+        if (!Contains(point)) { return 0; }
+        return Get(point.x, point.y, point.z);
+    }
 
     /// <summary>
-    /// Get a block type from the voxel grid cache
+    /// Unsafely get a block type from the voxel grid cache
     /// </summary>
     /// <param name="x">the X coordinate</param>
     /// <param name="y">the Y coordinate</param>

@@ -8,11 +8,33 @@ namespace Tests
 {
     public class MeshGeneratorSpec
     {
-        // A Test behaves as an ordinary method
         [Test]
-        public void MeshGeneratorSpecSimplePasses()
+        public void CanBuildMesh()
         {
-            // Use the Assert class to test conditions
+            Mesh mesh = new Mesh();
+            Block block = new Block();
+            BlockManager manager = new BlockManager();
+            VoxelGrid data = new VoxelGrid(Vector3Int.one);
+            MeshGenerator generator = new MeshGenerator(data, manager);
+
+            // setup a block to be rendered
+            data.Set(Vector3Int.zero, 1);
+            manager.blocks.Add(1, block);
+
+            block.textures.Add(Cube.Direction.Top, Vector2.zero);
+            block.textures.Add(Cube.Direction.Bottom, Vector2.zero);
+            block.textures.Add(Cube.Direction.North, Vector2.zero);
+            block.textures.Add(Cube.Direction.East, Vector2.zero);
+            block.textures.Add(Cube.Direction.South, Vector2.zero);
+            block.textures.Add(Cube.Direction.West, Vector2.zero);
+
+            // generate 1 cube
+            generator.BuildMesh(Vector3Int.one, Vector3Int.zero, 1f, ref mesh);
+
+            // confirm 1 cube was generated
+            Assert.AreEqual(24, mesh.vertices.GetLength(0));  // expect 4x6 vertices
+            Assert.AreEqual(36, mesh.triangles.GetLength(0)); // expect 6x6 triangles
+            Assert.AreEqual(24, mesh.uv.GetLength(0));        // expect 4x6 uv coordinates
         }
     }
 }
