@@ -26,6 +26,7 @@ namespace Tests
                 expected = new Vector3(0.5f, 0.5f, 0.5f);
                 Assert.AreEqual(expected, position);
 
+                Object.DestroyImmediate(world);
                 yield return null;
             }
 
@@ -47,9 +48,9 @@ namespace Tests
                 Assert.AreSame(world.transform, chunk.transform.parent);        // check that the chunk is attached to the worlds transform
                 Assert.AreEqual(expected_position, chunk.transform.position);   // confirm the chunks position in the Scene
 
-                yield return null;
                 Object.DestroyImmediate(chunk);
                 Object.DestroyImmediate(world);
+                yield return null;
             }
         }
 

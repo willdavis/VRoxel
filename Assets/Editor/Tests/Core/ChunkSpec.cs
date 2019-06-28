@@ -23,9 +23,9 @@ namespace Tests
             world.blocks.textures.material = material;
             chunk.Initialize(world, Vector3Int.zero);
 
-            yield return null;
             Object.DestroyImmediate(chunk);
             Object.DestroyImmediate(world);
+            yield return null;
         }
 
         [UnityTest]
@@ -70,9 +70,9 @@ namespace Tests
             Assert.AreEqual(36, mesh.triangles.GetLength(0)); // expect 6x6 triangles
             Assert.AreEqual(24, mesh.uv.GetLength(0));        // expect 4x6 uv coordinates
 
-            yield return null;
             Object.DestroyImmediate(chunk);
             Object.DestroyImmediate(world);
+            yield return null;
         }
     }
 }
