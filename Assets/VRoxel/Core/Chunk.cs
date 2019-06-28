@@ -10,7 +10,6 @@ public class Chunk : MonoBehaviour
     private World _world;
     private Vector3Int _offset;
     private MeshFilter _meshFilter;
-    private MeshRenderer _meshRenderer;
     private MeshCollider _meshCollider;
 
     /// <summary>
@@ -18,9 +17,9 @@ public class Chunk : MonoBehaviour
     /// </summary>
     public void Initialize(World world, Vector3Int offset)
     {
+        GetComponent<MeshRenderer>().material = world.blocks.textures.material;
         _world = world;
         _offset = offset;
-        _meshRenderer.material = world.blocks.textures.material;
 
         // TODO: configure mesh generator, for example:
         //_meshGenerator = new MeshGenerator(_world.data, _world.textures);
@@ -40,7 +39,6 @@ public class Chunk : MonoBehaviour
     void Awake()
     {
         _meshFilter = GetComponent<MeshFilter>();
-        _meshRenderer = GetComponent<MeshRenderer>();
         _meshCollider = GetComponent<MeshCollider>();
     }
 
