@@ -5,11 +5,13 @@ using UnityEngine;
 /// <summary>
 /// Manages and configures all blocks in a world
 /// </summary>
+[System.Serializable]
 public class BlockManager
 {
     /// <summary>
     /// The texture data common to all blocks
     /// </summary>
+    [System.Serializable]
     public class TextureAtlas
     {
         /// <summary>

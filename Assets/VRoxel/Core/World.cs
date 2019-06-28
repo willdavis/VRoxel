@@ -14,9 +14,9 @@ public class World : MonoBehaviour
     public Chunk chunk;
 
     /// <summary>
-    /// Unity Material to use as the texture atlas
+    /// Contains the block definitions for this world
     /// </summary>
-    public Material material;
+    public BlockManager blocks = new BlockManager();
 
     /// <summary>
     /// The seed for random noise generation

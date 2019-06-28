@@ -20,7 +20,7 @@ public class Chunk : MonoBehaviour
     {
         _world = world;
         _offset = offset;
-        _meshRenderer.material = world.material;
+        _meshRenderer.material = world.blocks.textures.material;
 
         // TODO: configure mesh generator, for example:
         //_meshGenerator = new MeshGenerator(_world.data, _world.textures);
