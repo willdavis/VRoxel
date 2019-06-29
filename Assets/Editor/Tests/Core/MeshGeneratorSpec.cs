@@ -19,7 +19,7 @@ namespace Tests
 
             // setup a block to be rendered
             data.Set(Vector3Int.zero, 1);
-            manager.blocks.Add(1, block);
+            manager.library.Add(1, block);
 
             block.textures.Add(Cube.Direction.Top, Vector2.zero);
             block.textures.Add(Cube.Direction.Bottom, Vector2.zero);

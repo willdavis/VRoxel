@@ -28,16 +28,16 @@ public class BlockManager
     /// <summary>
     /// The texture data common to all blocks
     /// </summary>
-    public TextureAtlas textures;
+    public TextureAtlas texture;
     
     /// <summary>
     /// Connects each block to a byte index used in the VoxelGrid
     /// </summary>
-    public Dictionary<byte, Block> blocks;
+    public Dictionary<byte, Block> library;
 
     public BlockManager()
     {
-        blocks = new Dictionary<byte, Block>();
-        textures = new TextureAtlas();
+        library = new Dictionary<byte, Block>();
+        texture = new TextureAtlas();
     }
 }

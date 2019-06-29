@@ -20,7 +20,7 @@ namespace Tests
             Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
             Chunk chunk = UnityEngine.Object.Instantiate(prefab_chunk, Vector3.zero, Quaternion.identity) as Chunk;
 
-            world.blocks.textures.material = material;
+            world.blocks.texture.material = material;
             chunk.Initialize(world, Vector3Int.zero);
 
             Object.DestroyImmediate(chunk);
@@ -46,7 +46,7 @@ namespace Tests
             // setup a block to be rendered
             Block block = new Block();
             world.data.Set(Vector3Int.zero, 1);
-            world.blocks.blocks.Add(1, block);
+            world.blocks.library.Add(1, block);
 
             // setup textures for the block
             block.textures.Add(Cube.Direction.Top, Vector2.zero);
@@ -57,7 +57,7 @@ namespace Tests
             block.textures.Add(Cube.Direction.West, Vector2.zero);
 
             // setup chunk and generate the mesh
-            world.blocks.textures.material = material;
+            world.blocks.texture.material = material;
             chunk.Initialize(world, Vector3Int.zero);
             chunk.GenerateMesh();
 

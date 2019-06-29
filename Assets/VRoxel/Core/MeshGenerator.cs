@@ -49,7 +49,7 @@ public class MeshGenerator
                     index = _data.Get(point);
                     if (index == 0) { continue; }
 
-                    block = _blocks.blocks[index];
+                    block = _blocks.library[index];
                     if (_data.Get(point + Vector3Int.up) == 0)    { AddFace(point, block, scale, Cube.Direction.Top);    }
                     if (_data.Get(point + Vector3Int.down) == 0)  { AddFace(point, block, scale, Cube.Direction.Bottom); }
                     if (_data.Get(point + Vector3Int_front) == 0) { AddFace(point, block, scale, Cube.Direction.North);  }
@@ -83,7 +83,7 @@ public class MeshGenerator
     /// <param name="dir">The direction of the cube face</param>
     private void AddFace(Vector3Int point, Block block, float scale, Cube.Direction dir)
     {
-        float size = _blocks.textures.size;
+        float size = _blocks.texture.size;
         Vector2 texture = block.textures[dir];
         Vector3 position = Vector3.zero;
         float halfScale = scale * 0.5f;

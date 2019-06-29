@@ -15,8 +15,8 @@ namespace Tests
             Block block = new Block();
             BlockManager manager = new BlockManager();
 
-            manager.blocks.Add(index, block);
-            Assert.AreSame(block, manager.blocks[index]);
+            manager.library.Add(index, block);
+            Assert.AreSame(block, manager.library[index]);
         }
 
         [Test]
@@ -25,11 +25,11 @@ namespace Tests
             Material material = new Material(Shader.Find("Specular"));
             BlockManager manager = new BlockManager();
 
-            manager.textures.material = material;
-            manager.textures.size = 10f;
+            manager.texture.material = material;
+            manager.texture.size = 10f;
 
-            Assert.AreSame(material, manager.textures.material);
-            Assert.AreEqual(10f, manager.textures.size);
+            Assert.AreSame(material, manager.texture.material);
+            Assert.AreEqual(10f, manager.texture.size);
         }
     }
 }

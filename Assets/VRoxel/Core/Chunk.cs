@@ -20,7 +20,7 @@ public class Chunk : MonoBehaviour
     /// </summary>
     public void Initialize(World world, Vector3Int offset)
     {
-        GetComponent<MeshRenderer>().material = world.blocks.textures.material;
+        GetComponent<MeshRenderer>().material = world.blocks.texture.material;
         _meshGenerator = new MeshGenerator(world.data, world.blocks);
         _mesh = new Mesh();
         _offset = offset;

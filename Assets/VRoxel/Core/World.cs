@@ -99,6 +99,7 @@ public class World : MonoBehaviour
 
         Chunk newChunk = Instantiate(chunk, position, rotation) as Chunk;
         newChunk.transform.parent = transform;
+        newChunk.Initialize(this, offset);
 
         chunks.Add(offset, newChunk);
         return newChunk;
