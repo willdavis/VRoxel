@@ -25,6 +25,9 @@ public class Chunk : MonoBehaviour
         _mesh = new Mesh();
         _offset = offset;
         _world = world;
+
+        runInEditMode = true; // needed for integration tests
+        Debug.Log("Initialized Chunk: " + offset);
     }
 
     /// <summary>
