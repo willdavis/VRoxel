@@ -9,51 +9,6 @@ namespace Tests
 {
     public class WorldSpec
     {
-        public class HasChunks
-        {
-            [UnityTest]
-            public IEnumerator CanGetChunkPosition()
-            {
-                World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
-                World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
-                world.Initialize(); // default world size is (1,1,1)
-
-                Vector3 position = world.GetChunkPosition(Vector3Int.zero);
-                Vector3 expected = new Vector3(-0.5f, -0.5f, -0.5f);
-                Assert.AreEqual(expected, position);
-
-                position = world.GetChunkPosition(Vector3Int.one);
-                expected = new Vector3(0.5f, 0.5f, 0.5f);
-                Assert.AreEqual(expected, position);
-
-                Object.DestroyImmediate(world);
-                yield return null;
-            }
-
-            [UnityTest]
-            public IEnumerator CanCreateChunk()
-            {
-                Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
-                World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
-
-                World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
-                world.chunk = prefab_chunk;
-                world.Initialize();
-
-                Vector3Int zero = Vector3Int.zero;
-                Chunk chunk = world.CreateChunk(zero);
-
-                Vector3 expected_position = new Vector3(-0.5f, -0.5f, -0.5f);
-                Assert.AreSame(chunk, world.chunks[zero]);                      // check that the chunk was added to the worlds chunks
-                Assert.AreSame(world.transform, chunk.transform.parent);        // check that the chunk is attached to the worlds transform
-                Assert.AreEqual(expected_position, chunk.transform.position);   // confirm the chunks position in the Scene
-
-                Object.DestroyImmediate(chunk);
-                Object.DestroyImmediate(world);
-                yield return null;
-            }
-        }
-
         [Test]
         public void HasData()
         {
@@ -88,6 +43,57 @@ namespace Tests
                     }
                 }
             }
+        }
+
+        [UnityTest]
+        public IEnumerator CanCreateChunks()
+        {
+            Material material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Editor/Materials/TextureAtlas.mat");
+            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
+            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
+
+            World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
+            world.chunk = prefab_chunk;
+
+            world.chunkSize = new Vector3Int(2,2,2);
+            world.size = new Vector3Int(6,6,6);
+
+            world.Initialize();
+            world.Generate(world.size, Vector3Int.zero);
+
+            // setup a block to be rendered
+            Block block = new Block();
+            world.blocks.library.Add(1, block);
+            world.blocks.texture.material = material;
+            world.blocks.texture.size = 0.25f;
+
+            // setup textures for the block
+            block.textures.Add(Cube.Direction.Top, Vector2.zero);
+            block.textures.Add(Cube.Direction.Bottom, Vector2.zero);
+            block.textures.Add(Cube.Direction.North, Vector2.zero);
+            block.textures.Add(Cube.Direction.East, Vector2.zero);
+            block.textures.Add(Cube.Direction.South, Vector2.zero);
+            block.textures.Add(Cube.Direction.West, Vector2.zero);
+
+            for (int x = 0; x < world.size.x / world.chunkSize.x; x++)
+            {
+                for (int z = 0; z < world.size.z / world.chunkSize.z; z++)
+                {
+                    for (int y = 0; y < world.size.y / world.chunkSize.y; y++)
+                    {
+                        Vector3Int point = new Vector3Int(x,y,z);
+                        Chunk chunk = world.CreateChunk(point);
+
+                        yield return null;
+                        //System.Threading.Thread.Sleep(100);
+
+                        Assert.AreSame(chunk, world.chunks[point]);
+                        Assert.AreSame(world.transform, chunk.transform.parent);
+                    }
+                }
+            }
+            //System.Threading.Thread.Sleep(1000);
+            Object.DestroyImmediate(world);
         }
     }
 }

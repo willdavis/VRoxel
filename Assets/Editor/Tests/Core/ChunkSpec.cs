@@ -70,7 +70,7 @@ namespace Tests
             chunk.GenerateMesh();
 
             yield return null; // skip a frame to render the chunk
-            System.Threading.Thread.Sleep(2000); // sleep so we can see it
+            //System.Threading.Thread.Sleep(2000); // sleep so we can see it
 
             // check the generated mesh
             Mesh mesh = chunk.GetComponent<MeshFilter>().sharedMesh;
