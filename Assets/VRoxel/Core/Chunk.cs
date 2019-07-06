@@ -18,16 +18,22 @@ public class Chunk : MonoBehaviour
     /// <summary>
     /// Initialize a Chunk in the World
     /// </summary>
-    public void Initialize(World world, Vector3Int offset)
+    /// <param name="world">The parent World this Chunk belongs to</param>
+    /// <param name="position">The chunks grid position in the world</param>
+    public void Initialize(World world, Vector3Int position)
     {
         GetComponent<MeshRenderer>().material = world.blocks.texture.material;
         _meshGenerator = new MeshGenerator(world.data, world.blocks);
         _mesh = new Mesh();
-        _offset = offset;
         _world = world;
 
+        // set the chunks offset in the voxel grid
+        _offset.x = position.x * world.chunkSize.x;
+        _offset.y = position.y * world.chunkSize.y;
+        _offset.z = position.z * world.chunkSize.z;
+
         runInEditMode = true; // needed for integration tests
-        Debug.Log("Initialized Chunk: " + offset);
+        Debug.Log("Initialized Chunk: " + position + " at: " + transform.position);
     }
 
     /// <summary>
