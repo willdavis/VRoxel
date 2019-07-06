@@ -91,17 +91,17 @@ public class World : MonoBehaviour
     /// <summary>
     /// Creates a new Chunk in the World
     /// </summary>
-    /// <param name="offset">The chunk offset from the world origin</param>
-    public Chunk CreateChunk(Vector3Int offset)
+    /// <param name="position">The chunk position relative to the worlds chunk size</param>
+    public Chunk CreateChunk(Vector3Int position)
     {
-        Vector3 position = GetChunkPosition(offset);
-        Quaternion rotation = transform.rotation;
+        Chunk newChunk = Instantiate(chunk,
+            GetChunkPosition(position),
+            transform.rotation
+        ) as Chunk;
 
-        Chunk newChunk = Instantiate(chunk, position, rotation) as Chunk;
         newChunk.transform.parent = transform;
-        newChunk.Initialize(this, offset);
-
-        chunks.Add(offset, newChunk);
+        newChunk.Initialize(this, position);
+        chunks.Add(position, newChunk);
         return newChunk;
     }
 
