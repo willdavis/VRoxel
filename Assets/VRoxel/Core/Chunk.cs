@@ -59,4 +59,17 @@ public class Chunk : MonoBehaviour
             needsUpdate = false;
         }
     }
+
+    void OnDrawGizmos()
+    {
+        Vector3 bounds = new Vector3(
+            _world.chunkSize.x * _world.scale,
+            _world.chunkSize.y * _world.scale,
+            _world.chunkSize.z * _world.scale
+        );
+
+        Gizmos.color = Color.yellow;
+        Gizmos.matrix = transform.localToWorldMatrix;
+        Gizmos.DrawWireCube(Vector3.zero, bounds);
+    }
 }

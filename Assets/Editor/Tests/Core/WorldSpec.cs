@@ -55,8 +55,10 @@ namespace Tests
             World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
             world.chunk = prefab_chunk;
 
+            world.transform.rotation = Quaternion.Euler(0,45,0);
             world.chunkSize = new Vector3Int(2,2,2);
-            world.size = new Vector3Int(6,6,6);
+            world.size = new Vector3Int(10,10,10);
+            world.scale = 0.5f;
 
             world.Initialize();
             world.Generate(world.size, Vector3Int.zero);
