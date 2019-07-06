@@ -85,13 +85,10 @@ public class MeshGenerator
     {
         float size = _blocks.texture.size;
         Vector2 texture = block.textures[dir];
-        Vector3 position = Vector3.zero;
         float halfScale = scale * 0.5f;
 
-        // add vertices for the face
-        position.x = (float)point.x * scale;
-        position.y = (float)point.y * scale;
-        position.z = (float)point.z * scale;
+        Vector3 position = point;
+        position *= scale;
 
         Cube.Face((int)dir, position, halfScale, ref face);
         _meshVert.AddRange(face);
