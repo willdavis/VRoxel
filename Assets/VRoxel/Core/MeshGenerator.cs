@@ -34,6 +34,7 @@ public class MeshGenerator
     {
         byte index;
         Block block;
+        Vector3 position = Vector3.zero;
         Vector3Int voxel = Vector3Int.zero;
         Vector3Int Vector3Int_front = new Vector3Int(0,0,1);
         Vector3Int Vector3Int_back = new Vector3Int(0,0,-1);
@@ -53,13 +54,21 @@ public class MeshGenerator
                     index = _data.Get(voxel);
                     if (index == 0) { continue; }   // skip if the block is air
 
+                    position.x = (float)x * _scale;
+                    position.y = (float)y * _scale;
+                    position.z = (float)z * _scale;
+
+                    position.x -= 0.5f * ((float)size.x - 1f) * _scale;
+                    position.y -= 0.5f * ((float)size.y - 1f) * _scale;
+                    position.z -= 0.5f * ((float)size.z - 1f) * _scale;
+
                     block = _blocks.library[index]; // get the block metadata and check neighbors for air
-                    if (_data.Get(voxel + Vector3Int.up) == 0)    { AddFace(x, y, z, block, Cube.Direction.Top);    }
-                    if (_data.Get(voxel + Vector3Int.down) == 0)  { AddFace(x, y, z, block, Cube.Direction.Bottom); }
-                    if (_data.Get(voxel + Vector3Int_front) == 0) { AddFace(x, y, z, block, Cube.Direction.North);  }
-                    if (_data.Get(voxel + Vector3Int.right) == 0) { AddFace(x, y, z, block, Cube.Direction.East);   }
-                    if (_data.Get(voxel + Vector3Int_back) == 0)  { AddFace(x, y, z, block, Cube.Direction.South);  }
-                    if (_data.Get(voxel + Vector3Int.left) == 0)  { AddFace(x, y, z, block, Cube.Direction.West);   }
+                    if (_data.Get(voxel + Vector3Int.up) == 0)    { AddFace(position, block, Cube.Direction.Top);    }
+                    if (_data.Get(voxel + Vector3Int.down) == 0)  { AddFace(position, block, Cube.Direction.Bottom); }
+                    if (_data.Get(voxel + Vector3Int_front) == 0) { AddFace(position, block, Cube.Direction.North);  }
+                    if (_data.Get(voxel + Vector3Int.right) == 0) { AddFace(position, block, Cube.Direction.East);   }
+                    if (_data.Get(voxel + Vector3Int_back) == 0)  { AddFace(position, block, Cube.Direction.South);  }
+                    if (_data.Get(voxel + Vector3Int.left) == 0)  { AddFace(position, block, Cube.Direction.West);   }
                 }
             }
         }
@@ -81,21 +90,13 @@ public class MeshGenerator
     /// <summary>
     /// Add cube face vertices, triangles, and UVs to the cache
     /// </summary>
-    /// <param name="x">The x-offset in the mesh bounds</param>
-    /// <param name="y">The y-offset in the mesh bounds</param>
-    /// <param name="z">The z-offset in the mesh bounds</param>
-    /// <param name="block">The block to be rendered</param>
-    /// <param name="dir">The direction of the cube face</param>
-    private void AddFace(int x, int y, int z, Block block, Cube.Direction dir)
+    /// <param name="position">The position of the cube</param>
+    /// <param name="block">The block data for the cube</param>
+    /// <param name="dir">The direction of the cube to render</param>
+    private void AddFace(Vector3 position, Block block, Cube.Direction dir)
     {
         float size = _blocks.texture.size;
         Vector2 texture = block.textures[dir];
-        Vector3 position = Vector3.zero;
-
-        // adjust the position of the face
-        position.x = (float)x * _scale;
-        position.y = (float)y * _scale;
-        position.z = (float)z * _scale;
 
         // add vertices for the face
         Cube.Face((int)dir, position, _halfScale, ref face);

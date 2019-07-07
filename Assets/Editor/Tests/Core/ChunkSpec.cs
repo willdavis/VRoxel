@@ -36,9 +36,11 @@ namespace Tests
             Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
 
             // setup a world
+            Vector3Int size = new Vector3Int(5,5,5);
             World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
-            world.chunkSize = new Vector3Int(2,2,2);
-            world.size = new Vector3Int(2,2,2);
+            world.chunkSize = size;
+            world.size = size;
+            world.scale = 0.5f;
             world.Initialize();
             world.Generate(world.size, Vector3Int.zero);
 
@@ -69,9 +71,9 @@ namespace Tests
             Mesh coll = chunk.GetComponent<MeshCollider>().sharedMesh;
 
             Assert.AreSame(mesh, coll);
-            Assert.AreEqual(96, mesh.uv.GetLength(0));
-            Assert.AreEqual(96, mesh.vertices.GetLength(0));
-            Assert.AreEqual(144, mesh.triangles.GetLength(0));
+            Assert.AreEqual(600, mesh.uv.GetLength(0));
+            Assert.AreEqual(600, mesh.vertices.GetLength(0));
+            Assert.AreEqual(900, mesh.triangles.GetLength(0));
 
             Object.DestroyImmediate(chunk);
             Object.DestroyImmediate(world);
