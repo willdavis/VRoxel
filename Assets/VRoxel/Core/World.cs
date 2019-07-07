@@ -66,16 +66,16 @@ public class World : MonoBehaviour
     /// Generate world data within the given bounds.
     /// Any points outside the world will be skipped.
     /// </summary>
-    /// <param name="bounds">The area to generate data</param>
+    /// <param name="size">The number of voxels to generate</param>
     /// <param name="offset">The offset from the world origin</param>
-    public void Generate(Vector3Int bounds, Vector3Int offset)
+    public void Generate(Vector3Int size, Vector3Int offset)
     {
         Vector3Int point = Vector3Int.zero;
-        for (int x = 0; x < bounds.x; x++)
+        for (int x = 0; x < size.x; x++)
         {
-            for (int z = 0; z < bounds.z; z++)
+            for (int z = 0; z < size.z; z++)
             {
-                for (int y = 0; y < bounds.y; y++)
+                for (int y = 0; y < size.y; y++)
                 {
                     point.x = x + offset.x;
                     point.y = y + offset.y;
@@ -91,27 +91,27 @@ public class World : MonoBehaviour
     /// <summary>
     /// Creates a new Chunk in the World
     /// </summary>
-    /// <param name="position">The chunk position relative to the worlds chunk size</param>
-    public Chunk CreateChunk(Vector3Int position)
+    /// <param name="index">The chunk index in the world</param>
+    public Chunk CreateChunk(Vector3Int index)
     {
         Chunk newChunk = Instantiate(chunk,
-            GetChunkPosition(position),
+            GetChunkPosition(index),
             transform.rotation
         ) as Chunk;
 
         newChunk.transform.parent = transform;
-        newChunk.Initialize(this, position);
-        chunks.Add(position, newChunk);
+        newChunk.Initialize(this, index);
+        chunks.Add(index, newChunk);
         return newChunk;
     }
 
     /// <summary>
-    /// Returns the position for a Chunk in the Unity scene
+    /// Calculates the Chunks position in the scene, relative to the Worlds transform
     /// </summary>
-    /// <param name="offset">The chunk offset from the world origin</param>
-    public Vector3 GetChunkPosition(Vector3Int offset)
+    /// <param name="index">The chunk index in the world</param>
+    public Vector3 GetChunkPosition(Vector3Int index)
     {
-        Vector3 position = offset;                  // adjust for the chunks offset
+        Vector3 position = index;                   // adjust for the chunks offset
         position.x *= chunkSize.x;
         position.y *= chunkSize.y;
         position.z *= chunkSize.z;

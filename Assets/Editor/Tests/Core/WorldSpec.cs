@@ -56,8 +56,8 @@ namespace Tests
             world.chunk = prefab_chunk;
 
             world.transform.rotation = Quaternion.Euler(0,45,0);
-            world.chunkSize = new Vector3Int(2,2,2);
-            world.size = new Vector3Int(10,10,10);
+            world.chunkSize = new Vector3Int(32,32,32);
+            world.size = new Vector3Int(128,32,128);
             world.scale = 0.5f;
 
             world.Initialize();
@@ -85,15 +85,14 @@ namespace Tests
                     {
                         Vector3Int point = new Vector3Int(x,y,z);
                         Chunk chunk = world.CreateChunk(point);
-
                         yield return null;
-                        //System.Threading.Thread.Sleep(100);
 
                         Assert.AreSame(chunk, world.chunks[point]);
                         Assert.AreSame(world.transform, chunk.transform.parent);
                     }
                 }
             }
+
             //System.Threading.Thread.Sleep(1000);
             Object.DestroyImmediate(world);
         }
