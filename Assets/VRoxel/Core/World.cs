@@ -58,7 +58,7 @@ public class World : MonoBehaviour
     /// </summary>
     public void Initialize()
     {
-        _terrain = new Terrain(seed);
+        _terrain = new Terrain(seed, 0.25f, 25f, 10f);
         _data = new VoxelGrid(size);
     }
 
@@ -70,19 +70,22 @@ public class World : MonoBehaviour
     /// <param name="offset">The offset from the world origin</param>
     public void Generate(Vector3Int size, Vector3Int offset)
     {
+        int terrain;
         Vector3Int point = Vector3Int.zero;
         for (int x = 0; x < size.x; x++)
         {
             for (int z = 0; z < size.z; z++)
             {
-                for (int y = 0; y < size.y; y++)
-                {
-                    point.x = x + offset.x;
-                    point.y = y + offset.y;
-                    point.z = z + offset.z;
+                point.x = x + offset.x;
+                point.z = z + offset.z;
+                terrain = _terrain.GetHeight(point.x, point.z);
 
+                for (int y = 0; y < size.y; y++)
+                {                    
+                    point.y = y + offset.y;
                     if (!_data.Contains(point)) { continue; }
-                    _data.Set(point, 1); // default to (byte)1
+                    if (point.y == 0) { _data.Set(point, 1); }
+                    if (point.y <= terrain) { _data.Set(point, 1); }
                 }
             }
         }

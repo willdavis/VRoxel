@@ -42,7 +42,17 @@ namespace Tests
             world.size = size;
             world.scale = 0.5f;
             world.Initialize();
-            world.Generate(world.size, Vector3Int.zero);
+
+            for (int x = 0; x < world.size.x; x++)
+            {
+                for (int y = 0; y < world.size.y; y++)
+                {
+                    for (int z = 0; z < world.size.z; z++)
+                    {
+                        world.data.Set(x,y,z,1);
+                    }
+                }
+            }
 
             // setup a block to be rendered
             Block block = new Block();

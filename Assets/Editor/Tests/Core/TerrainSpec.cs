@@ -12,8 +12,8 @@ namespace Tests
         public void CanGetHeight()
         {
             int seed = 0;
-            Terrain terrain = new Terrain(seed);
-            Assert.AreEqual(0, terrain.GetHeight(0,0,1));
+            Terrain terrain = new Terrain(seed,1,1,1);
+            Assert.AreEqual(1, terrain.GetHeight(0,0));
         }
     }
 }

@@ -1,19 +1,25 @@
 ﻿public class Terrain
 {
     private int _seed;
-    private FastNoise _noise;
+    private float _noise;
+    private float _scale;
+    private float _offset;
+    private FastNoise _fastNoise;
 
-    public Terrain(int seed)
+    public Terrain(int seed, float noise, float scale, float offset)
     {
         _seed = seed;
-        _noise = new FastNoise(seed);
+        _noise = noise;
+        _scale = scale;
+        _offset = offset;
+        _fastNoise = new FastNoise(seed);
     }
 
     /// <summary>
-    /// Calculates the height of the terrain at (x,z) with the given noise scale
+    /// Calculates the height of the terrain at (x,z)
     /// </summary>
-    public int GetHeight(int x, int z, float scale)
+    public int GetHeight(int x, int z)
     {
-        return (int)_noise.GetPerlin(x / scale, z / scale);
+        return (int)(_fastNoise.GetPerlin(x / _noise, z / _noise) * _scale + _offset);
     }
 }

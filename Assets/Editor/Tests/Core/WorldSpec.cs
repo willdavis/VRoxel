@@ -22,29 +22,6 @@ namespace Tests
             );
         }
 
-        [Test]
-        public void CanGenerateDefaultData()
-        {
-            Vector3Int size = new Vector3Int(10, 10, 10);
-            Vector3Int zero = Vector3Int.zero;
-
-            World world = new World();
-            world.size = size;
-            world.Initialize();
-            world.Generate(size, zero);
-
-            for (int x = 0; x < size.x; x++)
-            {
-                for (int z = 0; z < size.z; z++)
-                {
-                    for (int y = 0; y < size.y; y++)
-                    {
-                        Assert.AreEqual(1, world.data.Get(x,y,z));
-                    }
-                }
-            }
-        }
-
         [UnityTest]
         public IEnumerator CanCreateChunks()
         {
@@ -57,8 +34,9 @@ namespace Tests
 
             world.transform.rotation = Quaternion.Euler(0,45,0);
             world.chunkSize = new Vector3Int(32,32,32);
-            world.size = new Vector3Int(128,32,128);
-            world.scale = 0.5f;
+            world.size = new Vector3Int(256,32,256);
+            world.scale = 0.25f;
+            world.seed = 1337;
 
             world.Initialize();
             world.Generate(world.size, Vector3Int.zero);
@@ -70,12 +48,12 @@ namespace Tests
             world.blocks.texture.size = 0.25f;
 
             // setup textures for the block
-            block.textures.Add(Cube.Direction.Top, Vector2.zero);
-            block.textures.Add(Cube.Direction.Bottom, Vector2.zero);
-            block.textures.Add(Cube.Direction.North, Vector2.zero);
-            block.textures.Add(Cube.Direction.East, Vector2.zero);
-            block.textures.Add(Cube.Direction.South, Vector2.zero);
-            block.textures.Add(Cube.Direction.West, Vector2.zero);
+            block.textures.Add(Cube.Direction.Top, Vector2.one);
+            block.textures.Add(Cube.Direction.Bottom, Vector2.up);
+            block.textures.Add(Cube.Direction.North, Vector2.up);
+            block.textures.Add(Cube.Direction.East, Vector2.up);
+            block.textures.Add(Cube.Direction.South, Vector2.up);
+            block.textures.Add(Cube.Direction.West, Vector2.up);
 
             for (int x = 0; x < world.size.x / world.chunkSize.x; x++)
             {
@@ -93,7 +71,7 @@ namespace Tests
                 }
             }
 
-            //System.Threading.Thread.Sleep(1000);
+            //System.Threading.Thread.Sleep(2000);
             Object.DestroyImmediate(world);
         }
     }
