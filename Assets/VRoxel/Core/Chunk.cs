@@ -23,7 +23,7 @@ public class Chunk : MonoBehaviour
     public void Initialize(World world, Vector3Int position)
     {
         GetComponent<MeshRenderer>().material = world.blocks.texture.material;
-        _meshGenerator = new MeshGenerator(world.data, world.blocks);
+        _meshGenerator = new MeshGenerator(world.data, world.blocks, world.scale);
         _mesh = new Mesh();
         _world = world;
 
@@ -41,7 +41,7 @@ public class Chunk : MonoBehaviour
     /// </summary>
     public void GenerateMesh()
     {
-        _meshGenerator.BuildMesh(_world.chunkSize, _offset, _world.scale, ref _mesh);
+        _meshGenerator.BuildMesh(_world.chunkSize, _offset, ref _mesh);
         _meshFilter.sharedMesh = _mesh;
         _meshCollider.sharedMesh = _mesh;
     }
