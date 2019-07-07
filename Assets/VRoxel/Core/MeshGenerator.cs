@@ -31,7 +31,8 @@ public class MeshGenerator
     {
         byte index;
         Block block;
-        Vector3Int point = Vector3Int.zero;
+        Vector3Int dataPoint = Vector3Int.zero;
+        Vector3Int chunkPoint = Vector3Int.zero;
         Vector3Int Vector3Int_front = new Vector3Int(0,0,1);
         Vector3Int Vector3Int_back = new Vector3Int(0,0,-1);
 
@@ -42,20 +43,19 @@ public class MeshGenerator
             {
                 for (int y = 0; y < bounds.y; y++)
                 {
-                    point.x = x + offset.x;
-                    point.y = y + offset.y;
-                    point.z = z + offset.z;
+                    chunkPoint.x = x; chunkPoint.y = y; chunkPoint.z = z;
+                    dataPoint = chunkPoint + offset;
 
-                    index = _data.Get(point);
+                    index = _data.Get(dataPoint);
                     if (index == 0) { continue; }
 
                     block = _blocks.library[index];
-                    if (_data.Get(point + Vector3Int.up) == 0)    { AddFace(point, block, scale, Cube.Direction.Top);    }
-                    if (_data.Get(point + Vector3Int.down) == 0)  { AddFace(point, block, scale, Cube.Direction.Bottom); }
-                    if (_data.Get(point + Vector3Int_front) == 0) { AddFace(point, block, scale, Cube.Direction.North);  }
-                    if (_data.Get(point + Vector3Int.right) == 0) { AddFace(point, block, scale, Cube.Direction.East);   }
-                    if (_data.Get(point + Vector3Int_back) == 0)  { AddFace(point, block, scale, Cube.Direction.South);  }
-                    if (_data.Get(point + Vector3Int.left) == 0)  { AddFace(point, block, scale, Cube.Direction.West);   }
+                    if (_data.Get(dataPoint + Vector3Int.up) == 0)    { AddFace(chunkPoint, block, scale, Cube.Direction.Top);    }
+                    if (_data.Get(dataPoint + Vector3Int.down) == 0)  { AddFace(chunkPoint, block, scale, Cube.Direction.Bottom); }
+                    if (_data.Get(dataPoint + Vector3Int_front) == 0) { AddFace(chunkPoint, block, scale, Cube.Direction.North);  }
+                    if (_data.Get(dataPoint + Vector3Int.right) == 0) { AddFace(chunkPoint, block, scale, Cube.Direction.East);   }
+                    if (_data.Get(dataPoint + Vector3Int_back) == 0)  { AddFace(chunkPoint, block, scale, Cube.Direction.South);  }
+                    if (_data.Get(dataPoint + Vector3Int.left) == 0)  { AddFace(chunkPoint, block, scale, Cube.Direction.West);   }
                 }
             }
         }
