@@ -50,10 +50,10 @@ public class ChunkManager
     }
 
     /// <summary>
-    /// Read a Chunk from the cache
+    /// Fetch a Chunk from the cache
     /// </summary>
     /// <param name="index">The Chunk index</param>
-    public Chunk Read(Vector3Int index)
+    public Chunk Get(Vector3Int index)
     {
         if (!Contains(index)) { return null; }
         if (!_cache.ContainsKey(index)) { return null; }

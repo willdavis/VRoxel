@@ -61,11 +61,11 @@ namespace Tests
                 {
                     for (int y = 0; y < world.size.y / world.chunkSize.y; y++)
                     {
-                        Vector3Int point = new Vector3Int(x,y,z);
-                        Chunk chunk = world.CreateChunk(point);
+                        Vector3Int index = new Vector3Int(x,y,z);
+                        Chunk chunk = world.chunks.Create(index);
                         yield return null;
 
-                        Assert.AreSame(chunk, world.chunks[point]);
+                        Assert.AreSame(chunk, world.chunks.Get(index));
                         Assert.AreSame(world.transform, chunk.transform.parent);
                     }
                 }

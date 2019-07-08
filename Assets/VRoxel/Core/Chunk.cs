@@ -5,16 +5,18 @@ using UnityEngine;
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
 public class Chunk : MonoBehaviour
 {
-    [HideInInspector]
-    public bool needsUpdate;
-    public bool stale;
-
     private Mesh _mesh;
     private World _world;
     private Vector3Int _offset;
     private MeshFilter _meshFilter;
     private MeshCollider _meshCollider;
     private MeshGenerator _meshGenerator;
+
+    /// <summary>
+    /// Flags if the Chunk needs to be updated
+    /// </summary>
+    [HideInInspector]
+    public bool stale;
 
     /// <summary>
     /// Initialize a Chunk in the World
@@ -60,10 +62,10 @@ public class Chunk : MonoBehaviour
 
     void Update()
     {
-        if (needsUpdate)
+        if (stale)
         {
             GenerateMesh();
-            needsUpdate = false;
+            stale = false;
         }
     }
 

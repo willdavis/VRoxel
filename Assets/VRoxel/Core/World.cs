@@ -6,6 +6,7 @@ public class World : MonoBehaviour
 {
     private Terrain _terrain;
     private VoxelGrid _data;
+    private ChunkManager _chunks;
 
 
     /// <summary>
@@ -49,15 +50,16 @@ public class World : MonoBehaviour
     public VoxelGrid data { get { return _data; } }
 
     /// <summary>
-    /// The active Chunks in the World
+    /// The Chunk data for the world
     /// </summary>
-    public Dictionary<Vector3Int, Chunk> chunks = new Dictionary<Vector3Int, Chunk>();
+    public ChunkManager chunks { get { return _chunks; } }
 
     /// <summary>
     /// Initialize a new World
     /// </summary>
     public void Initialize()
     {
+        _chunks = new ChunkManager(this, chunk);
         _terrain = new Terrain(seed, 0.25f, 25f, 10f);
         _data = new VoxelGrid(size);
     }
@@ -90,46 +92,6 @@ public class World : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Creates a new Chunk in the World
-    /// </summary>
-    /// <param name="index">The chunk index in the world</param>
-    public Chunk CreateChunk(Vector3Int index)
-    {
-        Chunk newChunk = Instantiate(chunk,
-            GetChunkPosition(index),
-            transform.rotation
-        ) as Chunk;
-
-        newChunk.transform.parent = transform;
-        newChunk.Initialize(this, index);
-        chunks.Add(index, newChunk);
-        return newChunk;
-    }
-
-    /// <summary>
-    /// Calculates the Chunks position in the scene, relative to the Worlds transform
-    /// </summary>
-    /// <param name="index">The chunk index in the world</param>
-    public Vector3 GetChunkPosition(Vector3Int index)
-    {
-        Vector3 position = index;                   // adjust for the chunks offset
-        position.x *= chunkSize.x;
-        position.y *= chunkSize.y;
-        position.z *= chunkSize.z;
-
-        position.x += chunkSize.x * 0.5f;           // align the chunk with the world
-        position.y += chunkSize.y * 0.5f;
-        position.z += chunkSize.z * 0.5f;
-
-        position += _data.center * -1f;             // adjust for the worlds center
-        position = transform.rotation * position;   // adjust for the worlds rotation
-        position *= scale;                          // adjust for the worlds scale
-        position += transform.position;             // adjust for the worlds position
-
-        return position;
-    }
-
     public void SetBlock(Vector3Int point, byte block)
     {
         if (!_data.Contains(point)) { return; }
@@ -137,61 +99,7 @@ public class World : MonoBehaviour
         if (!blocks.library.ContainsKey(block)) { return; }
 
         _data.Set(point, block);
-        UpdateChunkAt(point);
-    }
-
-    private void UpdateChunk(Vector3Int index)
-    {
-        chunks[index].needsUpdate = true;
-    }
-
-    private Vector3Int GetChunkIndex(Vector3Int point)
-    {
-        Vector3Int index = Vector3Int.zero;
-        index.x = point.x / chunkSize.x;
-        index.y = point.y / chunkSize.y;
-        index.z = point.z / chunkSize.z;
-        return index;
-    }
-
-    private void UpdateChunkAt(Vector3Int point)
-    {
-        Vector3Int Vector3Int_front = new Vector3Int(0,0,1);
-        Vector3Int Vector3Int_back = new Vector3Int(0,0,-1);
-        Vector3Int index = GetChunkIndex(point);
-        UpdateChunk(index);
-
-        // update neighboring chunks
-        //
-        // check if x is a local minimum for the chunk
-        // and the chunk is not the first chunk on the X axis
-        if (point.x - (index.x * chunkSize.x) == 0 && index.x != 0)
-            UpdateChunk(index + Vector3Int.left);
-
-        // check if x is a local maximum for the chunk
-        // and the chunk is not the last chunk on the X axis
-        if (point.x - (index.x * chunkSize.x) == chunkSize.x - 1 && index.x != size.x / chunkSize.x - 1)
-            UpdateChunk(index + Vector3Int.right);
-
-        // check if y is a local minimum for the chunk
-        // and the chunk is not the first chunk on the Y axis
-        if (point.y - (index.y * chunkSize.y) == 0 && index.y != 0)
-            UpdateChunk(index + Vector3Int.down);
-
-        // check if y is a local maximum for the chunk
-        // and the chunk is not the last chunk on the Y axis
-        if (point.y - (index.y * chunkSize.y) == chunkSize.y - 1 && index.y != size.y / chunkSize.y - 1)
-            UpdateChunk(index + Vector3Int.up);
-
-        // check if z is a local minimum for the chunk
-        // and the chunk is not the first chunk on the Z axis
-        if (point.z - (index.z * chunkSize.z) == 0 && index.z != 0)
-            UpdateChunk(index + Vector3Int_back);
-
-        // check if z is a local maximum for the chunk
-        // and the chunk is not the last chunk on the Z axis
-        if (point.z - (index.z * chunkSize.z) == chunkSize.z - 1 && index.z != size.z / chunkSize.z - 1)
-            UpdateChunk(index + Vector3Int_front);
+        _chunks.UpdateFrom(point);
     }
 
     void OnDrawGizmos()

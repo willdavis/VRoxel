@@ -30,11 +30,11 @@ namespace Tests
             world.Initialize();
 
             ChunkManager manager = new ChunkManager(world, prefab_chunk);
-            Assert.AreEqual(null, manager.Read(Vector3Int.one));  // out of bounds
-            Assert.AreEqual(null, manager.Read(Vector3Int.zero)); // no chunk is present
+            Assert.AreEqual(null, manager.Get(Vector3Int.one));  // out of bounds
+            Assert.AreEqual(null, manager.Get(Vector3Int.zero)); // no chunk is present
 
             Chunk chunk = manager.Create(Vector3Int.zero);
-            Assert.AreSame(chunk, manager.Read(Vector3Int.zero)); // confirm chunk was cached
+            Assert.AreSame(chunk, manager.Get(Vector3Int.zero)); // confirm chunk was cached
 
             Object.DestroyImmediate(chunk);
             Object.DestroyImmediate(world);
