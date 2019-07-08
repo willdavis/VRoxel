@@ -7,6 +7,7 @@ public class Chunk : MonoBehaviour
 {
     [HideInInspector]
     public bool needsUpdate;
+    public bool stale;
 
     private Mesh _mesh;
     private World _world;
