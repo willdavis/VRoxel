@@ -55,11 +55,11 @@ namespace Tests
             block.textures.Add(Cube.Direction.South, Vector2.up);
             block.textures.Add(Cube.Direction.West, Vector2.up);
 
-            for (int x = 0; x < world.size.x / world.chunkSize.x; x++)
+            for (int x = 0; x < world.chunks.max.x; x++)
             {
-                for (int z = 0; z < world.size.z / world.chunkSize.z; z++)
+                for (int z = 0; z < world.chunks.max.z; z++)
                 {
-                    for (int y = 0; y < world.size.y / world.chunkSize.y; y++)
+                    for (int y = 0; y < world.chunks.max.y; y++)
                     {
                         Vector3Int index = new Vector3Int(x,y,z);
                         Chunk chunk = world.chunks.Create(index);

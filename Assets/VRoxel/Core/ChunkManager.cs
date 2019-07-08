@@ -23,6 +23,11 @@ public class ChunkManager
     }
 
     /// <summary>
+    /// The maximum number of Chunks in this World
+    /// </summary>
+    public Vector3Int max { get { return _max; } }
+
+    /// <summary>
     /// Test if the Chunk index is valid
     /// </summary>
     /// <param name="index">The Chunk index</param>
