@@ -28,6 +28,12 @@ public class ChunkManager
     public Vector3Int max { get { return _max; } }
 
     /// <summary>
+    /// Test if the Chunk index already exists in the cache
+    /// </summary>
+    /// <param name="index">The Chunk index</param>
+    public bool HasIndex(Vector3Int index) { return _cache.ContainsKey(index); }
+
+    /// <summary>
     /// Test if the Chunk index is valid
     /// </summary>
     /// <param name="index">The Chunk index</param>
@@ -40,28 +46,30 @@ public class ChunkManager
     }
 
     /// <summary>
-    /// Create a new Chunk in the world
+    /// Create a new Chunk in the world.
     /// </summary>
     /// <param name="index">The Chunk index</param>
     public Chunk Create(Vector3Int index)
     {
+        if (!Contains(index)) { return null; }
+
         Quaternion rotation = _world.transform.rotation;
         Chunk chunk = UnityEngine.Object.Instantiate(_prefab, Position(index), rotation) as Chunk;
-
         chunk.transform.parent = _world.transform;
         chunk.Initialize(_world, index);
         _cache.Add(index, chunk);
+
         return chunk;
     }
 
     /// <summary>
-    /// Fetch a Chunk from the cache
+    /// Fetch a Chunk from the cache.
     /// </summary>
     /// <param name="index">The Chunk index</param>
     public Chunk Get(Vector3Int index)
     {
         if (!Contains(index)) { return null; }
-        if (!_cache.ContainsKey(index)) { return null; }
+        if (!HasIndex(index)) { return null; }
         return _cache[index];
     }
 
@@ -72,7 +80,7 @@ public class ChunkManager
     public void Update(Vector3Int index)
     {
         if (!Contains(index)) { return; }
-        if (!_cache.ContainsKey(index)) { return; }
+        if (!HasIndex(index)) { return; }
         _cache[index].stale = true;
     }
 
@@ -83,7 +91,7 @@ public class ChunkManager
     public void Destroy(Vector3Int index)
     {
         if (!Contains(index)) { return; }
-        if (!_cache.ContainsKey(index)) { return; }
+        if (!HasIndex(index)) { return; }
 
         Object.Destroy(_cache[index].gameObject);
         _cache.Remove(index);
@@ -168,5 +176,30 @@ public class ChunkManager
         // and the chunk is not the last chunk on the Z axis
         if (point.z - (index.z * _world.chunkSize.z) == _world.chunkSize.z - 1 && index.z != _max.z - 1)
             Update(index + Vector3Int_front);
+    }
+
+    /// <summary>
+    /// Load a batch of Chunks in the World.
+    /// Indexes that are out of bounds will be skipped.
+    /// </summary>
+    /// <param name="count">The number of Chunks to create in each dimension</param>
+    /// <param name="offset">The offset for the Chunk indexes</param>
+    public void Load(Vector3Int count, Vector3Int offset)
+    {
+        Vector3Int index = Vector3Int.zero;
+        for (int x = 0; x < count.x; x++)
+        {
+            index.x = x + offset.x;
+            for (int z = 0; z < count.z; z++)
+            {
+                index.z = z + offset.z;
+                for (int y = 0; y < count.y; y++)
+                {
+                    index.y = y + offset.y;
+                    if (!Contains(index)) { continue; }
+                    Create(index);
+                }
+            }
+        }
     }
 }
