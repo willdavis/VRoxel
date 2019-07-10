@@ -92,28 +92,6 @@ public class World : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Calculates the voxel grid point for a position in the scene
-    /// </summary>
-    /// <param name="position">A position in the scene</param>
-    public Vector3Int Grid(Vector3 position)
-    {
-        Vector3 adjusted = position;
-        Vector3Int point = Vector3Int.zero;
-        Quaternion rotation = Quaternion.Inverse(transform.rotation);
-
-        adjusted += transform.position * -1f;
-        adjusted *= 1 / scale;
-        adjusted = rotation * adjusted;
-        adjusted += _data.center;
-
-        point.x = Mathf.FloorToInt(adjusted.x);
-        point.y = Mathf.FloorToInt(adjusted.y);
-        point.z = Mathf.FloorToInt(adjusted.z);
-
-        return point;
-    }
-
     void OnDrawGizmos()
     {
         Vector3 bounds = new Vector3(

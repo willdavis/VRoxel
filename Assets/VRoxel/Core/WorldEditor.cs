@@ -4,6 +4,42 @@ using UnityEngine;
 
 public class WorldEditor
 {
+    /// <summary>
+    /// Calculates the voxel grid point for a position in the scene
+    /// </summary>
+    /// <param name="position">A position in the scene</param>
+    public static Vector3Int Get(World world, Vector3 position)
+    {
+        Vector3 adjusted = position;
+        Vector3Int point = Vector3Int.zero;
+        Quaternion rotation = Quaternion.Inverse(world.transform.rotation);
+
+        adjusted += world.transform.position * -1f;         // adjust for the worlds position
+        adjusted *= 1 / world.scale;                        // adjust for the worlds scale
+        adjusted = rotation * adjusted;                     // adjust for the worlds rotation
+        adjusted += world.data.center;                      // adjust for the worlds center
+
+        point.x = Mathf.FloorToInt(adjusted.x);
+        point.y = Mathf.FloorToInt(adjusted.y);
+        point.z = Mathf.FloorToInt(adjusted.z);
+
+        return point;
+    }
+
+    /// <summary>
+    /// Calculates the scene position for a point in the voxel grid
+    /// </summary>
+    /// <param name="point">A point in the voxel grid</param>
+    public static Vector3 Get(World world, Vector3Int point)
+    {
+        Vector3 position = point;
+        position += world.data.center * -1f;               // adjust for the worlds center
+        position = world.transform.rotation * position;    // adjust for the worlds rotation
+        position *= world.scale;                           // adjust for the worlds scale
+        position += world.transform.position;              // adjust for the worlds position
+        return position;
+    }
+
     public static void Set(World world, Vector3Int point, byte block)
     {
         if (!world.data.Contains(point)) { return; }
