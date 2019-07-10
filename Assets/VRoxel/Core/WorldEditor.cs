@@ -5,8 +5,30 @@ using UnityEngine;
 public class WorldEditor
 {
     /// <summary>
+    /// Adjusts a RaycastHit point to be inside or outside of the block that it hit
+    /// </summary>
+    /// <param name="world">A reference to the World</param>
+    /// <param name="hit">The RaycastHit to be adjusted</param>
+    /// <param name="dir">choose inside or outside the cube</param>
+    public static Vector3 Adjust(World world, RaycastHit hit, Cube.Point dir)
+    {
+        Vector3 position = hit.point;
+        switch (dir)
+        {
+            case Cube.Point.Inside:
+                position += hit.normal * (world.scale / -2f);
+                break;
+            case Cube.Point.Outside:
+                position += hit.normal * (world.scale / 2f);
+                break;
+        }
+        return position;
+    }
+
+    /// <summary>
     /// Calculates the voxel grid point for a position in the scene
     /// </summary>
+    /// <param name="world">A reference to the World</param>
     /// <param name="position">A position in the scene</param>
     public static Vector3Int Get(World world, Vector3 position)
     {
@@ -29,6 +51,7 @@ public class WorldEditor
     /// <summary>
     /// Calculates the scene position for a point in the voxel grid
     /// </summary>
+    /// <param name="world">A reference to the World</param>
     /// <param name="point">A point in the voxel grid</param>
     public static Vector3 Get(World world, Vector3Int point)
     {

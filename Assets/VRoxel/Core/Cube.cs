@@ -16,6 +16,14 @@ public static class Cube
     }
 
     /// <summary>
+    /// the places a point can be relative to a cube
+    /// </summary>
+    public enum Point
+    {
+        Inside, Outside
+    }
+
+    /// <summary>
     /// unit vectors for a cube with an origin at (0,0,0)
     /// </summary>
     //
