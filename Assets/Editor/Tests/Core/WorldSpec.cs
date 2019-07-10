@@ -62,6 +62,10 @@ namespace Tests
             WorldEditor.Set(world, start, end, air.index);
             WorldEditor.Set(world, center, 16, stone.index);
 
+            // Get points in the world
+            Vector3Int point = world.Grid(Vector3.zero);
+            Assert.AreEqual(center, point);
+
             Object.DestroyImmediate(world);
         }
     }
