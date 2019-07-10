@@ -17,14 +17,15 @@ namespace Tests
             Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
             World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
 
-            // Create a Block and add textures
-            Block block = new Block();
-            block.textures.Add(Cube.Direction.Top, Vector2.one);
-            block.textures.Add(Cube.Direction.Bottom, Vector2.up);
-            block.textures.Add(Cube.Direction.North, Vector2.up);
-            block.textures.Add(Cube.Direction.East, Vector2.up);
-            block.textures.Add(Cube.Direction.South, Vector2.up);
-            block.textures.Add(Cube.Direction.West, Vector2.up);
+            // Create blocks and add textures
+            Block air = new Block(); air.index = 0;
+            Block stone = new Block(); stone.index = 1;
+            stone.textures.Add(Cube.Direction.Top, Vector2.one);
+            stone.textures.Add(Cube.Direction.Bottom, Vector2.up);
+            stone.textures.Add(Cube.Direction.North, Vector2.up);
+            stone.textures.Add(Cube.Direction.East, Vector2.up);
+            stone.textures.Add(Cube.Direction.South, Vector2.up);
+            stone.textures.Add(Cube.Direction.West, Vector2.up);
 
             // Create a new World
             World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
@@ -34,10 +35,8 @@ namespace Tests
             world.blocks.texture.size = 0.25f;
 
             // Add Blocks to the library
-            world.blocks.library.Add(1, block);
-            //world.blocks.library.Add(2, block);
-            //world.blocks.library.Add(3, block);
-            //...
+            world.blocks.library.Add(air.index, air);
+            world.blocks.library.Add(stone.index, stone);
 
             // Configure the World
             world.chunk = prefab_chunk;
@@ -59,8 +58,9 @@ namespace Tests
             Vector3Int start = new Vector3Int(0,10,0);
             Vector3Int end = new Vector3Int(128,32,128);
             Vector3Int center = new Vector3Int(128,16,128);
-            WorldEditor.Set(world, start, end, 0);
-            WorldEditor.Set(world, center, 16, 1);
+
+            WorldEditor.Set(world, start, end, air.index);
+            WorldEditor.Set(world, center, 16, stone.index);
 
             Object.DestroyImmediate(world);
         }

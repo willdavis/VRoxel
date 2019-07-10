@@ -6,6 +6,7 @@ using UnityEngine;
 /// </summary>
 public class Block
 {
+    public byte index;
     public string name;
     public Dictionary<Cube.Direction, Vector2> textures;
 
