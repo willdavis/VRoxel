@@ -46,36 +46,5 @@ namespace Tests
             Assert.AreEqual(true, data.Contains(Vector3Int.zero));   // check point inside the world
             Assert.AreEqual(false, data.Contains(Vector3Int.right)); // check point outside the world
         }
-
-        [Test]
-        public void CanSetRange()
-        {
-            Vector3Int size = new Vector3Int(2,2,2);
-            VoxelGrid data = new VoxelGrid(size);
-            data.Set(Vector3Int.zero, Vector3Int.one, 1);
-
-            Assert.AreEqual(1, data.Get(Vector3Int.zero));
-            Assert.AreEqual(1, data.Get(Vector3Int.one));
-            Assert.AreEqual(1, data.Get(Vector3Int.up));
-        }
-
-        [Test]
-        public void CanSetNeighborhood()
-        {
-            Vector3Int size = new Vector3Int(3,3,3);
-            VoxelGrid data = new VoxelGrid(size);
-            data.Set(Vector3Int.one, 1, 1);
-
-            for (int x = 0; x < size.x; x++)
-            {
-                for (int z = 0; z < size.z; z++)
-                {
-                    for (int y = 0; y < size.y; y++)
-                    {
-                        Assert.AreEqual(1, data.Get(x,y,z));
-                    }
-                }
-            }
-        }
     }
 }

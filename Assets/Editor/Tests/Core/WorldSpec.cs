@@ -55,7 +55,13 @@ namespace Tests
             world.chunks.Load(world.chunks.max, Vector3Int.zero);
             yield return null;
 
-            //System.Threading.Thread.Sleep(2000);
+            // Edit the world
+            Vector3Int start = new Vector3Int(0,10,0);
+            Vector3Int end = new Vector3Int(128,32,128);
+            Vector3Int center = new Vector3Int(128,16,128);
+            WorldEditor.Set(world, start, end, 0);
+            WorldEditor.Set(world, center, 16, 1);
+
             Object.DestroyImmediate(world);
         }
     }

@@ -92,16 +92,6 @@ public class World : MonoBehaviour
         }
     }
 
-    public void SetBlock(Vector3Int point, byte block)
-    {
-        if (!_data.Contains(point)) { return; }
-        if (_data.Get(point) == block) { return; }
-        if (!blocks.library.ContainsKey(block)) { return; }
-
-        _data.Set(point, block);
-        _chunks.UpdateFrom(point);
-    }
-
     void OnDrawGizmos()
     {
         Vector3 bounds = new Vector3(
