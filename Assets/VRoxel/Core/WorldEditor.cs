@@ -5,6 +5,32 @@ using UnityEngine;
 public class WorldEditor
 {
     /// <summary>
+    /// Set the block adjacent to the hit position in the world.
+    /// </summary>
+    /// <param name="world">A reference to the World</param>
+    /// <param name="hit">The RaycastHit to be adjusted</param>
+    /// <param name="block">The block index</param>
+    public static void Add(World world, RaycastHit hit, byte block)
+    {
+        Vector3 position = Adjust(world, hit, Cube.Point.Outside);
+        Vector3Int point = Get(world, position);
+        Set(world, point, block);
+    }
+
+    /// <summary>
+    /// Update the block at the hit position in the world
+    /// </summary>
+    /// <param name="world">A reference to the World</param>
+    /// <param name="hit">The RaycastHit to be adjusted</param>
+    /// <param name="block">The block index</param>
+    public static void Replace(World world, RaycastHit hit, byte block)
+    {
+        Vector3 position = Adjust(world, hit, Cube.Point.Inside);
+        Vector3Int point = Get(world, position);
+        Set(world, point, block);
+    }
+
+    /// <summary>
     /// Adjusts a RaycastHit point to be inside or outside of the block that it hit
     /// </summary>
     /// <param name="world">A reference to the World</param>
@@ -63,17 +89,66 @@ public class WorldEditor
         return position;
     }
 
+    /// <summary>
+    /// Safely set a block in the world and flag it's Chunk as stale.
+    /// If the block is on the edge of a Chunk, the adjacent Chunk will also be set as stale
+    /// </summary>
+    /// <param name="world">A reference to the World</param>
+    /// <param name="position">A position in the scene</param>
+    /// <param name="block">The block index</param>
+    public static void Set(World world, Vector3 position, byte block)
+    {
+        Vector3Int point = Get(world, position);
+        Set(world, point, block);
+    }
+
+    /// <summary>
+    /// Safely set a range of blocks in the world using two positions in the scene.
+    /// Any chunks that were modified will be flagged as stale.
+    /// </summary>
+    /// <param name="world">A reference to the World</param>
+    /// <param name="start">A position in the scene</param>
+    /// <param name="end">A position in the scene</param>
+    /// <param name="block">The block index to set</param>
+    public static void Set(World world, Vector3 start, Vector3 end, byte block)
+    {
+        Vector3Int startPoint = Get(world, start);
+        Vector3Int endPoint = Get(world, end);
+        Set(world, startPoint, endPoint, block);
+    }
+
+    /// <summary>
+    /// Safely set a Moore neighborhood of blocks in the world.
+    /// Any chunks that were modified will be flagged as stale.
+    /// </summary>
+    /// <param name="world">A reference to the World</param>
+    /// <param name="position">A position in the scene</param>
+    /// <param name="range">The Moore neighborhood size</param>
+    /// <param name="block">The block index to set</param>
+    public static void Set(World world, Vector3 position, int range, byte block)
+    {
+        Vector3Int point = Get(world, position);
+        Set(world, point, range, block);
+    }
+
+    /// <summary>
+    /// Safely set a block in the World and flag it's Chunk as stale.
+    /// If the block is on the edge of a Chunk, the adjacent Chunk will also be set as stale
+    /// </summary>
+    /// <param name="world">A reference to the World</param>
+    /// <param name="point">A point in the voxel grid</param>
+    /// <param name="block">The block index</param>
     public static void Set(World world, Vector3Int point, byte block)
     {
         if (!world.data.Contains(point)) { return; }
-        if (world.data.Get(point) == block) { return; }
+        if (world.data.Get(point.x, point.y, point.z) == block) { return; }
 
-        world.data.Set(point, block);
+        world.data.Set(point.x, point.y, point.z, block);
         world.chunks.UpdateFrom(point);
     }
 
     /// <summary>
-    /// Safely set a range of blocks in the voxel grid
+    /// Safely set a range of blocks in the World between a start and end point
     /// </summary>
     /// <param name="world">A reference to the World</param>
     /// <param name="start">A point in the voxel grid</param>
