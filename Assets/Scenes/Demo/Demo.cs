@@ -15,35 +15,38 @@ public class Demo : MonoBehaviour
 
     void Start()
     {
-        world.blocks.texture.material = material;
-        world.blocks.texture.size = textureSize;
-
-        // Create blocks and add textures
-        Block air = new Block(); air.index = 0;
-        Block stone = new Block(); stone.index = 1;
-
-        Vector2 grassTop = new Vector2(0,15);
-        Vector2 grassSide = new Vector2(2,15);
-        Vector2 dirt = new Vector2(2,15);
-
-        stone.textures.Add(Cube.Direction.Top, grassTop);
-        stone.textures.Add(Cube.Direction.Bottom, dirt);
-        stone.textures.Add(Cube.Direction.North, grassSide);
-        stone.textures.Add(Cube.Direction.East, grassSide);
-        stone.textures.Add(Cube.Direction.South, grassSide);
-        stone.textures.Add(Cube.Direction.West, grassSide);
-
-        // Add Blocks to the library
-        world.blocks.library.Add(air.index, air);
-        world.blocks.library.Add(stone.index, stone);
-
         world.Initialize();
+        world.blocks = BuildBlockManager();
         world.Generate(world.size, Vector3Int.zero);
         world.chunks.Load(world.chunks.max, Vector3Int.zero);
     }
 
-    void Update()
+    BlockManager BuildBlockManager()
     {
-        
+        BlockManager manager = new BlockManager();
+
+        manager.texture.material = material;
+        manager.texture.size = textureSize;
+
+        // Create blocks and add textures
+        Block air = new Block(); air.index = 0;
+        Block grass = new Block(); grass.index = 1;
+
+        Vector2 grassTop = new Vector2(0,15);
+        Vector2 grassSide = new Vector2(2,15);
+        Vector2 grassBottom = new Vector2(2,15);
+
+        grass.textures.Add(Cube.Direction.Top, grassTop);
+        grass.textures.Add(Cube.Direction.Bottom, grassBottom);
+        grass.textures.Add(Cube.Direction.North, grassSide);
+        grass.textures.Add(Cube.Direction.East, grassSide);
+        grass.textures.Add(Cube.Direction.South, grassSide);
+        grass.textures.Add(Cube.Direction.West, grassSide);
+
+        // Add Blocks to the library
+        manager.library.Add(air.index, air);
+        manager.library.Add(grass.index, grass);
+
+        return manager;
     }
 }
