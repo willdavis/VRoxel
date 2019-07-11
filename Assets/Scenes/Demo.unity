@@ -131,6 +131,7 @@ GameObject:
   - component: {fileID: 1413400701}
   - component: {fileID: 1413400700}
   - component: {fileID: 1413400699}
+  - component: {fileID: 1413400702}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -203,6 +204,23 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1413400702
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1413400698}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdafe5c15e8f1714983578af1ca47ccc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  movementSpeed: 10
+  fastMovementSpeed: 100
+  freeLookSensitivity: 3
+  zoomSensitivity: 10
+  fastZoomSensitivity: 50
 --- !u!1 &1512810908
 GameObject:
   m_ObjectHideFlags: 0
@@ -364,7 +382,7 @@ PrefabInstance:
     - target: {fileID: 3876824611559853090, guid: dc599e3fa98d1864cb2acc5f940bb8bf,
         type: 3}
       propertyPath: size.x
-      value: 64
+      value: 128
       objectReference: {fileID: 0}
     - target: {fileID: 3876824611559853090, guid: dc599e3fa98d1864cb2acc5f940bb8bf,
         type: 3}
@@ -374,7 +392,7 @@ PrefabInstance:
     - target: {fileID: 3876824611559853090, guid: dc599e3fa98d1864cb2acc5f940bb8bf,
         type: 3}
       propertyPath: size.z
-      value: 64
+      value: 128
       objectReference: {fileID: 0}
     - target: {fileID: 3876824611559853090, guid: dc599e3fa98d1864cb2acc5f940bb8bf,
         type: 3}
