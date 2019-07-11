@@ -4,21 +4,38 @@ using UnityEngine;
 
 public class Demo : MonoBehaviour
 {
-    World world;
+    World _world;
+
+    public BlockCursor cursor;
     public Material material;
     public float textureSize = 0.25f;
 
     void Awake()
     {
-        world = GetComponent<World>();
+        _world = GetComponent<World>();
     }
 
     void Start()
     {
-        world.Initialize();
-        world.blocks = BuildBlockManager();
-        world.Generate(world.size, Vector3Int.zero);
-        world.chunks.Load(world.chunks.max, Vector3Int.zero);
+        _world.Initialize();
+        _world.blocks = BuildBlockManager();
+        _world.Generate(_world.size, Vector3Int.zero);
+        _world.chunks.Load(_world.chunks.max, Vector3Int.zero);
+    }
+
+    void Update()
+    {
+        Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+        RaycastHit hit;
+
+        if (Physics.Raycast (ray, out hit))
+        {
+            Vector3 position = WorldEditor.Adjust(_world, hit, Cube.Point.Outside);
+            Vector3Int index = WorldEditor.Get(_world, position);
+            Vector3 adjusted = WorldEditor.Get(_world, index);
+            adjusted += Vector3.one * 0.5f * _world.scale;
+            cursor.Draw(_world, adjusted, _world.scale / 2f);
+        }
     }
 
     BlockManager BuildBlockManager()
