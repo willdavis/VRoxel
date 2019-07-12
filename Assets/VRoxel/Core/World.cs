@@ -64,6 +64,12 @@ public class World : MonoBehaviour
         _data = new VoxelGrid(size);
     }
 
+    public bool Contains(Vector3 position)
+    {
+        Vector3Int point = WorldEditor.Get(this, position);
+        return _data.Contains(point);
+    }
+
     /// <summary>
     /// Generate world data within the given bounds.
     /// Any points outside the world will be skipped.

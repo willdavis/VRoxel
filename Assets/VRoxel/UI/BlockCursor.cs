@@ -14,8 +14,17 @@ public class BlockCursor : MonoBehaviour
 
     public void Draw(World world, Vector3 position, float scale)
     {
-        _renderer.startColor = Color.yellow;
-        _renderer.endColor = Color.yellow;
+        if (world.Contains(position))
+        {
+            _renderer.startColor = Color.yellow;
+            _renderer.endColor = Color.yellow;
+        }
+        else
+        {
+            _renderer.startColor = Color.red;
+            _renderer.endColor = Color.red;
+        }
+
         _renderer.widthMultiplier = world.scale / 10f;
         Cube.Transform(position, scale, world.transform.rotation, ref _cube);
         UpdateLineRenderer();

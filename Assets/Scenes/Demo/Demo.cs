@@ -30,11 +30,21 @@ public class Demo : MonoBehaviour
 
         if (Physics.Raycast (ray, out hit))
         {
+            // calculate the adjusted hit position
             Vector3 position = WorldEditor.Adjust(_world, hit, Cube.Point.Outside);
+
+            // snap to the grid
             Vector3Int index = WorldEditor.Get(_world, position);
             Vector3 adjusted = WorldEditor.Get(_world, index);
             adjusted += Vector3.one * 0.5f * _world.scale;
+
+            // draw the block cursor
             cursor.Draw(_world, adjusted, _world.scale / 2f);
+
+            // left mouse click to add blocks
+            if(Input.GetMouseButtonDown(0)){
+                WorldEditor.Set(_world, adjusted, 1);
+            }
         }
     }
 
