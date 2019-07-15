@@ -82,6 +82,7 @@ public class WorldEditor
     public static Vector3 Get(World world, Vector3Int point)
     {
         Vector3 position = point;
+        position += Vector3.one * 0.5f;                    // adjust for the chunks center
         position += world.data.center * -1f;               // adjust for the worlds center
         position = world.transform.rotation * position;    // adjust for the worlds rotation
         position *= world.scale;                           // adjust for the worlds scale

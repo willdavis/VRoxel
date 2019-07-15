@@ -31,19 +31,17 @@ public class Demo : MonoBehaviour
         if (Physics.Raycast (ray, out hit))
         {
             // calculate the adjusted hit position
+            // and get the index point in the voxel grid
             Vector3 position = WorldEditor.Adjust(_world, hit, Cube.Point.Outside);
-
-            // snap to the grid
             Vector3Int index = WorldEditor.Get(_world, position);
-            Vector3 adjusted = WorldEditor.Get(_world, index);
-            adjusted += Vector3.one * 0.5f * _world.scale;
 
-            // draw the block cursor
-            cursor.Draw(_world, adjusted, _world.scale / 2f);
+            // draw the block cursor and snap its position to the grid
+            Vector3 gridPosition = WorldEditor.Get(_world, index);
+            cursor.Draw(_world, gridPosition, _world.scale / 2f);
 
             // left mouse click to add blocks
             if(Input.GetMouseButtonDown(0)){
-                WorldEditor.Set(_world, adjusted, 1);
+                WorldEditor.Set(_world, index, 1);
             }
         }
     }
