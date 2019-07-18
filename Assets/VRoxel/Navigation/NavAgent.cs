@@ -4,15 +4,22 @@ using UnityEngine;
 
 public class NavAgent : MonoBehaviour
 {
-    // Start is called before the first frame update
+    public Vector3 destination;
+    public float range = 0.5f;
+    public float speed = 5.0f;
+
     void Start()
     {
-        
+        destination = transform.position;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        
+        float distance = Vector3.Distance(transform.position, destination);
+        if (distance > range)
+        {
+            float step = speed * Time.deltaTime;
+            transform.position = Vector3.MoveTowards(transform.position, destination, step);
+        }
     }
 }

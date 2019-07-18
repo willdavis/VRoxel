@@ -50,6 +50,15 @@ public class Demo : MonoBehaviour
             {
                 _world.agents.Spawn(prefab, gridPosition);
             }
+
+            // set the destination for all NPCs
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                foreach (NavAgent agent in _world.agents.all)
+                {
+                    agent.destination = gridPosition;
+                }
+            }
         }
     }
 
