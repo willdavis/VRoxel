@@ -6,6 +6,7 @@ public class Demo : MonoBehaviour
 {
     World _world;
 
+    public NavAgent prefab;
     public BlockCursor cursor;
     public Material material;
     public float textureSize = 0.25f;
@@ -42,6 +43,12 @@ public class Demo : MonoBehaviour
             // left mouse click to add blocks
             if(Input.GetMouseButtonDown(0)){
                 WorldEditor.Set(_world, index, 1);
+            }
+
+            // spawn a new NPC in the world
+            if (Input.GetKeyDown(KeyCode.N))
+            {
+                _world.agents.Spawn(prefab, gridPosition);
             }
         }
     }
