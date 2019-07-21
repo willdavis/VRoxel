@@ -5,6 +5,7 @@ using UnityEngine;
 public class Demo : MonoBehaviour
 {
     World _world;
+    Pathfinder _pathfinder;
 
     public NavAgent prefab;
     public BlockCursor cursor;
@@ -14,6 +15,7 @@ public class Demo : MonoBehaviour
     void Awake()
     {
         _world = GetComponent<World>();
+        _pathfinder = new Pathfinder(_world);
     }
 
     void Start()

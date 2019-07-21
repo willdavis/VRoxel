@@ -2,17 +2,28 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Pathfinder : MonoBehaviour
+public class Pathfinder
 {
-    // Start is called before the first frame update
-    void Start()
+    public struct Node
     {
-        
+        public Vector3Int index;
+        public Vector3Int parent;
+        public float g, h;
+        public float f { get { return g + h; } }
+
+        public Node(Vector3Int index, Vector3Int parent, float g, float h)
+        {
+            this.parent = parent;
+            this.index = index;
+            this.g = g;
+            this.h = h;
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    World _world;
+
+    public Pathfinder(World world)
     {
-        
+        _world = world;
     }
 }
