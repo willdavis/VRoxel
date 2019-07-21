@@ -61,6 +61,11 @@ public class World : MonoBehaviour
     public AgentManager agents { get { return _agents; } }
 
     /// <summary>
+    /// The random terrain generator
+    /// </summary>
+    public Terrain terrain { get { return _terrain; } }
+
+    /// <summary>
     /// Initialize a new World
     /// </summary>
     public void Initialize()

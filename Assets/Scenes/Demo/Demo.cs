@@ -24,6 +24,13 @@ public class Demo : MonoBehaviour
         _world.blocks = BuildBlockManager();
         _world.Generate(_world.size, Vector3Int.zero);
         _world.chunks.Load(_world.chunks.max, Vector3Int.zero);
+
+        int x = Mathf.FloorToInt(_world.size.x / 2f);
+        int z = Mathf.FloorToInt(_world.size.z / 2f);
+        int y = _world.terrain.GetHeight(x, z);
+        Vector3Int point = new Vector3Int(x, y, z);
+
+        //_pathfinder.GenerateNodesAround(point);
     }
 
     void Update()
