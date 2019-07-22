@@ -26,14 +26,16 @@ public class Demo : MonoBehaviour
         _world.Generate(_world.size, Vector3Int.zero);
         _world.chunks.Load(_world.chunks.max, Vector3Int.zero);
 
-        // get the index point for the center of the world at the terrain level
+        // get the index point for the center of the world at terrain level
         int x = Mathf.FloorToInt(_world.size.x / 2f);
         int z = Mathf.FloorToInt(_world.size.z / 2f);
         int y = _world.terrain.GetHeight(x, z) + 1;
-        Vector3Int point = new Vector3Int(x, y, z);
+        Vector3Int index = new Vector3Int(x, y, z);
 
         // spawn a structure at the center of the world
-        Vector3 position = WorldEditor.Get(_world, point);
+        Vector3 position = WorldEditor.Get(_world, index);
+        position += Vector3.down * 0.5f * _world.scale; // adjust to the floor
+
         GameObject obj = Instantiate(structure, position, _world.transform.rotation) as GameObject;
         obj.transform.localScale = Vector3.one * _world.scale;
         obj.transform.parent = _world.transform;
