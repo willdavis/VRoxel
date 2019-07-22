@@ -8,6 +8,7 @@ public class Demo : MonoBehaviour
     Pathfinder _pathfinder;
 
     public NavAgent agent;
+    public GameObject nodePrefab;
     public GameObject structure;
     public BlockCursor cursor;
     public Material material;
@@ -40,9 +41,18 @@ public class Demo : MonoBehaviour
         obj.transform.localScale = Vector3.one * _world.scale;
         obj.transform.parent = _world.transform;
 
-        // build a shared pathfinder and generate nodes to the structure
-        // this is for basic Tower Defence mechanics
-        //_pathfinder.GenerateNodesAround(point);
+        // generate nodes for the pathfinder
+        // this method creates a flow field for a tower defence style game
+        _pathfinder.BFS(index); // breadth first search
+
+        // DEBUG: view the path nodes
+        foreach (Pathfinder.Node node in _pathfinder._closed.Values)
+        {
+            Vector3 node_pos = WorldEditor.Get(_world, node.index);
+            Vector3 parent_pos = WorldEditor.Get(_world, node.parent);
+            GameObject debugNode = Instantiate(nodePrefab, node_pos, _world.transform.rotation) as GameObject;
+            debugNode.transform.LookAt(parent_pos);
+        }
     }
 
     void Update()
