@@ -7,7 +7,8 @@ public class Demo : MonoBehaviour
     World _world;
     Pathfinder _pathfinder;
 
-    public NavAgent prefab;
+    public NavAgent agent;
+    public GameObject structure;
     public BlockCursor cursor;
     public Material material;
     public float textureSize = 0.25f;
@@ -25,11 +26,20 @@ public class Demo : MonoBehaviour
         _world.Generate(_world.size, Vector3Int.zero);
         _world.chunks.Load(_world.chunks.max, Vector3Int.zero);
 
+        // get the index point for the center of the world at the terrain level
         int x = Mathf.FloorToInt(_world.size.x / 2f);
         int z = Mathf.FloorToInt(_world.size.z / 2f);
-        int y = _world.terrain.GetHeight(x, z);
+        int y = _world.terrain.GetHeight(x, z) + 1;
         Vector3Int point = new Vector3Int(x, y, z);
 
+        // spawn a structure at the center of the world
+        Vector3 position = WorldEditor.Get(_world, point);
+        GameObject obj = Instantiate(structure, position, _world.transform.rotation) as GameObject;
+        obj.transform.localScale = Vector3.one * _world.scale;
+        obj.transform.parent = _world.transform;
+
+        // build a shared pathfinder and generate nodes to the structure
+        // this is for basic Tower Defence mechanics
         //_pathfinder.GenerateNodesAround(point);
     }
 
@@ -57,7 +67,7 @@ public class Demo : MonoBehaviour
             // spawn a new NPC in the world
             if (Input.GetKeyDown(KeyCode.N))
             {
-                _world.agents.Spawn(prefab, gridPosition);
+                _world.agents.Spawn(agent, gridPosition);
             }
 
             // set the destination for all NPCs

@@ -468,7 +468,7 @@ PrefabInstance:
     - target: {fileID: 3876824611559853090, guid: dc599e3fa98d1864cb2acc5f940bb8bf,
         type: 3}
       propertyPath: size.y
-      value: 16
+      value: 32
       objectReference: {fileID: 0}
     - target: {fileID: 3876824611559853090, guid: dc599e3fa98d1864cb2acc5f940bb8bf,
         type: 3}
@@ -520,7 +520,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a981673d00fb8944fbb2325ad70c4126, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  prefab: {fileID: 248189242278981012, guid: ee82bd63f2f37614992e682209d11216, type: 3}
+  agent: {fileID: 248189242278981012, guid: ee82bd63f2f37614992e682209d11216, type: 3}
+  structure: {fileID: 5680878884013666768, guid: 8ca1677f8efbba349bf5c9bcfe383997,
+    type: 3}
   cursor: {fileID: 375555934}
   material: {fileID: 2100000, guid: 7c8819ba9885214409d65f8fdb2753b0, type: 2}
   textureSize: 0.0625
