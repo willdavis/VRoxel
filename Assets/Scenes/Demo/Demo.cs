@@ -7,6 +7,7 @@ public class Demo : MonoBehaviour
     World _world;
     Pathfinder _pathfinder;
     Vector3 _structurePosition;
+    Vector3Int _structureGridPosition;
 
     public NavAgent agent;
     public GameObject nodePrefab;
@@ -32,20 +33,19 @@ public class Demo : MonoBehaviour
         int x = Mathf.FloorToInt(_world.size.x / 2f);
         int z = Mathf.FloorToInt(_world.size.z / 2f);
         int y = _world.terrain.GetHeight(x, z) + 1;
-        Vector3Int index = new Vector3Int(x, y, z);
+        _structureGridPosition = new Vector3Int(x, y, z);
 
         // spawn a structure at the center of the world
-        Vector3 position = WorldEditor.Get(_world, index);
-        position += Vector3.down * 0.5f * _world.scale; // adjust to the floor
-        _structurePosition = position;
+        Vector3 _structurePosition = WorldEditor.Get(_world, _structureGridPosition);
+        _structurePosition += Vector3.down * 0.5f * _world.scale; // adjust to the floor
 
-        GameObject obj = Instantiate(structure, position, _world.transform.rotation) as GameObject;
+        GameObject obj = Instantiate(structure, _structurePosition, _world.transform.rotation) as GameObject;
         obj.transform.localScale = Vector3.one * _world.scale;
         obj.transform.parent = _world.transform;
 
         // generate nodes for the pathfinder
         // this method creates a flow field for a tower defence style game
-        _pathfinder.BFS(index); // breadth first search
+        _pathfinder.BFS(_structureGridPosition); // breadth first search
 
         // DEBUG: view the path nodes
         /*
@@ -77,7 +77,8 @@ public class Demo : MonoBehaviour
 
             // left mouse click to add blocks
             if(Input.GetMouseButtonDown(0)){
-                WorldEditor.Set(_world, index, 1);
+                WorldEditor.Set(_world, index, 1);       // set the world data
+                _pathfinder.BFS(_structureGridPosition); // rebuild pathfinding nodes
             }
 
             // spawn a new NPC in the world
