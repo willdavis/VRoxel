@@ -58,6 +58,19 @@ public class Pathfinder
         _neighbors = new List<Node>();
     }
 
+    public void PathFrom(Vector3 point, ref List<Vector3> path)
+    {
+        Vector3Int index = WorldEditor.Get(_world, point);
+        if (!_closed.ContainsKey(index)) { return; }    // no path exists
+
+        Node node = _closed[index];
+        while (node.index != _start)
+        {
+            path.Add(WorldEditor.Get(_world, node.index));
+            node = _closed[node.parent];
+        }
+    }
+
     /// <summary>
     /// Generates pathfinder nodes using a Breadth First Search
     /// </summary>
@@ -65,6 +78,8 @@ public class Pathfinder
     {
         Queue<Node> frontier = new Queue<Node>();
         Node node = new Node(start, start, 0, 0);
+
+        _start = start;
         _closed.Clear();
 
         frontier.Enqueue(node);

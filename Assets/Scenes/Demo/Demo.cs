@@ -6,6 +6,7 @@ public class Demo : MonoBehaviour
 {
     World _world;
     Pathfinder _pathfinder;
+    Vector3 _structurePosition;
 
     public NavAgent agent;
     public GameObject nodePrefab;
@@ -36,6 +37,7 @@ public class Demo : MonoBehaviour
         // spawn a structure at the center of the world
         Vector3 position = WorldEditor.Get(_world, index);
         position += Vector3.down * 0.5f * _world.scale; // adjust to the floor
+        _structurePosition = position;
 
         GameObject obj = Instantiate(structure, position, _world.transform.rotation) as GameObject;
         obj.transform.localScale = Vector3.one * _world.scale;
@@ -46,6 +48,7 @@ public class Demo : MonoBehaviour
         _pathfinder.BFS(index); // breadth first search
 
         // DEBUG: view the path nodes
+        /*
         foreach (Pathfinder.Node node in _pathfinder._closed.Values)
         {
             Vector3 node_pos = WorldEditor.Get(_world, node.index);
@@ -53,6 +56,7 @@ public class Demo : MonoBehaviour
             GameObject debugNode = Instantiate(nodePrefab, node_pos, _world.transform.rotation) as GameObject;
             debugNode.transform.LookAt(parent_pos);
         }
+        */
     }
 
     void Update()
@@ -79,16 +83,29 @@ public class Demo : MonoBehaviour
             // spawn a new NPC in the world
             if (Input.GetKeyDown(KeyCode.N))
             {
-                _world.agents.Spawn(agent, gridPosition);
-            }
+                // ensure the agent spawns on the ground
+                int y = _world.terrain.GetHeight(index.x, index.z) + 1;
+                Vector3Int floor = new Vector3Int(index.x, y, index.z);
+                Vector3 newAgentPos = WorldEditor.Get(_world, floor);
 
-            // set the destination for all NPCs
-            if (Input.GetKeyDown(KeyCode.M))
+                // spawn a new agent and set its destination to the goal
+                NavAgent newAgent = _world.agents.Spawn(agent, newAgentPos);
+                newAgent.pathfinder = _pathfinder;
+                newAgent.destination = _structurePosition;
+            }
+        }
+
+        // Remove NPCs if they have reached the goal
+        for (int i = 0; i < _world.agents.all.Count; i++)
+        {
+            NavAgent agent = _world.agents.all[i];
+            float radius = agent.range * 2.5f;
+            float dist = Vector3.Distance(agent.transform.position, agent.destination);
+
+            if (dist <= radius)
             {
-                foreach (NavAgent agent in _world.agents.all)
-                {
-                    agent.destination = gridPosition;
-                }
+                _world.agents.all.Remove(agent);
+                GameObject.Destroy(agent.gameObject);
             }
         }
     }
