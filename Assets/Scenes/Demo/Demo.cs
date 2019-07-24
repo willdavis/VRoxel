@@ -100,10 +100,9 @@ public class Demo : MonoBehaviour
         for (int i = 0; i < _world.agents.all.Count; i++)
         {
             NavAgent agent = _world.agents.all[i];
-            float radius = agent.range * 2.5f;
             float dist = Vector3.Distance(agent.transform.position, agent.destination);
 
-            if (dist <= radius)
+            if (dist <= 2f)
             {
                 _world.agents.all.Remove(agent);
                 GameObject.Destroy(agent.gameObject);
