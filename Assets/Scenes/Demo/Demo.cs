@@ -68,71 +68,16 @@ public class Demo : MonoBehaviour
 
     void Update()
     {
-        RemoveNPCsAtGoal();
-
-        Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
-        RaycastHit hit;
-
-        if (Physics.Raycast (ray, out hit))
-        {
-            // calculate the adjusted hit position
-            // and get the index point in the voxel grid
-            // and snap the index to its grid position in the scene
-            Vector3 position = WorldEditor.Adjust(_world, hit, Cube.Point.Outside);
-            Vector3Int index = WorldEditor.Get(_world, position);
-            Vector3 gridPosition = WorldEditor.Get(_world, index);
-            float halfScale = _world.scale / 2f;
-
-            // draw the block cursor
-            if(_draggingCursor) // draw a rectangle for the cursor
-            {
-                float offsetX = Mathf.Abs(_start.x - index.x);
-                float offsetY = Mathf.Abs(_start.y - index.y);
-                float offsetZ = Mathf.Abs(_start.z - index.z);
-
-                Vector3 scale = new Vector3(
-                    halfScale * offsetX + halfScale,
-                    halfScale * offsetY + halfScale,
-                    halfScale * offsetZ + halfScale
-                );
-
-                cursor.Draw(_world, _startPosition, gridPosition, scale);
-            }
-            else // draw a single block for the cursor
-            {
-                cursor.Draw(_world, gridPosition, halfScale);
-            }
-            
-
-            // left mouse click to add blocks
-            // click & drag to add multiple blocks
-            if(Input.GetMouseButtonDown(0))
-            {
-                _start = index;
-                _startPosition = gridPosition;
-                _draggingCursor = true;
-            }
-            if (Input.GetMouseButtonUp(0))
-            {
-                WorldEditor.Set(_world, _start, index, 1);  // set the world data
-                _pathfinder.BFS(_structureGridPosition);    // rebuild pathfinding nodes
-                _draggingCursor = false;
-            }
-
-            // spawn a new NPC in the world
-            if (CanSpawnNPCAt(index))
-            {
-                NavAgent newAgent = _world.agents.Spawn(agent, gridPosition);
-                newAgent.pathfinder = _pathfinder;
-                newAgent.destination = _structurePosition;
-            }
-        }
+        HandleUserInput();  // handle anything the user has input
+        RemoveNPCsAtGoal(); // remove any NPCs that have reached the goal
     }
 
+    /// <summary>
+    /// Test if the NPC can be spawned at a world index
+    /// </summary>
     bool CanSpawnNPCAt(Vector3Int index)
     {
-        return Input.GetKeyDown(KeyCode.N)
-            && _world.data.Get(index + Vector3Int.down) != 0; // the block below must be solid
+        return _world.data.Get(index + Vector3Int.down) != 0; // the block below must be solid
     }
 
     /// <summary>
@@ -183,5 +128,73 @@ public class Demo : MonoBehaviour
         manager.library.Add(grass.index, grass);
 
         return manager;
+    }
+
+    /// <summary>
+    /// Process any user input for this frame
+    /// </summary>
+    void HandleUserInput()
+    {
+        Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+        RaycastHit hit;
+
+        if (Physics.Raycast (ray, out hit))
+        {
+            // calculate the adjusted hit position
+            // and get the index point in the voxel grid
+            // and snap the index to its grid position in the scene
+            Vector3 position = WorldEditor.Adjust(_world, hit, Cube.Point.Outside);
+            Vector3Int index = WorldEditor.Get(_world, position);
+            Vector3 gridPosition = WorldEditor.Get(_world, index);
+            float halfScale = _world.scale / 2f;
+
+            // draw the block cursor
+            if(_draggingCursor) // draw a rectangle for the cursor
+            {
+                float offsetX = Mathf.Abs(_start.x - index.x);
+                float offsetY = Mathf.Abs(_start.y - index.y);
+                float offsetZ = Mathf.Abs(_start.z - index.z);
+
+                Vector3 scale = new Vector3(
+                    halfScale * offsetX + halfScale,
+                    halfScale * offsetY + halfScale,
+                    halfScale * offsetZ + halfScale
+                );
+
+                cursor.Draw(_world, _startPosition, gridPosition, scale);
+            }
+            else // draw a single block for the cursor
+            {
+                cursor.Draw(_world, gridPosition, halfScale);
+            }
+
+            // left mouse click to add blocks
+            // click & drag to add multiple blocks
+            if(Input.GetMouseButtonDown(0))
+            {
+                _start = index;
+                _startPosition = gridPosition;
+                _draggingCursor = true;
+            }
+            if (Input.GetMouseButtonUp(0))
+            {
+                _draggingCursor = false;
+                WorldEditor.Set(_world, _start, index, 1);      // set the world data
+                _pathfinder.BFS(_structureGridPosition);        // rebuild pathfinding nodes
+                foreach (NavAgent agent in _world.agents.all)   // reset the path foreach agent
+                {
+                    agent.BuildPath();
+                }
+            }
+
+            // Key N - spawn a new NPC in the world
+            // Check that the block below the index is solid
+            if (Input.GetKeyDown(KeyCode.N) && CanSpawnNPCAt(index))
+            {
+                NavAgent newAgent = _world.agents.Spawn(agent, gridPosition);
+                newAgent.pathfinder = _pathfinder;
+                newAgent.destination = _structurePosition;
+            }
+        }
     }
 }

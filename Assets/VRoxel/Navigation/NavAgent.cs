@@ -14,15 +14,13 @@ public class NavAgent : MonoBehaviour
     public Vector3 destination
     {
         get { return _destination; }
-        set { _destination = value; _path.Clear(); }
+        set { _destination = value; BuildPath(); }
     }
 
     void Update()
     {
         float distance = Vector3.Distance(transform.position, destination);
         if (distance <= range * range) { return; } // agent is at the destination
-
-        if (_path.Count == 0) { BuildPath(); } // build a path to the destination
         if (_path.Count == 0) { return; } // no valid path was found
 
         // move towards the next waypoint in the path
@@ -33,8 +31,9 @@ public class NavAgent : MonoBehaviour
         if (distance <= range * range) { _path.RemoveAt(0); } // agent is at the waypoint
     }
 
-    void BuildPath()
+    public void BuildPath()
     {
+        _path.Clear();
         pathfinder.PathFrom(transform.position, ref _path);
     }
 }
