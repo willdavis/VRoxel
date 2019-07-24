@@ -9,6 +9,13 @@ public class Demo : MonoBehaviour
     Vector3 _structurePosition;
     Vector3Int _structureGridPosition;
 
+
+    // variables for the block cursor
+    // for single or multiple blocks
+    bool _draggingCursor;
+    Vector3Int _start;
+    Vector3 _startPosition;
+
     public NavAgent agent;
     public GameObject nodePrefab;
     public GameObject structure;
@@ -61,6 +68,8 @@ public class Demo : MonoBehaviour
 
     void Update()
     {
+        RemoveNPCsAtGoal();
+
         Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
         RaycastHit hit;
 
@@ -68,35 +77,63 @@ public class Demo : MonoBehaviour
         {
             // calculate the adjusted hit position
             // and get the index point in the voxel grid
+            // and snap the index to its grid position in the scene
             Vector3 position = WorldEditor.Adjust(_world, hit, Cube.Point.Outside);
             Vector3Int index = WorldEditor.Get(_world, position);
-
-            // draw the block cursor and snap its position to the grid
             Vector3 gridPosition = WorldEditor.Get(_world, index);
-            cursor.Draw(_world, gridPosition, _world.scale / 2f);
+            float halfScale = _world.scale / 2f;
+
+            // draw the block cursor
+            if(_draggingCursor) // draw a rectangle for the cursor
+            {
+                float offsetX = Mathf.Abs(_start.x - index.x);
+                float offsetY = Mathf.Abs(_start.y - index.y);
+                float offsetZ = Mathf.Abs(_start.z - index.z);
+
+                Vector3 scale = new Vector3(
+                    halfScale * offsetX + halfScale,
+                    halfScale * offsetY + halfScale,
+                    halfScale * offsetZ + halfScale
+                );
+
+                cursor.Draw(_world, _startPosition, gridPosition, scale);
+            }
+            else // draw a single block for the cursor
+            {
+                cursor.Draw(_world, gridPosition, halfScale);
+            }
+            
 
             // left mouse click to add blocks
-            if(Input.GetMouseButtonDown(0)){
-                WorldEditor.Set(_world, index, 1);       // set the world data
-                _pathfinder.BFS(_structureGridPosition); // rebuild pathfinding nodes
+            // click & drag to add multiple blocks
+            if(Input.GetMouseButtonDown(0))
+            {
+                _start = index;
+                _startPosition = gridPosition;
+                _draggingCursor = true;
+            }
+            if (Input.GetMouseButtonUp(0))
+            {
+                WorldEditor.Set(_world, _start, index, 1);  // set the world data
+                _pathfinder.BFS(_structureGridPosition);    // rebuild pathfinding nodes
+                _draggingCursor = false;
             }
 
             // spawn a new NPC in the world
             if (Input.GetKeyDown(KeyCode.N))
             {
-                // ensure the agent spawns on the ground
-                int y = _world.terrain.GetHeight(index.x, index.z) + 1;
-                Vector3Int floor = new Vector3Int(index.x, y, index.z);
-                Vector3 newAgentPos = WorldEditor.Get(_world, floor);
-
-                // spawn a new agent and set its destination to the goal
-                NavAgent newAgent = _world.agents.Spawn(agent, newAgentPos);
+                NavAgent newAgent = _world.agents.Spawn(agent, gridPosition);
                 newAgent.pathfinder = _pathfinder;
                 newAgent.destination = _structurePosition;
             }
         }
+    }
 
-        // Remove NPCs if they have reached the goal
+    /// <summary>
+    /// Remove any NPCs that have reached the goal structure.
+    /// </summary>
+    void RemoveNPCsAtGoal()
+    {
         for (int i = 0; i < _world.agents.all.Count; i++)
         {
             NavAgent agent = _world.agents.all[i];
@@ -110,6 +147,9 @@ public class Demo : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// An example on how to build a BlockManager for this demo world
+    /// </summary>
     BlockManager BuildBlockManager()
     {
         BlockManager manager = new BlockManager();

@@ -12,6 +12,9 @@ public class BlockCursor : MonoBehaviour
         _renderer = GetComponent<LineRenderer>();
     }
 
+    /// <summary>
+    /// Draws a cube wire mesh
+    /// </summary>
     public void Draw(World world, Vector3 position, float scale)
     {
         if (world.Contains(position))
@@ -27,6 +30,16 @@ public class BlockCursor : MonoBehaviour
 
         _renderer.widthMultiplier = world.scale / 10f;
         Cube.Transform(position, scale, world.transform.rotation, ref _cube);
+        UpdateLineRenderer();
+    }
+
+    /// <summary>
+    /// Draws a rectangle wire mesh
+    /// </summary>
+    public void Draw(World world, Vector3 start, Vector3 end, Vector3 scale)
+    {
+        _renderer.widthMultiplier = world.scale / 10f;
+        Cube.TransformRectangle(start, end, scale, world.transform.rotation, ref _cube);
         UpdateLineRenderer();
     }
 
