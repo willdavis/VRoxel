@@ -120,13 +120,19 @@ public class Demo : MonoBehaviour
             }
 
             // spawn a new NPC in the world
-            if (Input.GetKeyDown(KeyCode.N))
+            if (CanSpawnNPCAt(index))
             {
                 NavAgent newAgent = _world.agents.Spawn(agent, gridPosition);
                 newAgent.pathfinder = _pathfinder;
                 newAgent.destination = _structurePosition;
             }
         }
+    }
+
+    bool CanSpawnNPCAt(Vector3Int index)
+    {
+        return Input.GetKeyDown(KeyCode.N)
+            && _world.data.Get(index + Vector3Int.down) != 0; // the block below must be solid
     }
 
     /// <summary>
