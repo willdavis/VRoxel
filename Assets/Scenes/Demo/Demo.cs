@@ -82,7 +82,8 @@ public class Demo : MonoBehaviour
     /// </summary>
     bool CanSpawnAt(Vector3Int index)
     {
-        return _world.data.Get(index + Vector3Int.down) != 0; // the block below must be solid
+        return _world.data.Get(index) == 0                      // the block must be air
+            && _world.data.Get(index + Vector3Int.down) != 0;   // the block below must be solid
     }
 
     /// <summary>
