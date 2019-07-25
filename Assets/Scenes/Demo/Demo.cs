@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Demo : MonoBehaviour
 {
@@ -23,6 +24,10 @@ public class Demo : MonoBehaviour
     public GameObject structure;
     public Turret turretPrefab;
     public BlockCursor cursor;
+
+    [Header("UI Settings")]
+    public Text npcCount;
+    private string npcCountString = "NPC Count: ";
 
     [Header("Texture Settings")]
     public Material material;
@@ -75,6 +80,7 @@ public class Demo : MonoBehaviour
     {
         HandleUserInput();      // handle anything the user has input
         RemoveNPCsAtGoal();     // remove any NPCs that have reached the goal
+        npcCount.text = npcCountString + _world.agents.all.Count;
     }
 
     /// <summary>
