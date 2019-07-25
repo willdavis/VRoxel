@@ -90,7 +90,7 @@ public class Demo : MonoBehaviour
             NavAgent agent = _world.agents.all[i];
             float dist = Vector3.Distance(agent.transform.position, agent.destination);
 
-            if (dist <= 2f)
+            if (dist <= 2.5f)
             {
                 _world.agents.all.Remove(agent);
                 GameObject.Destroy(agent.gameObject);
@@ -189,7 +189,7 @@ public class Demo : MonoBehaviour
 
             // Key N - spawn a new NPC in the world
             // Check that the block below the index is solid
-            if (Input.GetKeyDown(KeyCode.N) && CanSpawnNPCAt(index))
+            if (Input.GetKey(KeyCode.N) && CanSpawnNPCAt(index))
             {
                 NavAgent newAgent = _world.agents.Spawn(agent, gridPosition);
                 newAgent.pathfinder = _pathfinder;
