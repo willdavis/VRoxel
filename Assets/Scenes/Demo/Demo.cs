@@ -9,6 +9,7 @@ public class Demo : MonoBehaviour
     Vector3 _structurePosition;
     Vector3Int _structureGridPosition;
 
+    List<Turret> _turrets = new List<Turret>();
 
     // variables for the block cursor
     // for single or multiple blocks
@@ -16,10 +17,14 @@ public class Demo : MonoBehaviour
     Vector3Int _start;
     Vector3 _startPosition;
 
+    [Header("Prefab Settings")]
     public NavAgent agent;
     public GameObject nodePrefab;
     public GameObject structure;
+    public Turret turretPrefab;
     public BlockCursor cursor;
+
+    [Header("Texture Settings")]
     public Material material;
     public float textureSize = 0.25f;
 
@@ -68,14 +73,14 @@ public class Demo : MonoBehaviour
 
     void Update()
     {
-        HandleUserInput();  // handle anything the user has input
-        RemoveNPCsAtGoal(); // remove any NPCs that have reached the goal
+        HandleUserInput();      // handle anything the user has input
+        RemoveNPCsAtGoal();     // remove any NPCs that have reached the goal
     }
 
     /// <summary>
     /// Test if the NPC can be spawned at a world index
     /// </summary>
-    bool CanSpawnNPCAt(Vector3Int index)
+    bool CanSpawnAt(Vector3Int index)
     {
         return _world.data.Get(index + Vector3Int.down) != 0; // the block below must be solid
     }
@@ -188,12 +193,26 @@ public class Demo : MonoBehaviour
             }
 
             // Key N - spawn a new NPC in the world
-            // Check that the block below the index is solid
-            if (Input.GetKey(KeyCode.N) && CanSpawnNPCAt(index))
+            if (Input.GetKey(KeyCode.N) && CanSpawnAt(index))
             {
                 NavAgent newAgent = _world.agents.Spawn(agent, gridPosition);
                 newAgent.pathfinder = _pathfinder;
                 newAgent.destination = _structurePosition;
+            }
+
+            // Key T - spawn a turret in the world to shoot NPCs
+            if (Input.GetKeyDown(KeyCode.T) && CanSpawnAt(index))
+            {
+                Turret turret = Instantiate(turretPrefab, gridPosition, _world.transform.rotation) as Turret;
+                turret.transform.position += Vector3.down * 0.5f * _world.scale; // adjust to the floor
+                turret.transform.localScale = Vector3.one * _world.scale;
+                turret.transform.parent = _world.transform;
+
+                // configure the turret
+                turret.range = 10f * _world.scale;
+                turret.targets = _world.agents.all;
+
+                _turrets.Add(turret);
             }
         }
     }

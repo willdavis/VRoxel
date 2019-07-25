@@ -525,6 +525,8 @@ MonoBehaviour:
     type: 3}
   structure: {fileID: 5680878884013666768, guid: 8ca1677f8efbba349bf5c9bcfe383997,
     type: 3}
+  turretPrefab: {fileID: 3560516922981617002, guid: 53c45e1d63e670046891433612c2a474,
+    type: 3}
   cursor: {fileID: 375555934}
   material: {fileID: 2100000, guid: 7c8819ba9885214409d65f8fdb2753b0, type: 2}
   textureSize: 0.0625
