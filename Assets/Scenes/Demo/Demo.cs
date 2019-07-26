@@ -62,7 +62,8 @@ public class Demo : MonoBehaviour
 
         // generate nodes for the pathfinder
         // this method creates a flow field for a tower defence style game
-        _pathfinder.BFS(_structureGridPosition); // breadth first search
+        //_pathfinder.BFS(_structureGridPosition); // breadth first search
+        _pathfinder.Dijkstra(_structureGridPosition);
 
         // DEBUG: view the path nodes
         /*
@@ -192,7 +193,8 @@ public class Demo : MonoBehaviour
             {
                 _draggingCursor = false;
                 WorldEditor.Set(_world, _start, index, 1);      // set the world data
-                _pathfinder.BFS(_structureGridPosition);        // rebuild pathfinding nodes
+                //_pathfinder.BFS(_structureGridPosition);        // rebuild pathfinding nodes
+                _pathfinder.Dijkstra(_structureGridPosition);
                 foreach (NavAgent agent in _world.agents.all)   // reset the path foreach agent
                 {
                     agent.BuildPath();

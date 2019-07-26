@@ -90,145 +90,169 @@ public class Pathfinder
 
         frontier.Enqueue(node);
         _closed.Add(start, node);
-        //Debug.Log("Visited Node: " + node.index);
         
         while (frontier.Count != 0)
         {
             node = frontier.Dequeue();
-            foreach (Node next in BFSNodeNeighbors(node))
+            foreach (Node next in NodeNeighbors(node))
             {
-                if (next.index == _maxIndex) { continue; } // the node was not walkable
                 if (_closed.ContainsKey(next.index)) { continue; } // the node has already been explored
 
                 frontier.Enqueue(next);
                 _closed.Add(next.index, next);
-                //Debug.Log("Visited Node: " + next.index);
             }
         }
-
-        Debug.Log("Total Node Size: " + _closed.Count);
     }
 
-    private IEnumerable BFSNodeNeighbors(Node parent)
+    public void Dijkstra(Vector3Int start)
+    {
+        Node node = new Node(start, start, 0, 0);
+
+        _start = start;
+        _closed.Clear();
+        _open.Clear();
+
+        _open.Enqueue(node, 0f);
+        _closed.Add(start, node);
+
+        while (_open.Count != 0)
+        {
+            node = _open.Dequeue();
+            foreach (Node next in NodeNeighbors(node))
+            {
+                if (!_closed.ContainsKey(next.index))
+                {
+                    _open.Enqueue(next, next.g);
+                    _closed.Add(next.index, next);
+                }
+                else if (next.g < _closed[next.index].g)
+                {
+                    _open.Enqueue(next, next.g);
+                    _closed[next.index] = next;
+                }
+            }
+        }
+    }
+
+    private IEnumerable NodeNeighbors(Node parent)
     {
         _neighbors.Clear();
 
         // Compass Directions
         // NORTH
         Vector3Int point = parent.index + Vector3Int_north;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1f); }
 
         // NORTH-EAST
         point = parent.index + Vector3Int_north_east;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // EAST
         point = parent.index + Vector3Int.right;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1f); }
 
         // SOUTH-EAST
         point = parent.index + Vector3Int_south_east;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // SOUTH
         point = parent.index + Vector3Int_south;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1f); }
 
         // SOUTH-WEST
         point = parent.index + Vector3Int_south_west;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // WEST
         point = parent.index + Vector3Int.left;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1f); }
 
         // NORTH-WEST
         point = parent.index + Vector3Int_north_west;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
 
         // Top Compass Directions
         // TOP
         point = parent.index + Vector3Int.up;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1f); }
 
         // TOP-NORTH
         point = parent.index + Vector3Int_top_north;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // TOP-NORTH-EAST
         point = parent.index + Vector3Int_top_north_east;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // TOP-EAST
         point = parent.index + Vector3Int_top_east;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // TOP-SOUTH-EAST
         point = parent.index + Vector3Int_top_south_east;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // TOP-SOUTH
         point = parent.index + Vector3Int_top_south;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // TOP-SOUTH-WEST
         point = parent.index + Vector3Int_top_south_west;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // TOP-WEST
         point = parent.index + Vector3Int_top_west;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // TOP-NORTH-WEST
         point = parent.index + Vector3Int_top_north_west;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
 
         // Down Directions
         // BOTTOM
         point = parent.index + Vector3Int.down;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1f); }
 
         // BOTTOM-NORTH
         point = parent.index + Vector3Int_bottom_north;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // BOTTOM-NORTH-EAST
         point = parent.index + Vector3Int_bottom_north_east;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // BOTTOM-EAST
         point = parent.index + Vector3Int_bottom_east;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // BOTTOM-SOUTH-EAST
         point = parent.index + Vector3Int_bottom_south_east;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // BOTTOM-SOUTH
         point = parent.index + Vector3Int_bottom_south;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // BOTTOM-SOUTH-WEST
         point = parent.index + Vector3Int_bottom_south_west;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // BOTTOM-WEST
         point = parent.index + Vector3Int_bottom_west;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // BOTTOM-NORTH-WEST
         point = parent.index + Vector3Int_bottom_north_west;
-        if (IsWalkable(point)) { BFSSetNeighbor(point, parent.index); }
+        if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         return _neighbors;
     }
 
-    private void BFSSetNeighbor(Vector3Int index, Vector3Int parent)
+    private void SetNeighbor(Vector3Int index, Node parent, float cost)
     {
-        Node node = new Node(index, parent);
-        _neighbors.Add(node);
+        _neighbors.Add(new Node(index, parent.index, parent.g + cost));
     }
 
     /// <summary>
