@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Priority_Queue;
 
 public class Pathfinder
 {
@@ -19,9 +20,13 @@ public class Pathfinder
     }
 
     World _world;
-    Vector3Int _start, _end;
-    public Dictionary<Vector3Int, Node> _closed;
     List<Node> _neighbors;
+    Vector3Int _start, _end;
+
+    SimplePriorityQueue<Node, float> _open;
+    Dictionary<Vector3Int, Node> _closed;
+
+    public Dictionary<Vector3Int, Node> nodes { get {  return _closed;} }
 
     // TODO: Move these somewhere global and static
     Vector3Int _maxIndex = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
@@ -54,8 +59,9 @@ public class Pathfinder
     public Pathfinder(World world)
     {
         _world = world;
-        _closed = new Dictionary<Vector3Int, Node>();
         _neighbors = new List<Node>();
+        _closed = new Dictionary<Vector3Int, Node>();
+        _open = new SimplePriorityQueue<Node, float>();
     }
 
     public void PathFrom(Vector3 point, ref List<Vector3> path)
