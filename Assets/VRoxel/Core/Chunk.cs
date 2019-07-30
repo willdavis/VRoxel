@@ -34,9 +34,6 @@ public class Chunk : MonoBehaviour
         _offset.x = position.x * world.chunkSize.x;
         _offset.y = position.y * world.chunkSize.y;
         _offset.z = position.z * world.chunkSize.z;
-
-        runInEditMode = true; // needed for integration tests
-        //Debug.Log("Initialized Chunk: " + position + " at: " + transform.position);
     }
 
     /// <summary>

@@ -70,6 +70,8 @@ namespace Tests
 
             // setup chunk and generate the mesh
             Chunk chunk = UnityEngine.Object.Instantiate(prefab_chunk, Vector3.zero, Quaternion.identity) as Chunk;
+            chunk.runInEditMode = true; // needed for integration tests
+
             chunk.Initialize(world, Vector3Int.zero);
             chunk.GenerateMesh();
 
