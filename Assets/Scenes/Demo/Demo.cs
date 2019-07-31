@@ -28,6 +28,8 @@ public class Demo : MonoBehaviour
     [Header("UI Settings")]
     public Text npcCount;
     private string npcCountString = "NPC Count: ";
+    public Text nodeCount;
+    private string nodeCountString = "Pathfinding Nodes: ";
 
     [Header("Texture Settings")]
     public Material material;
@@ -67,7 +69,7 @@ public class Demo : MonoBehaviour
 
         // DEBUG: view the path nodes
         /*
-        foreach (Pathfinder.Node node in _pathfinder._closed.Values)
+        foreach (Pathfinder.Node node in _pathfinder.nodes.Values)
         {
             Vector3 node_pos = WorldEditor.Get(_world, node.index);
             Vector3 parent_pos = WorldEditor.Get(_world, node.parent);
@@ -82,6 +84,7 @@ public class Demo : MonoBehaviour
         HandleUserInput();      // handle anything the user has input
         RemoveNPCsAtGoal();     // remove any NPCs that have reached the goal
         npcCount.text = npcCountString + _world.agents.all.Count;
+        nodeCount.text = nodeCountString + _pathfinder.nodes.Count;
     }
 
     /// <summary>
