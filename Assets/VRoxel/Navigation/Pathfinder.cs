@@ -72,7 +72,7 @@ public class Pathfinder
         Node node = _closed[index];
         while (node.index != _start)
         {
-            path.Add(WorldEditor.Get(_world, node.index));
+            path.Add(WorldEditor.Get(_world, node.parent));
             node = _closed[node.parent];
         }
     }

@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   range: 0.5
-  speed: 5
+  speed: 2.5
 --- !u!33 &2565094690589962244
 MeshFilter:
   m_ObjectHideFlags: 0

@@ -28,7 +28,7 @@ public class NavAgent : MonoBehaviour
         transform.position = Vector3.MoveTowards(transform.position, _path[0], step);
 
         distance = Vector3.Distance(transform.position, _path[0]);
-        if (distance <= range * range) { _path.RemoveAt(0); } // agent is at the waypoint
+        if (distance <= range * range) { BuildPath(); } // agent is at the waypoint
     }
 
     public void BuildPath()

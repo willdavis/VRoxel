@@ -198,10 +198,6 @@ public class Demo : MonoBehaviour
                 WorldEditor.Set(_world, _start, index, 1);      // set the world data
                 //_pathfinder.BFS(_structureGridPosition);        // rebuild pathfinding nodes
                 _pathfinder.Dijkstra(_structureGridPosition);
-                foreach (NavAgent agent in _world.agents.all)   // reset the path foreach agent
-                {
-                    agent.BuildPath();
-                }
             }
 
             // Key N - spawn a new NPC in the world
