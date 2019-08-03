@@ -64,6 +64,14 @@ public class Pathfinder
         _open = new SimplePriorityQueue<Node, float>();
     }
 
+    public void NextWaypoint(Vector3 point, ref Vector3 waypoint)
+    {
+        Vector3Int index = WorldEditor.Get(_world, point);
+        if (!_closed.ContainsKey(index)) { return; }    // no path exists
+
+        waypoint = WorldEditor.Get(_world, _closed[index].parent);
+    }
+
     public void PathFrom(Vector3 point, ref List<Vector3> path)
     {
         Vector3Int index = WorldEditor.Get(_world, point);
