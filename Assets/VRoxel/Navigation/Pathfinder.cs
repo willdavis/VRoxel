@@ -67,7 +67,11 @@ public class Pathfinder
     public void NextWaypoint(Vector3 point, ref Vector3 waypoint)
     {
         Vector3Int index = WorldEditor.Get(_world, point);
-        if (!_closed.ContainsKey(index)) { return; }    // no path exists
+        if (!_closed.ContainsKey(index)) // no path exists
+        {
+            waypoint = point;
+            return;
+        }
 
         waypoint = WorldEditor.Get(_world, _closed[index].parent);
     }
