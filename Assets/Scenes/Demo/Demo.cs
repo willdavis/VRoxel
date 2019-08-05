@@ -25,6 +25,10 @@ public class Demo : MonoBehaviour
     public Turret turretPrefab;
     public BlockCursor cursor;
 
+    [Header("Input Settings")]
+    public byte blockType = 1;
+    public Cube.Point hitAdjustment = Cube.Point.Outside;
+
     [Header("UI Settings")]
     public Text npcCount;
     private string npcCountString = "NPC Count: ";
@@ -159,7 +163,17 @@ public class Demo : MonoBehaviour
             // calculate the adjusted hit position
             // and get the index point in the voxel grid
             // and snap the index to its grid position in the scene
-            Vector3 position = WorldEditor.Adjust(_world, hit, Cube.Point.Outside);
+            Vector3 position = Vector3.zero;
+            switch (hitAdjustment)
+            {
+                case Cube.Point.Inside: // used to replace blocks
+                    position = WorldEditor.Adjust(_world, hit, Cube.Point.Inside);
+                    break;
+                case Cube.Point.Outside: // used to add blocks
+                    position = WorldEditor.Adjust(_world, hit, Cube.Point.Outside);
+                    break;
+            }
+
             Vector3Int index = WorldEditor.Get(_world, position);
             Vector3 gridPosition = WorldEditor.Get(_world, index);
             float halfScale = _world.scale / 2f;
@@ -195,8 +209,8 @@ public class Demo : MonoBehaviour
             if (Input.GetMouseButtonUp(0))
             {
                 _draggingCursor = false;
-                WorldEditor.Set(_world, _start, index, 1);      // set the world data
-                //_pathfinder.BFS(_structureGridPosition);        // rebuild pathfinding nodes
+                WorldEditor.Set(_world, _start, index, blockType);      // set the world data
+                //_pathfinder.BFS(_structureGridPosition);              // rebuild pathfinding nodes
                 _pathfinder.Dijkstra(_structureGridPosition);
             }
 
