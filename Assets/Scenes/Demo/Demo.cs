@@ -7,8 +7,8 @@ public class Demo : MonoBehaviour
 {
     World _world;
     Pathfinder _pathfinder;
-    Vector3 _structurePosition;
-    Vector3Int _structureGridPosition;
+    Vector3 _goalPosition;
+    Vector3Int _goalGridPosition;
 
     List<Turret> _turrets = new List<Turret>();
 
@@ -21,7 +21,7 @@ public class Demo : MonoBehaviour
     [Header("Prefab Settings")]
     public NavAgent agent;
     public GameObject nodePrefab;
-    public GameObject structure;
+    public GameObject goalPrefab;
     public Turret turretPrefab;
     public BlockCursor cursor;
 
@@ -56,20 +56,20 @@ public class Demo : MonoBehaviour
         int x = Mathf.FloorToInt(_world.size.x / 2f);
         int z = Mathf.FloorToInt(_world.size.z / 2f);
         int y = _world.terrain.GetHeight(x, z) + 1;
-        _structureGridPosition = new Vector3Int(x, y, z);
+        _goalGridPosition = new Vector3Int(x, y, z);
 
         // spawn a structure at the center of the world
-        Vector3 _structurePosition = WorldEditor.Get(_world, _structureGridPosition);
-        _structurePosition += Vector3.down * 0.5f * _world.scale; // adjust to the floor
+        _goalPosition = WorldEditor.Get(_world, _goalGridPosition);
+        _goalPosition += Vector3.down * 0.5f * _world.scale; // adjust to the floor
 
-        GameObject obj = Instantiate(structure, _structurePosition, _world.transform.rotation) as GameObject;
+        GameObject obj = Instantiate(goalPrefab, _goalPosition, _world.transform.rotation) as GameObject;
         obj.transform.localScale = Vector3.one * _world.scale;
         obj.transform.parent = _world.transform;
 
         // generate nodes for the pathfinder
         // this method creates a flow field for a tower defence style game
-        //_pathfinder.BFS(_structureGridPosition); // breadth first search
-        _pathfinder.Dijkstra(_structureGridPosition);
+        //_pathfinder.BFS(_goalGridPosition); // breadth first search
+        _pathfinder.Dijkstra(_goalGridPosition);
 
         // DEBUG: view the path nodes
         /*
@@ -131,6 +131,7 @@ public class Demo : MonoBehaviour
         // Create blocks and add textures
         Block air = new Block(); air.index = 0;
         Block grass = new Block(); grass.index = 1;
+        Block stone = new Block(); stone.index = 2;
 
         Vector2 grassTop = new Vector2(0,15);
         Vector2 grassSide = new Vector2(2,15);
@@ -143,9 +144,19 @@ public class Demo : MonoBehaviour
         grass.textures.Add(Cube.Direction.South, grassSide);
         grass.textures.Add(Cube.Direction.West, grassSide);
 
+        Vector2 stoneTexture = new Vector2(1,15);
+
+        stone.textures.Add(Cube.Direction.Top, stoneTexture);
+        stone.textures.Add(Cube.Direction.Bottom, stoneTexture);
+        stone.textures.Add(Cube.Direction.North, stoneTexture);
+        stone.textures.Add(Cube.Direction.East, stoneTexture);
+        stone.textures.Add(Cube.Direction.South, stoneTexture);
+        stone.textures.Add(Cube.Direction.West, stoneTexture);
+
         // Add Blocks to the library
         manager.library.Add(air.index, air);
         manager.library.Add(grass.index, grass);
+        manager.library.Add(stone.index, stone);
 
         return manager;
     }
@@ -210,8 +221,8 @@ public class Demo : MonoBehaviour
             {
                 _draggingCursor = false;
                 WorldEditor.Set(_world, _start, index, blockType);      // set the world data
-                //_pathfinder.BFS(_structureGridPosition);              // rebuild pathfinding nodes
-                _pathfinder.Dijkstra(_structureGridPosition);
+                //_pathfinder.BFS(_goalGridPosition);              // rebuild pathfinding nodes
+                _pathfinder.Dijkstra(_goalGridPosition);
             }
 
             // Key N - spawn a new NPC in the world
@@ -219,7 +230,7 @@ public class Demo : MonoBehaviour
             {
                 NavAgent newAgent = _world.agents.Spawn(agent, gridPosition);
                 newAgent.pathfinder = _pathfinder;
-                newAgent.destination = _structurePosition;
+                newAgent.destination = _goalPosition;
             }
 
             // Key T - spawn a turret in the world to shoot NPCs

@@ -164,7 +164,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7900178189210369021}
   m_Layer: 0
-  m_Name: Structure
+  m_Name: RedGoal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
