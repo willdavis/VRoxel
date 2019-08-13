@@ -82,6 +82,16 @@ public class World : MonoBehaviour
         return _data.Contains(point);
     }
 
+    public Block GetBlock(Vector3Int index)
+    {
+        if (!_data.Contains(index)) { return null; }
+
+        byte id = _data.Get(index.x, index.y, index.z);
+        if (!blocks.library.ContainsKey(id)) { return null; }
+
+        return blocks.library[id];
+    }
+
     /// <summary>
     /// Generate world data within the given bounds.
     /// Any points outside the world will be skipped.

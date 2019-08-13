@@ -296,10 +296,18 @@ public class Pathfinder
     /// </summary>
     private bool IsWalkable(Vector3Int point)
     {
-        return _world.data.Contains(point)                      // the point must be inside the world
-            && _world.data.Get(point) == 0                      // the point must be an air block
-            && _world.data.Get(point + Vector3Int.up) == 0      // the point above must be air
-            && _world.data.Get(point + Vector3Int.down) != 0;   // the point below must be solid
+        if (!_world.data.Contains(point)) { return false; }     // the point must be inside the world
+
+        byte id = _world.data.Get(point.x, point.y, point.z);
+        if (_world.blocks.IsSolid(id)) { return false; }        // the point must be an air block
+
+        byte below = _world.data.Get(point + Vector3Int.down);
+        if (!_world.blocks.IsSolid(below)) { return false; }    // the point below must be solid
+
+        byte above = _world.data.Get(point + Vector3Int.up);
+        if (_world.blocks.IsSolid(above)) { return false; }    // the point above must be air
+
+        return true;
     }
 
     private bool IsClimbable(Vector3Int point)

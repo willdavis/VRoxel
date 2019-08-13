@@ -141,9 +141,17 @@ public class Demo : MonoBehaviour
         manager.texture.size = textureSize;
 
         // Create blocks and add textures
-        Block air = new Block(); air.index = 0;
-        Block grass = new Block(); grass.index = 1;
-        Block stone = new Block(); stone.index = 2;
+        Block air = new Block();
+        air.index = 0;
+        air.isSolid = false;
+
+        Block grass = new Block();
+        grass.index = 1;
+        grass.isSolid = true;
+
+        Block stone = new Block();
+        stone.index = 2;
+        stone.isSolid = true;
 
         Vector2 grassTop = new Vector2(0,15);
         Vector2 grassSide = new Vector2(2,15);

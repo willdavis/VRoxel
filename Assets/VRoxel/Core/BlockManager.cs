@@ -33,6 +33,13 @@ public class BlockManager
     /// </summary>
     public Dictionary<byte, Block> library;
 
+    public bool IsSolid(byte key)
+    {
+        if (!library.ContainsKey(key)) { return false; }
+        if (!library[key].isSolid) { return false; }
+        return true;
+    }
+
     public BlockManager()
     {
         library = new Dictionary<byte, Block>();
