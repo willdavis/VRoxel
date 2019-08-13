@@ -312,15 +312,31 @@ public class Pathfinder
 
     private bool IsClimbable(Vector3Int point)
     {
-        return _world.data.Contains(point)                      // the point must be inside the world
-            && _world.data.Get(point) == 0                      // the point must be an air block
-            && _world.data.Get(point + Vector3Int.up) == 0      // the point above must be air
-            && _world.data.Get(point + Vector3Int.down) == 0    // the point below must be an air block
-            && (
-                _world.data.Get(point + Vector3Int.right) != 0 ||   // at least one block in a cardinal directon must be solid
-                _world.data.Get(point + Vector3Int.left)  != 0 ||
-                _world.data.Get(point + Vector3Int_north) != 0 ||
-                _world.data.Get(point + Vector3Int_south) != 0
-            );
+        if (!_world.data.Contains(point)) { return false; }     // the point must be inside the world
+
+        byte id = _world.data.Get(point);
+        if (_world.blocks.IsSolid(id)) { return false; }        // the point must be an air block
+
+        byte below = _world.data.Get(point + Vector3Int.down);
+        if (_world.blocks.IsSolid(below)) { return false; }     // the point below must be air
+
+        byte above = _world.data.Get(point + Vector3Int.up);
+        if (_world.blocks.IsSolid(above)) { return false; }     // the point above must be air
+
+        // climbable if any adjacent N,S,E,W block is solid
+        byte right = _world.data.Get(point + Vector3Int.right);
+        if (_world.blocks.IsSolid(right)) { return true; }
+
+        byte left = _world.data.Get(point + Vector3Int.left);
+        if (_world.blocks.IsSolid(left)) { return true; }
+
+        byte north = _world.data.Get(point + Vector3Int_north);
+        if (_world.blocks.IsSolid(north)) { return true; }
+
+        byte south = _world.data.Get(point + Vector3Int_south);
+        if (_world.blocks.IsSolid(south)) { return true; }
+
+        // the point was not climbable
+        return false;
     }
 }
