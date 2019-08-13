@@ -7,6 +7,7 @@ public class Demo : MonoBehaviour
 {
     World _world;
     Pathfinder _pathfinder;
+    List<GameObject> _pathNodes;
     Vector3 _goalPosition;
     Vector3Int _goalGridPosition;
 
@@ -43,6 +44,7 @@ public class Demo : MonoBehaviour
     {
         _world = GetComponent<World>();
         _pathfinder = new Pathfinder(_world);
+        _pathNodes = new List<GameObject>();
     }
 
     void Start()
@@ -72,15 +74,7 @@ public class Demo : MonoBehaviour
         _pathfinder.Dijkstra(_goalGridPosition);
 
         // DEBUG: view the path nodes
-        /*
-        foreach (Pathfinder.Node node in _pathfinder.nodes.Values)
-        {
-            Vector3 node_pos = WorldEditor.Get(_world, node.index);
-            Vector3 parent_pos = WorldEditor.Get(_world, node.parent);
-            GameObject debugNode = Instantiate(nodePrefab, node_pos, _world.transform.rotation) as GameObject;
-            debugNode.transform.LookAt(parent_pos);
-        }
-        */
+        //DrawPathNodes();
     }
 
     void Update()
@@ -89,6 +83,24 @@ public class Demo : MonoBehaviour
         RemoveNPCsAtGoal();     // remove any NPCs that have reached the goal
         npcCount.text = npcCountString + _world.agents.all.Count;
         nodeCount.text = nodeCountString + _pathfinder.nodes.Count;
+    }
+
+    void DrawPathNodes()
+    {
+        foreach (GameObject item in _pathNodes)
+        {
+            Object.Destroy(item);
+        }
+        _pathNodes.Clear();
+
+        foreach (Pathfinder.Node node in _pathfinder.nodes.Values)
+        {
+            Vector3 node_pos = WorldEditor.Get(_world, node.index);
+            Vector3 parent_pos = WorldEditor.Get(_world, node.parent);
+            GameObject debugNode = Instantiate(nodePrefab, node_pos, _world.transform.rotation) as GameObject;
+            debugNode.transform.LookAt(parent_pos);
+            _pathNodes.Add(debugNode);
+        }
     }
 
     /// <summary>
@@ -223,6 +235,9 @@ public class Demo : MonoBehaviour
                 WorldEditor.Set(_world, _start, index, blockType);      // set the world data
                 //_pathfinder.BFS(_goalGridPosition);              // rebuild pathfinding nodes
                 _pathfinder.Dijkstra(_goalGridPosition);
+
+                // DEBUG
+                //DrawPathNodes();
             }
 
             // Key N - spawn a new NPC in the world

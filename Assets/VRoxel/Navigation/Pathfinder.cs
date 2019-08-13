@@ -154,110 +154,134 @@ public class Pathfinder
         // NORTH
         Vector3Int point = parent.index + Vector3Int_north;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1f); }
 
         // NORTH-EAST
         point = parent.index + Vector3Int_north_east;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // EAST
         point = parent.index + Vector3Int.right;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1f); }
 
         // SOUTH-EAST
         point = parent.index + Vector3Int_south_east;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // SOUTH
         point = parent.index + Vector3Int_south;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1f); }
 
         // SOUTH-WEST
         point = parent.index + Vector3Int_south_west;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // WEST
         point = parent.index + Vector3Int.left;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1f); }
 
         // NORTH-WEST
         point = parent.index + Vector3Int_north_west;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1.414f); }
 
 
         // Top Compass Directions
         // TOP
         point = parent.index + Vector3Int.up;
-        if (IsWalkable(point)) { SetNeighbor(point, parent, 1f); }
+        if (IsClimbable(point)) { SetNeighbor(point, parent, 2f); }
 
         // TOP-NORTH
         point = parent.index + Vector3Int_top_north;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // TOP-NORTH-EAST
         point = parent.index + Vector3Int_top_north_east;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // TOP-EAST
         point = parent.index + Vector3Int_top_east;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // TOP-SOUTH-EAST
         point = parent.index + Vector3Int_top_south_east;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // TOP-SOUTH
         point = parent.index + Vector3Int_top_south;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // TOP-SOUTH-WEST
         point = parent.index + Vector3Int_top_south_west;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // TOP-WEST
         point = parent.index + Vector3Int_top_west;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // TOP-NORTH-WEST
         point = parent.index + Vector3Int_top_north_west;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1.414f); }
 
 
         // Down Directions
         // BOTTOM
         point = parent.index + Vector3Int.down;
-        if (IsWalkable(point)) { SetNeighbor(point, parent, 1f); }
+        if (IsClimbable(point)) { SetNeighbor(point, parent, 2f); }
 
         // BOTTOM-NORTH
         point = parent.index + Vector3Int_bottom_north;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        if (IsClimbable(point)) { SetNeighbor(point, parent, 4.414f); }
 
         // BOTTOM-NORTH-EAST
         point = parent.index + Vector3Int_bottom_north_east;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // BOTTOM-EAST
         point = parent.index + Vector3Int_bottom_east;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        if (IsClimbable(point)) { SetNeighbor(point, parent, 4.414f); }
 
         // BOTTOM-SOUTH-EAST
         point = parent.index + Vector3Int_bottom_south_east;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // BOTTOM-SOUTH
         point = parent.index + Vector3Int_bottom_south;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        if (IsClimbable(point)) { SetNeighbor(point, parent, 4.414f); }
 
         // BOTTOM-SOUTH-WEST
         point = parent.index + Vector3Int_bottom_south_west;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         // BOTTOM-WEST
         point = parent.index + Vector3Int_bottom_west;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        if (IsClimbable(point)) { SetNeighbor(point, parent, 4.414f); }
 
         // BOTTOM-NORTH-WEST
         point = parent.index + Vector3Int_bottom_north_west;
         if (IsWalkable(point)) { SetNeighbor(point, parent, 1.414f); }
+        //if (IsClimbable(point)) { SetNeighbor(point, parent, 1.414f); }
 
         return _neighbors;
     }
@@ -274,6 +298,21 @@ public class Pathfinder
     {
         return _world.data.Contains(point)                      // the point must be inside the world
             && _world.data.Get(point) == 0                      // the point must be an air block
+            && _world.data.Get(point + Vector3Int.up) == 0      // the point above must be air
             && _world.data.Get(point + Vector3Int.down) != 0;   // the point below must be solid
+    }
+
+    private bool IsClimbable(Vector3Int point)
+    {
+        return _world.data.Contains(point)                      // the point must be inside the world
+            && _world.data.Get(point) == 0                      // the point must be an air block
+            && _world.data.Get(point + Vector3Int.up) == 0      // the point above must be air
+            && _world.data.Get(point + Vector3Int.down) == 0    // the point below must be an air block
+            && (
+                _world.data.Get(point + Vector3Int.right) != 0 ||   // at least one block in a cardinal directon must be solid
+                _world.data.Get(point + Vector3Int.left)  != 0 ||
+                _world.data.Get(point + Vector3Int_north) != 0 ||
+                _world.data.Get(point + Vector3Int_south) != 0
+            );
     }
 }
