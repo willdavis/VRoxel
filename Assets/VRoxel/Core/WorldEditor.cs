@@ -133,6 +133,20 @@ public class WorldEditor
     }
 
     /// <summary>
+    /// Safely set a sphere of blocks in the world.
+    /// Any chunks that were modified will be flagged as stale.
+    /// </summary>
+    /// <param name="world">A reference to the World</param>
+    /// <param name="position">A position in the scene</param>
+    /// <param name="radius">The radius of the sphere</param>
+    /// <param name="block">The block index to set</param>
+    public static void Set(World world, Vector3 position, float radius, byte block)
+    {
+        Vector3Int point = Get(world, position);
+        Set(world, point, radius, block);
+    }
+
+    /// <summary>
     /// Safely set a block in the World and flag it's Chunk as stale.
     /// If the block is on the edge of a Chunk, the adjacent Chunk will also be set as stale
     /// </summary>
@@ -204,6 +218,36 @@ public class WorldEditor
                 {
                     offset.y = point.y + k - range;
                     Set(world, offset, block);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Safely set a sphere of blocks in the voxel grid
+    /// </summary>
+    /// <param name="world">A reference to the World</param>
+    /// <param name="point">A point in the voxel grid</param>
+    /// <param name="radius">The radius in the voxel grid</param>
+    /// <param name="block">The block index to set</param>
+    public static void Set(World world, Vector3Int point, float radius, byte block)
+    {
+        int size = Mathf.CeilToInt(radius);
+        Vector3Int offset = Vector3Int.zero;
+
+        for (int x = point.x - size; x <= point.x + size; x++)
+        {
+            offset.x = x;
+            for (int z = point.z - size; z <= point.z + size; z++)
+            {
+                offset.z = z;
+                for (int y = point.y - size; y <= point.y + size; y++)
+                {
+                    offset.y = y;
+                    if (Vector3Int.Distance(point, offset) <= radius)
+                    {
+                        Set(world, offset, block);
+                    }
                 }
             }
         }

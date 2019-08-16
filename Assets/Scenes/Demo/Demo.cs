@@ -28,6 +28,8 @@ public class Demo : MonoBehaviour
 
     [Header("Input Settings")]
     public byte blockType = 1;
+    public float radius = 8.5f;
+    public int neighborhood = 1;
     public Cube.Point hitAdjustment = Cube.Point.Outside;
 
     [Header("UI Settings")]
@@ -246,6 +248,18 @@ public class Demo : MonoBehaviour
 
                 // DEBUG
                 //DrawPathNodes();
+            }
+
+            // Key G - place a sphere of blocks in the world
+            if (Input.GetKeyDown(KeyCode.G))
+            {
+                WorldEditor.Set(_world, index, radius, blockType);
+            }
+
+            // Key H - place a Moore neighborhood of blocks in the world
+            if (Input.GetKeyDown(KeyCode.H))
+            {
+                WorldEditor.Set(_world, index, neighborhood, blockType);
             }
 
             // Key N - spawn a new NPC in the world
