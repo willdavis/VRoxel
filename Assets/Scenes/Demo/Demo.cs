@@ -254,12 +254,14 @@ public class Demo : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.G))
             {
                 WorldEditor.Set(_world, index, radius, blockType);
+                _pathfinder.Dijkstra(_goalGridPosition);
             }
 
             // Key H - place a Moore neighborhood of blocks in the world
             if (Input.GetKeyDown(KeyCode.H))
             {
                 WorldEditor.Set(_world, index, neighborhood, blockType);
+                _pathfinder.Dijkstra(_goalGridPosition);
             }
 
             // Key N - spawn a new NPC in the world
