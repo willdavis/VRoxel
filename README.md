@@ -10,10 +10,6 @@ This project is in it's early stages and is not ready for production use.
 - Real-time terrain deformations
 - Flow field based AI navigation
 
-## Demos
+## Examples
 
-Voxel Painting:
-<add demo video>
-
-Tower Defence:
-<add demo video>
+![](https://gfycat.com/immediateharmoniousiraniangroundjay)
