@@ -12,4 +12,4 @@ This project is in it's early stages and is not ready for production use.
 
 ## Examples
 
-![](https://gfycat.com/immediateharmoniousiraniangroundjay)
+Grabbing voxels - https://gfycat.com/immediateharmoniousiraniangroundjay
