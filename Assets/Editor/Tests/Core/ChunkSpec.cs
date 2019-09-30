@@ -29,15 +29,66 @@ namespace Tests
         }
 
         [UnityTest]
+        public IEnumerator CanDisableCollision()
+        {
+            // create a new chunk
+            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
+            Chunk chunk = UnityEngine.Object.Instantiate(prefab_chunk, Vector3.zero, Quaternion.identity) as Chunk;
+            World world = CreateWorld();
+
+            chunk.collidable = false;
+            chunk.runInEditMode = true; // needed for integration tests
+            chunk.Initialize(world, Vector3Int.zero);
+            chunk.GenerateMesh();
+
+            Mesh collider = chunk.GetComponent<MeshCollider>().sharedMesh;
+            Assert.AreSame(null, collider);
+
+            yield return null;
+
+            Object.DestroyImmediate(chunk);
+            Object.DestroyImmediate(world);
+        }
+
+        [UnityTest]
         public IEnumerator CanGenerateMesh()
         {
-            Material material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Editor/Materials/TextureAtlas.mat");
-            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
             Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
+            World world = CreateWorld();
 
-            // setup a world
-            Vector3Int size = new Vector3Int(5,5,5);
+            // setup chunk and generate the mesh
+            Chunk chunk = UnityEngine.Object.Instantiate(prefab_chunk, Vector3.zero, Quaternion.identity) as Chunk;
+            chunk.runInEditMode = true; // needed for integration tests
+
+            chunk.Initialize(world, Vector3Int.zero);
+            chunk.GenerateMesh();
+
+            yield return null; // skip a frame to render the chunk
+            //System.Threading.Thread.Sleep(2000); // sleep so we can see it
+
+            // check the generated mesh
+            Mesh mesh = chunk.GetComponent<MeshFilter>().sharedMesh;
+            Mesh coll = chunk.GetComponent<MeshCollider>().sharedMesh;
+
+            Assert.AreSame(mesh, coll);
+            Assert.AreEqual(600, mesh.uv.GetLength(0));
+            Assert.AreEqual(600, mesh.vertices.GetLength(0));
+            Assert.AreEqual(900, mesh.triangles.GetLength(0));
+
+            Object.DestroyImmediate(chunk);
+            Object.DestroyImmediate(world);
+        }
+
+        /// helper functions
+        /// -----------------------------
+        World CreateWorld()
+        {
+            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
+            Material material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Editor/Materials/TextureAtlas.mat");
+
             World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
+            Vector3Int size = new Vector3Int(5,5,5);
+
             world.chunkSize = size;
             world.size = size;
             world.scale = 0.5f;
@@ -68,27 +119,7 @@ namespace Tests
             block.textures.Add(Cube.Direction.South, Vector2.zero);
             block.textures.Add(Cube.Direction.West, Vector2.zero);
 
-            // setup chunk and generate the mesh
-            Chunk chunk = UnityEngine.Object.Instantiate(prefab_chunk, Vector3.zero, Quaternion.identity) as Chunk;
-            chunk.runInEditMode = true; // needed for integration tests
-
-            chunk.Initialize(world, Vector3Int.zero);
-            chunk.GenerateMesh();
-
-            yield return null; // skip a frame to render the chunk
-            //System.Threading.Thread.Sleep(2000); // sleep so we can see it
-
-            // check the generated mesh
-            Mesh mesh = chunk.GetComponent<MeshFilter>().sharedMesh;
-            Mesh coll = chunk.GetComponent<MeshCollider>().sharedMesh;
-
-            Assert.AreSame(mesh, coll);
-            Assert.AreEqual(600, mesh.uv.GetLength(0));
-            Assert.AreEqual(600, mesh.vertices.GetLength(0));
-            Assert.AreEqual(900, mesh.triangles.GetLength(0));
-
-            Object.DestroyImmediate(chunk);
-            Object.DestroyImmediate(world);
+            return world;
         }
     }
 }

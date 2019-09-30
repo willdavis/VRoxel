@@ -19,6 +19,12 @@ public class Chunk : MonoBehaviour
     public bool stale;
 
     /// <summary>
+    /// Flags if the Chunk needs a collision mesh
+    /// </summary>
+    [HideInInspector]
+    public bool collidable = true;
+
+    /// <summary>
     /// Initialize a Chunk in the World
     /// </summary>
     /// <param name="world">The parent World this Chunk belongs to</param>
@@ -43,7 +49,9 @@ public class Chunk : MonoBehaviour
     {
         _meshGenerator.BuildMesh(_world.chunkSize, _offset, ref _mesh);
         _meshFilter.sharedMesh = _mesh;
-        _meshCollider.sharedMesh = _mesh;
+
+        if (collidable) { _meshCollider.sharedMesh = _mesh; }
+        else { _meshCollider.sharedMesh = null; }
     }
 
     void Awake()
