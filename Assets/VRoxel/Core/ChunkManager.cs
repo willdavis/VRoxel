@@ -9,6 +9,11 @@ public class ChunkManager
     private Vector3Int _max;
     private Dictionary<Vector3Int, Chunk> _cache;
 
+    /// <summary>
+    /// Flag if all the chunks should have a collision mesh
+    /// </summary>
+    public bool collidable = true;
+
     public ChunkManager(World world, Chunk prefab)
     {
         _cache = new Dictionary<Vector3Int, Chunk>();
@@ -55,10 +60,12 @@ public class ChunkManager
 
         Quaternion rotation = _world.transform.rotation;
         Chunk chunk = UnityEngine.Object.Instantiate(_prefab, Position(index), rotation) as Chunk;
+
+        chunk.collidable = collidable;
         chunk.transform.parent = _world.transform;
         chunk.Initialize(_world, index);
-        _cache.Add(index, chunk);
 
+        _cache.Add(index, chunk);
         return chunk;
     }
 

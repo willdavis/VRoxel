@@ -41,6 +41,27 @@ namespace Tests
         }
 
         [Test]
+        public void CanCreateChunksWithoutCollision()
+        {
+            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
+            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
+
+            World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
+            world.Initialize();
+
+            ChunkManager manager = new ChunkManager(world, prefab_chunk);
+            manager.collidable = false;
+
+            Chunk chunk = manager.Create(Vector3Int.zero);
+            Mesh collider = chunk.GetComponent<MeshCollider>().sharedMesh;
+            Assert.AreEqual(false, chunk.collidable);
+            Assert.AreEqual(null, collider);
+
+            Object.DestroyImmediate(chunk);
+            Object.DestroyImmediate(world);
+        }
+
+        [Test]
         public void CanUpdateChunk()
         {
             Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
