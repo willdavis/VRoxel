@@ -28,6 +28,13 @@ public class ChunkManager
     }
 
     /// <summary>
+    /// An enumerator for all chunks in the cache
+    /// </summary>
+    public IEnumerable<Chunk> chunks {
+        get { foreach (Chunk chunk in _cache.Values) { yield return chunk; } }
+    }
+
+    /// <summary>
     /// The maximum number of Chunks in this World
     /// </summary>
     public Vector3Int max { get { return _max; } }
@@ -186,7 +193,8 @@ public class ChunkManager
     }
 
     /// <summary>
-    /// Load a batch of Chunks in the World.
+    /// Create a batch of chunks in the world.
+    /// Existing chunks will be marked as stale.
     /// Indexes that are out of bounds will be skipped.
     /// </summary>
     /// <param name="count">The number of Chunks to create in each dimension</param>
@@ -204,7 +212,8 @@ public class ChunkManager
                 {
                     index.y = y + offset.y;
                     if (!Contains(index)) { continue; }
-                    Create(index);
+                    if (!HasIndex(index)) { Create(index); }
+                    else { Update(index); }
                 }
             }
         }

@@ -67,7 +67,7 @@ namespace Tests
             Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
             World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
 
-            World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;            
+            World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
             world.size = new Vector3Int(2,2,2);
             world.Initialize();
 
@@ -97,7 +97,7 @@ namespace Tests
             Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
             World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
 
-            World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;            
+            World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
             world.size = new Vector3Int(2,2,2);
             world.Initialize();
 
@@ -115,6 +115,51 @@ namespace Tests
             Object.DestroyImmediate(chunk);
             Object.DestroyImmediate(control);
             Object.DestroyImmediate(neighbor);
+            Object.DestroyImmediate(world);
+        }
+
+        [Test]
+        public void CanBatchCreateChunks()
+        {
+            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
+            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
+
+            Vector3Int size = new Vector3Int(2,2,2);
+            World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
+            world.size = size;
+            world.Initialize();
+
+            ChunkManager manager = new ChunkManager(world, prefab_chunk);
+
+            manager.Load(size, Vector3Int.zero);
+            foreach (Chunk chunk in manager.chunks) { Assert.AreEqual(false, chunk.stale); }
+
+            // clean up
+            foreach (Chunk chunk in manager.chunks) { Object.DestroyImmediate(chunk); }
+            Object.DestroyImmediate(world);
+        }
+
+        [Test]
+        public void CanBatchUpdateChunks()
+        {
+            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
+            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
+
+            Vector3Int size = new Vector3Int(2,2,2);
+            World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
+            world.size = size;
+            world.Initialize();
+
+            ChunkManager manager = new ChunkManager(world, prefab_chunk);
+
+            manager.Load(size, Vector3Int.zero);
+            foreach (Chunk chunk in manager.chunks) { Assert.AreEqual(false, chunk.stale); }
+
+            manager.Load(size, Vector3Int.zero);
+            foreach (Chunk chunk in manager.chunks) { Assert.AreEqual(true, chunk.stale); }
+
+            // clean up
+            foreach (Chunk chunk in manager.chunks) { Object.DestroyImmediate(chunk); }
             Object.DestroyImmediate(world);
         }
     }
