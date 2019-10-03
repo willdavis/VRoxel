@@ -28,14 +28,14 @@ public class ChunkManager
     }
 
     /// <summary>
-    /// An enumerator for all chunks in the cache
+    /// An enumeration of all Chunks in the cache.
     /// </summary>
-    public IEnumerable<Chunk> chunks {
+    public IEnumerable<Chunk> all {
         get { foreach (Chunk chunk in _cache.Values) { yield return chunk; } }
     }
 
     /// <summary>
-    /// The maximum number of Chunks in this World
+    /// The maximum number of Chunks this World can have in each dimension.
     /// </summary>
     public Vector3Int max { get { return _max; } }
 

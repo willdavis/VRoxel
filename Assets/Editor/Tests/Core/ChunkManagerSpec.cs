@@ -132,10 +132,10 @@ namespace Tests
             ChunkManager manager = new ChunkManager(world, prefab_chunk);
 
             manager.Load(size, Vector3Int.zero);
-            foreach (Chunk chunk in manager.chunks) { Assert.AreEqual(false, chunk.stale); }
+            foreach (Chunk chunk in manager.all) { Assert.AreEqual(false, chunk.stale); }
 
             // clean up
-            foreach (Chunk chunk in manager.chunks) { Object.DestroyImmediate(chunk); }
+            foreach (Chunk chunk in manager.all) { Object.DestroyImmediate(chunk); }
             Object.DestroyImmediate(world);
         }
 
@@ -153,13 +153,13 @@ namespace Tests
             ChunkManager manager = new ChunkManager(world, prefab_chunk);
 
             manager.Load(size, Vector3Int.zero);
-            foreach (Chunk chunk in manager.chunks) { Assert.AreEqual(false, chunk.stale); }
+            foreach (Chunk chunk in manager.all) { Assert.AreEqual(false, chunk.stale); }
 
             manager.Load(size, Vector3Int.zero);
-            foreach (Chunk chunk in manager.chunks) { Assert.AreEqual(true, chunk.stale); }
+            foreach (Chunk chunk in manager.all) { Assert.AreEqual(true, chunk.stale); }
 
             // clean up
-            foreach (Chunk chunk in manager.chunks) { Object.DestroyImmediate(chunk); }
+            foreach (Chunk chunk in manager.all) { Object.DestroyImmediate(chunk); }
             Object.DestroyImmediate(world);
         }
     }
