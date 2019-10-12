@@ -8,16 +8,16 @@ public class Demo : MonoBehaviour
     World _world;
     Pathfinder _pathfinder;
     List<GameObject> _pathNodes;
-    Vector3 _goalPosition;
-    Vector3Int _goalGridPosition;
 
-    List<Turret> _turrets = new List<Turret>();
+    Vector3Int goalPoint;           // the point in the voxel grid the AI is trying to get to
+    Vector3 goalPosition;           // the world scene position the AI is trying to get to
+    List<Turret> turrets = new List<Turret>();
 
-    // variables for the block cursor
-    // for single or multiple blocks
-    bool _draggingCursor;
-    Vector3Int _start;
-    Vector3 _startPosition;
+    bool draggingCursor;            // is the Player clicking and dragging the cursor?
+    Vector3Int clickStartPoint;     // the point in the voxel grid the Player started the click + drag at
+    Vector3 clickStartPosition;     // the world scene position the Player started the click + drag at
+
+
 
     [Header("Prefab Settings")]
     public NavAgent agent;
@@ -28,8 +28,8 @@ public class Demo : MonoBehaviour
 
     [Header("Input Settings")]
     public byte blockType = 1;
-    public float radius = 8.5f;
-    public int neighborhood = 1;
+    public float blockRadius = 6.5f;
+    public int blockSize = 1;
     public Cube.Point hitAdjustment = Cube.Point.Outside;
 
     [Header("UI Settings")]
@@ -60,23 +60,21 @@ public class Demo : MonoBehaviour
         int x = Mathf.FloorToInt(_world.size.x / 2f);
         int z = Mathf.FloorToInt(_world.size.z / 2f);
         int y = _world.terrain.GetHeight(x, z) + 1;
-        _goalGridPosition = new Vector3Int(x, y, z);
+        goalPoint = new Vector3Int(x, y, z);
 
         // spawn a structure at the center of the world
-        _goalPosition = WorldEditor.Get(_world, _goalGridPosition);
-        _goalPosition += Vector3.down * 0.5f * _world.scale; // adjust to the floor
+        goalPosition = WorldEditor.Get(_world, goalPoint);
+        goalPosition += Vector3.down * 0.5f * _world.scale; // adjust to the floor
 
-        GameObject obj = Instantiate(goalPrefab, _goalPosition, _world.transform.rotation) as GameObject;
+        GameObject obj = Instantiate(goalPrefab, goalPosition, _world.transform.rotation) as GameObject;
         obj.transform.localScale = Vector3.one * _world.scale;
         obj.transform.parent = _world.transform;
 
         // generate nodes for the pathfinder
         // this method creates a flow field for a tower defence style game
-        //_pathfinder.BFS(_goalGridPosition); // breadth first search
-        _pathfinder.Dijkstra(_goalGridPosition);
-
-        // DEBUG: view the path nodes
-        //DrawPathNodes();
+        //_pathfinder.BFS(goalPoint); // breadth first search
+        // - or -
+        _pathfinder.Dijkstra(goalPoint);
 
         // Setup the BlockCursor
         cursor.line.startColor = Color.yellow;
@@ -188,6 +186,55 @@ public class Demo : MonoBehaviour
         return manager;
     }
 
+    Vector3 GetAdjustedHit(RaycastHit hit)
+    {
+        Vector3 position = Vector3.zero;
+        switch (hitAdjustment)
+        {
+            case Cube.Point.Inside: // used to replace blocks
+                position = WorldEditor.Adjust(_world, hit, Cube.Point.Inside);
+                break;
+            case Cube.Point.Outside: // used to add blocks
+                position = WorldEditor.Adjust(_world, hit, Cube.Point.Outside);
+                break;
+        }
+        return position;
+    }
+
+    void DrawCursor(Vector3 position)
+    {
+        if(draggingCursor)
+        {
+            cursor.scale = 1f;
+            cursor.DrawCuboid(_world, clickStartPosition, position);
+        }
+        else
+        {
+            cursor.scale = 2f * (float)blockSize + 1f;
+            cursor.DrawCuboid(_world, position, position);
+        }
+    }
+
+    void HandleMouseInput(Vector3Int hitPoint, Vector3 hitPosition)
+    {
+        if(Input.GetMouseButtonDown(0)) // left click
+        {
+            clickStartPoint = hitPoint;
+            clickStartPosition = hitPosition;
+            draggingCursor = true;
+        }
+        if (Input.GetMouseButtonUp(0)) // left click
+        {
+            WorldEditor.Set(_world, clickStartPoint, hitPoint, blockType);
+            draggingCursor = false;
+
+            // update AI pathfinding
+            //_pathfinder.BFS(goalPoint);
+            // - or -
+            _pathfinder.Dijkstra(goalPoint);
+        }
+    }
+
     /// <summary>
     /// Process any user input for this frame
     /// </summary>
@@ -198,81 +245,39 @@ public class Demo : MonoBehaviour
 
         if (Physics.Raycast (ray, out hit))
         {
-            // calculate the adjusted hit position
-            // and get the index point in the voxel grid
-            // and snap the index to its grid position in the scene
-            Vector3 position = Vector3.zero;
-            switch (hitAdjustment)
-            {
-                case Cube.Point.Inside: // used to replace blocks
-                    position = WorldEditor.Adjust(_world, hit, Cube.Point.Inside);
-                    break;
-                case Cube.Point.Outside: // used to add blocks
-                    position = WorldEditor.Adjust(_world, hit, Cube.Point.Outside);
-                    break;
-            }
+            Vector3 adjustedHit = GetAdjustedHit(hit);
+            Vector3Int hitPoint = WorldEditor.Get(_world, adjustedHit);     // the voxel grid point that was hit
+            Vector3 hitPosition = WorldEditor.Get(_world, hitPoint);        // the world scene position for the voxel point
 
-            Vector3Int index = WorldEditor.Get(_world, position);
-            Vector3 gridPosition = WorldEditor.Get(_world, index);
-            float halfScale = _world.scale / 2f;
-
-            // draw the block cursor
-            if(_draggingCursor) // draw a rectangle for the cursor
-            {                
-                cursor.scale = 1f;
-                cursor.DrawCuboid(_world, _startPosition, gridPosition);
-            }
-            else // draw a cube for the cursor
-            {
-                cursor.scale = 2f * (float)neighborhood + 1f;
-                cursor.DrawCuboid(_world, gridPosition, gridPosition);
-            }
-
-            // left mouse click to add blocks
-            // click & drag to add multiple blocks
-            if(Input.GetMouseButtonDown(0))
-            {
-                _start = index;
-                _startPosition = gridPosition;
-                _draggingCursor = true;
-            }
-            if (Input.GetMouseButtonUp(0))
-            {
-                _draggingCursor = false;
-                WorldEditor.Set(_world, _start, index, blockType);      // set the world data
-                //_pathfinder.BFS(_goalGridPosition);              // rebuild pathfinding nodes
-                _pathfinder.Dijkstra(_goalGridPosition);
-
-                // DEBUG
-                //DrawPathNodes();
-            }
+            HandleMouseInput(hitPoint, hitPosition);
+            DrawCursor(hitPosition);
 
             // Key G - place a sphere of blocks in the world
             if (Input.GetKeyDown(KeyCode.G))
             {
-                WorldEditor.Set(_world, index, radius, blockType);
-                _pathfinder.Dijkstra(_goalGridPosition);
+                WorldEditor.Set(_world, hitPoint, blockRadius, blockType);
+                _pathfinder.Dijkstra(goalPoint);
             }
 
             // Key H - place a Moore neighborhood of blocks in the world
             if (Input.GetKeyDown(KeyCode.H))
             {
-                WorldEditor.Set(_world, index, neighborhood, blockType);
-                _pathfinder.Dijkstra(_goalGridPosition);
+                WorldEditor.Set(_world, hitPoint, blockSize, blockType);
+                _pathfinder.Dijkstra(goalPoint);
             }
 
             // Key N - spawn a new NPC in the world
-            if (Input.GetKey(KeyCode.N) && CanSpawnAt(index))
+            if (Input.GetKey(KeyCode.N) && CanSpawnAt(hitPoint))
             {
-                NavAgent newAgent = _world.agents.Spawn(agent, gridPosition);
+                NavAgent newAgent = _world.agents.Spawn(agent, hitPosition);
                 newAgent.pathfinder = _pathfinder;
-                newAgent.destination = _goalPosition;
+                newAgent.destination = goalPosition;
             }
 
             // Key T - spawn a turret in the world to shoot NPCs
-            if (Input.GetKeyDown(KeyCode.T) && CanSpawnAt(index))
+            if (Input.GetKeyDown(KeyCode.T) && CanSpawnAt(hitPoint))
             {
-                Turret turret = Instantiate(turretPrefab, gridPosition, _world.transform.rotation) as Turret;
+                Turret turret = Instantiate(turretPrefab, hitPosition, _world.transform.rotation) as Turret;
                 turret.transform.position += Vector3.down * 0.5f * _world.scale; // adjust to the floor
                 turret.transform.localScale = Vector3.one * _world.scale;
                 turret.transform.parent = _world.transform;
@@ -280,8 +285,7 @@ public class Demo : MonoBehaviour
                 // configure the turret
                 turret.range = 10f * _world.scale;
                 turret.targets = _world.agents.all;
-
-                _turrets.Add(turret);
+                turrets.Add(turret);
             }
         }
     }
