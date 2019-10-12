@@ -77,6 +77,11 @@ public class Demo : MonoBehaviour
 
         // DEBUG: view the path nodes
         //DrawPathNodes();
+
+        // Setup the BlockCursor
+        cursor.line.startColor = Color.yellow;
+        cursor.line.endColor = Color.yellow;
+        cursor.line.widthMultiplier = _world.scale / 10f;
     }
 
     void Update()
@@ -213,22 +218,14 @@ public class Demo : MonoBehaviour
 
             // draw the block cursor
             if(_draggingCursor) // draw a rectangle for the cursor
-            {
-                float offsetX = Mathf.Abs(_start.x - index.x);
-                float offsetY = Mathf.Abs(_start.y - index.y);
-                float offsetZ = Mathf.Abs(_start.z - index.z);
-
-                Vector3 scale = new Vector3(
-                    halfScale * offsetX + halfScale,
-                    halfScale * offsetY + halfScale,
-                    halfScale * offsetZ + halfScale
-                );
-
-                cursor.Draw(_world, _startPosition, gridPosition, scale);
+            {                
+                cursor.scale = 1f;
+                cursor.DrawCuboid(_world, _startPosition, gridPosition);
             }
-            else // draw a single block for the cursor
+            else // draw a cube for the cursor
             {
-                cursor.Draw(_world, gridPosition, halfScale);
+                cursor.scale = 2f * (float)neighborhood + 1f;
+                cursor.DrawCuboid(_world, gridPosition, gridPosition);
             }
 
             // left mouse click to add blocks

@@ -1,66 +1,85 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
+/// <summary>
+/// Allows the attached GameObject to draw a bounding box around voxels.
+/// </summary>
 public class BlockCursor : MonoBehaviour
 {
-    LineRenderer _renderer;
-    Vector3[] _cube = new Vector3[8];
-
-    void Awake()
-    {
-        _renderer = GetComponent<LineRenderer>();
-    }
+    Vector3[] _verts = new Vector3[8];
 
     /// <summary>
-    /// Draws a cube wire mesh
+    /// The current block size factor for the cursor.
+    /// This is in addition to the world's scale factor.
     /// </summary>
-    public void Draw(World world, Vector3 position, float scale)
+    public float scale = 1f;
+
+    /// <summary>
+    /// The LineRenderer attached to this BlockCursor
+    /// </summary>
+    [HideInInspector]
+    public LineRenderer line;
+
+    /// <summary>
+    /// Draws a cuboid wire mesh using a LineRenderer.
+    /// When p1 == p2 a cube will be drawn, otherwise a rectangle
+    /// will be drawn between p1 and p2.
+    /// </summary>
+    /// <param name="world">The voxel world to use for reference</param>
+    /// <param name="p1">The center point of the cube, or the starting point for a rectangle</param>
+    /// <param name="p2">The ending point for a rectangle</param>
+    public void DrawCuboid(World world, Vector3 p1, Vector3 p2)
     {
-        if (world.Contains(position))
+        Quaternion rotation = world.transform.rotation;
+        float cubeScale = world.scale * scale / 2f;
+
+        if (p1 == p2)
         {
-            _renderer.startColor = Color.yellow;
-            _renderer.endColor = Color.yellow;
+            Cube.Transform(p1, cubeScale, rotation, ref _verts);
         }
         else
         {
-            _renderer.startColor = Color.red;
-            _renderer.endColor = Color.red;
+            Vector3Int v1 = WorldEditor.Get(world, p1);
+            Vector3Int v2 = WorldEditor.Get(world, p2);
+
+            float sizeX = Mathf.Abs(v1.x - v2.x);
+            float sizeY = Mathf.Abs(v1.y - v2.y);
+            float sizeZ = Mathf.Abs(v1.z - v2.z);
+
+            Vector3 rectangleScale = new Vector3(
+                cubeScale * sizeX + cubeScale,
+                cubeScale * sizeY + cubeScale,
+                cubeScale * sizeZ + cubeScale
+            );
+
+            Cube.TransformRectangle(p1, p2, rectangleScale, rotation, ref _verts);
         }
 
-        _renderer.widthMultiplier = world.scale / 10f;
-        Cube.Transform(position, scale, world.transform.rotation, ref _cube);
         UpdateLineRenderer();
     }
 
-    /// <summary>
-    /// Draws a rectangle wire mesh
-    /// </summary>
-    public void Draw(World world, Vector3 start, Vector3 end, Vector3 scale)
+    void Awake()
     {
-        _renderer.widthMultiplier = world.scale / 10f;
-        Cube.TransformRectangle(start, end, scale, world.transform.rotation, ref _cube);
-        UpdateLineRenderer();
+        line = GetComponent<LineRenderer>();
     }
 
     void UpdateLineRenderer()
     {
-        _renderer.SetPosition(0, _cube[0]);    // set 0
-        _renderer.SetPosition(1, _cube[1]);    // set 0 -> 1
-        _renderer.SetPosition(2, _cube[2]);    // set 1 -> 2
-        _renderer.SetPosition(3, _cube[3]);    // set 2 -> 3
-        _renderer.SetPosition(4, _cube[0]);    // set 3 -> 0
-        _renderer.SetPosition(5, _cube[4]);    // set 0 -> 4
-        _renderer.SetPosition(6, _cube[5]);    // set 4 -> 5
-        _renderer.SetPosition(7, _cube[1]);    // set 5 -> 1
-        _renderer.SetPosition(8, _cube[2]);    // set 1 -> 2
-        _renderer.SetPosition(9, _cube[6]);    // set 2 -> 6
-        _renderer.SetPosition(10, _cube[5]);   // set 6 -> 5
-        _renderer.SetPosition(11, _cube[4]);   // set 5 -> 4
-        _renderer.SetPosition(12, _cube[7]);   // set 4 -> 7
-        _renderer.SetPosition(13, _cube[6]);   // set 7 -> 6
-        _renderer.SetPosition(14, _cube[2]);   // set 6 -> 2
-        _renderer.SetPosition(15, _cube[3]);   // set 2 -> 3
-        _renderer.SetPosition(16, _cube[7]);   // set 3 -> 7
+        line.SetPosition(0, _verts[0]);    // set 0
+        line.SetPosition(1, _verts[1]);    // set 0 -> 1
+        line.SetPosition(2, _verts[2]);    // set 1 -> 2
+        line.SetPosition(3, _verts[3]);    // set 2 -> 3
+        line.SetPosition(4, _verts[0]);    // set 3 -> 0
+        line.SetPosition(5, _verts[4]);    // set 0 -> 4
+        line.SetPosition(6, _verts[5]);    // set 4 -> 5
+        line.SetPosition(7, _verts[1]);    // set 5 -> 1
+        line.SetPosition(8, _verts[2]);    // set 1 -> 2
+        line.SetPosition(9, _verts[6]);    // set 2 -> 6
+        line.SetPosition(10, _verts[5]);   // set 6 -> 5
+        line.SetPosition(11, _verts[4]);   // set 5 -> 4
+        line.SetPosition(12, _verts[7]);   // set 4 -> 7
+        line.SetPosition(13, _verts[6]);   // set 7 -> 6
+        line.SetPosition(14, _verts[2]);   // set 6 -> 2
+        line.SetPosition(15, _verts[3]);   // set 2 -> 3
+        line.SetPosition(16, _verts[7]);   // set 3 -> 7
     }
 }
