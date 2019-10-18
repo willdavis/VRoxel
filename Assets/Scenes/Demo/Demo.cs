@@ -27,6 +27,7 @@ public class Demo : MonoBehaviour
     public BlockCursor cursor;
 
     [Header("Input Settings")]
+    public BlockCursor.Shape blockShape = BlockCursor.Shape.Cuboid;
     public byte blockType = 1;
     public float blockRadius = 6.5f;
     public int blockSize = 1;
@@ -75,11 +76,6 @@ public class Demo : MonoBehaviour
         //_pathfinder.BFS(goalPoint); // breadth first search
         // - or -
         _pathfinder.Dijkstra(goalPoint);
-
-        // Setup the BlockCursor
-        cursor.line.startColor = Color.yellow;
-        cursor.line.endColor = Color.yellow;
-        cursor.line.widthMultiplier = _world.scale / 10f;
     }
 
     void Update()
@@ -205,28 +201,46 @@ public class Demo : MonoBehaviour
     {
         if(draggingCursor)
         {
-            cursor.scale = 1f;
-            cursor.DrawCuboid(_world, clickStartPosition, position);
+            if (blockShape == BlockCursor.Shape.Cuboid)
+            {
+                cursor.UpdateCuboid(_world, clickStartPosition, position);
+            }
         }
         else
         {
-            cursor.scale = 2f * (float)blockSize + 1f;
-            cursor.DrawCuboid(_world, position, position);
+            float scale = 2f * (float)blockSize + 1f;
+            if (blockShape == BlockCursor.Shape.Cuboid)
+            {
+                cursor.UpdateCuboid(_world, position, position, scale);
+            }
+            else
+            {
+                cursor.UpdateSpheroid(_world, position, position, blockRadius);
+            }
         }
     }
 
     void HandleMouseInput(Vector3Int hitPoint, Vector3 hitPosition)
     {
-        if(Input.GetMouseButtonDown(0)) // left click
+        if(Input.GetMouseButtonDown(0) && blockShape == BlockCursor.Shape.Cuboid) // left click
         {
             clickStartPoint = hitPoint;
             clickStartPosition = hitPosition;
             draggingCursor = true;
         }
-        if (Input.GetMouseButtonUp(0)) // left click
+        if (Input.GetMouseButtonUp(0) && blockShape == BlockCursor.Shape.Cuboid) // left click
         {
             WorldEditor.Set(_world, clickStartPoint, hitPoint, blockType);
             draggingCursor = false;
+
+            // update AI pathfinding
+            //_pathfinder.BFS(goalPoint);
+            // - or -
+            _pathfinder.Dijkstra(goalPoint);
+        }
+        if (Input.GetMouseButtonUp(0) && blockShape == BlockCursor.Shape.Spheroid) // left click
+        {
+            WorldEditor.Set(_world, hitPoint, blockRadius / 2f, blockType);
 
             // update AI pathfinding
             //_pathfinder.BFS(goalPoint);
@@ -251,13 +265,6 @@ public class Demo : MonoBehaviour
 
             HandleMouseInput(hitPoint, hitPosition);
             DrawCursor(hitPosition);
-
-            // Key G - place a sphere of blocks in the world
-            if (Input.GetKeyDown(KeyCode.G))
-            {
-                WorldEditor.Set(_world, hitPoint, blockRadius, blockType);
-                _pathfinder.Dijkstra(goalPoint);
-            }
 
             // Key H - place a Moore neighborhood of blocks in the world
             if (Input.GetKeyDown(KeyCode.H))

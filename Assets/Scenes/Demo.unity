@@ -211,6 +211,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: BlockCursor
       objectReference: {fileID: 0}
+    - target: {fileID: 2260567563425992437, guid: 320d687b45522d44d9f1a752ebf9d380,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2260567563425992434, guid: 320d687b45522d44d9f1a752ebf9d380,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -229,17 +234,17 @@ PrefabInstance:
     - target: {fileID: 2260567563425992434, guid: 320d687b45522d44d9f1a752ebf9d380,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 2260567563425992434, guid: 320d687b45522d44d9f1a752ebf9d380,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 2260567563425992434, guid: 320d687b45522d44d9f1a752ebf9d380,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 2260567563425992434, guid: 320d687b45522d44d9f1a752ebf9d380,
         type: 3}
@@ -349,18 +354,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 196211965}
   m_CullTransparentMesh: 0
---- !u!114 &375555934 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2260567563425992435, guid: 320d687b45522d44d9f1a752ebf9d380,
-    type: 3}
-  m_PrefabInstance: {fileID: 77687070}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f174078ccea1bb44ea2f2398267945d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &491598318
 GameObject:
   m_ObjectHideFlags: 0
@@ -427,6 +420,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &557641201 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6747968335326790826, guid: 320d687b45522d44d9f1a752ebf9d380,
+    type: 3}
+  m_PrefabInstance: {fileID: 77687070}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f174078ccea1bb44ea2f2398267945d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &782984831
 GameObject:
   m_ObjectHideFlags: 0
@@ -1172,10 +1177,11 @@ MonoBehaviour:
     type: 3}
   turretPrefab: {fileID: 3560516922981617002, guid: 53c45e1d63e670046891433612c2a474,
     type: 3}
-  cursor: {fileID: 375555934}
+  cursor: {fileID: 557641201}
+  blockShape: 0
   blockType: 2
-  radius: 8.5
-  neighborhood: 0
+  blockRadius: 8
+  blockSize: 0
   hitAdjustment: 1
   npcCount: {fileID: 1305156340}
   nodeCount: {fileID: 2006366203}
