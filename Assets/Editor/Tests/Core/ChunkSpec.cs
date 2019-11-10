@@ -9,15 +9,18 @@ namespace Tests
 {
     public class ChunkSpec
     {
+        public string chunk_prefab_path = "Assets/VRoxel/Core/Prefabs/Chunk.prefab";
+        public string world_prefab_path = "Assets/VRoxel/Core/Prefabs/World.prefab";
+
         [UnityTest]
         public IEnumerator CanInitialize()
         {
             Material material = new Material(Shader.Find("Specular"));
 
-            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
-            World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
+            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>(chunk_prefab_path);
+            World prefab_world = AssetDatabase.LoadAssetAtPath<World>(world_prefab_path);
 
-            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
+            World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
             Chunk chunk = UnityEngine.Object.Instantiate(prefab_chunk, Vector3.zero, Quaternion.identity) as Chunk;
 
             world.blocks.texture.material = material;
@@ -32,7 +35,7 @@ namespace Tests
         public IEnumerator CanDisableCollision()
         {
             // create a new chunk
-            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
+            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>(chunk_prefab_path);
             Chunk chunk = UnityEngine.Object.Instantiate(prefab_chunk, Vector3.zero, Quaternion.identity) as Chunk;
             World world = CreateWorld();
 
@@ -53,7 +56,7 @@ namespace Tests
         [UnityTest]
         public IEnumerator CanGenerateMesh()
         {
-            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
+            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>(chunk_prefab_path);
             World world = CreateWorld();
 
             // setup chunk and generate the mesh
@@ -83,7 +86,7 @@ namespace Tests
         /// -----------------------------
         World CreateWorld()
         {
-            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
+            World prefab_world = AssetDatabase.LoadAssetAtPath<World>(world_prefab_path);
             Material material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Editor/Materials/TextureAtlas.mat");
 
             World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;

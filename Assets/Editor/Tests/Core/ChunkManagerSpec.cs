@@ -9,11 +9,14 @@ namespace Tests
 {
     public class ChunkManagerSpec
     {
+        public string chunk_prefab_path = "Assets/VRoxel/Core/Prefabs/Chunk.prefab";
+        public string world_prefab_path = "Assets/VRoxel/Core/Prefabs/World.prefab";
+
         [Test]
         public void CanContainIndexes()
         {
-            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
-            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
+            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>(chunk_prefab_path);
+            World prefab_world = AssetDatabase.LoadAssetAtPath<World>(world_prefab_path);
             ChunkManager manager = new ChunkManager(prefab_world, prefab_chunk);
 
             Assert.AreEqual(true, manager.Contains(Vector3Int.zero));
@@ -23,8 +26,8 @@ namespace Tests
         [Test]
         public void CanCreateChunks()
         {
-            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
-            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
+            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>(chunk_prefab_path);
+            World prefab_world = AssetDatabase.LoadAssetAtPath<World>(world_prefab_path);
 
             World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
             world.Initialize();
@@ -43,8 +46,8 @@ namespace Tests
         [Test]
         public void CanCreateChunksWithoutCollision()
         {
-            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
-            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
+            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>(chunk_prefab_path);
+            World prefab_world = AssetDatabase.LoadAssetAtPath<World>(world_prefab_path);
 
             World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
             world.Initialize();
@@ -64,8 +67,8 @@ namespace Tests
         [Test]
         public void CanUpdateChunk()
         {
-            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
-            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
+            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>(chunk_prefab_path);
+            World prefab_world = AssetDatabase.LoadAssetAtPath<World>(world_prefab_path);
 
             World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
             world.size = new Vector3Int(2,2,2);
@@ -94,8 +97,8 @@ namespace Tests
         [Test]
         public void CanUpdateChunkNeighbors()
         {
-            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
-            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
+            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>(chunk_prefab_path);
+            World prefab_world = AssetDatabase.LoadAssetAtPath<World>(world_prefab_path);
 
             World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
             world.size = new Vector3Int(2,2,2);
@@ -121,8 +124,8 @@ namespace Tests
         [Test]
         public void CanBatchCreateChunks()
         {
-            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
-            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
+            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>(chunk_prefab_path);
+            World prefab_world = AssetDatabase.LoadAssetAtPath<World>(world_prefab_path);
 
             Vector3Int size = new Vector3Int(2,2,2);
             World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
@@ -142,8 +145,8 @@ namespace Tests
         [Test]
         public void CanBatchUpdateChunks()
         {
-            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
-            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
+            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>(chunk_prefab_path);
+            World prefab_world = AssetDatabase.LoadAssetAtPath<World>(world_prefab_path);
 
             Vector3Int size = new Vector3Int(2,2,2);
             World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;

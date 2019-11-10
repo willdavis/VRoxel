@@ -9,13 +9,16 @@ namespace Tests
 {
     public class WorldSpec
     {
+        public string chunk_prefab_path = "Assets/VRoxel/Core/Prefabs/Chunk.prefab";
+        public string world_prefab_path = "Assets/VRoxel/Core/Prefabs/World.prefab";
+
         [UnityTest]
         public IEnumerator CanCreateChunks()
         {
             // Load assets
+            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>(chunk_prefab_path);
+            World prefab_world = AssetDatabase.LoadAssetAtPath<World>(world_prefab_path);
             Material material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Editor/Materials/TextureAtlas.mat");
-            Chunk prefab_chunk = AssetDatabase.LoadAssetAtPath<Chunk>("Assets/VRoxel/Prefabs/Chunk.prefab");
-            World prefab_world = AssetDatabase.LoadAssetAtPath<World>("Assets/VRoxel/Prefabs/World.prefab");
 
             // Create blocks and add textures
             Block air = new Block(); air.index = 0;
