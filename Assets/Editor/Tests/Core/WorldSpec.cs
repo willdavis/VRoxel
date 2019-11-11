@@ -51,7 +51,7 @@ namespace Tests
 
             // Initialize and generate world data
             world.Initialize();
-            world.Generate(world.size, Vector3Int.zero);
+            Generate(world, world.size, Vector3Int.zero);
 
             // Load all chunks in the world
             world.chunks.Load(world.chunks.max, Vector3Int.zero);
@@ -66,6 +66,31 @@ namespace Tests
             WorldEditor.Set(world, center, 16, stone.index);
 
             Object.DestroyImmediate(world);
+        }
+
+
+        /// <summary>
+        /// Generate world data within the given bounds.
+        /// Any points outside the world will be skipped.
+        /// </summary>
+        /// <param name="size">The number of voxels to generate</param>
+        /// <param name="offset">The offset from the world origin</param>
+        public void Generate(World world, Vector3Int size, Vector3Int offset)
+        {
+            Vector3Int point = Vector3Int.zero;
+            for (int x = 0; x < size.x; x++)
+            {
+                point.x = x + offset.x;
+                for (int z = 0; z < size.z; z++)
+                {
+                    point.z = z + offset.z;
+                    for (int y = 0; y < size.y; y++)
+                    {
+                        point.y = y + offset.y;
+                        world.data.Set(point, 1);
+                    }
+                }
+            }
         }
     }
 }
