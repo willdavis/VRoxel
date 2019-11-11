@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 using VRoxel.Core;
+using VRoxel.Navigation;
 
 public class Demo : MonoBehaviour
 {

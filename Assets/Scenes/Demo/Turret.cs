@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using VRoxel.Navigation;
+
 public class Turret : MonoBehaviour
 {
     [Header("Settings")]
