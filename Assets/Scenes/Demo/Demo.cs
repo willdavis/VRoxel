@@ -7,6 +7,7 @@ public class Demo : MonoBehaviour
 {
     World _world;
     Terrain _terrain;
+    AgentManager _agents;
     Pathfinder _pathfinder;
     List<GameObject> _pathNodes;
 
@@ -47,6 +48,7 @@ public class Demo : MonoBehaviour
     void Awake()
     {
         _world = GetComponent<World>();
+        _agents = new AgentManager(_world);
         _pathfinder = new Pathfinder(_world);
         _pathNodes = new List<GameObject>();
         _terrain = new Terrain(0, 0.25f, 25f, 10f);
@@ -84,7 +86,7 @@ public class Demo : MonoBehaviour
     {
         HandleUserInput();      // handle anything the user has input
         RemoveNPCsAtGoal();     // remove any NPCs that have reached the goal
-        npcCount.text = npcCountString + _world.agents.all.Count;
+        npcCount.text = npcCountString + _agents.all.Count;
         nodeCount.text = nodeCountString + _pathfinder.nodes.Count;
     }
 
@@ -148,14 +150,14 @@ public class Demo : MonoBehaviour
     /// </summary>
     void RemoveNPCsAtGoal()
     {
-        for (int i = 0; i < _world.agents.all.Count; i++)
+        for (int i = 0; i < _agents.all.Count; i++)
         {
-            NavAgent agent = _world.agents.all[i];
+            NavAgent agent = _agents.all[i];
             float dist = Vector3.Distance(agent.transform.position, agent.destination);
 
             if (dist <= agent.range * agent.range * 2f)
             {
-                _world.agents.all.Remove(agent);
+                _agents.all.Remove(agent);
                 GameObject.Destroy(agent.gameObject);
             }
         }
@@ -306,7 +308,7 @@ public class Demo : MonoBehaviour
             // Key N - spawn a new NPC in the world
             if (Input.GetKey(KeyCode.N) && CanSpawnAt(hitPoint))
             {
-                NavAgent newAgent = _world.agents.Spawn(agent, hitPosition);
+                NavAgent newAgent = _agents.Spawn(agent, hitPosition);
                 newAgent.pathfinder = _pathfinder;
                 newAgent.destination = goalPosition;
             }
@@ -321,7 +323,7 @@ public class Demo : MonoBehaviour
 
                 // configure the turret
                 turret.range = 10f * _world.scale;
-                turret.targets = _world.agents.all;
+                turret.targets = _agents.all;
                 turrets.Add(turret);
             }
         }

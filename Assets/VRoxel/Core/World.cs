@@ -6,7 +6,6 @@ public class World : MonoBehaviour
 {
     private VoxelGrid _data;
     private ChunkManager _chunks;
-    private AgentManager _agents;
 
 
     /// <summary>
@@ -55,16 +54,10 @@ public class World : MonoBehaviour
     public ChunkManager chunks { get { return _chunks; } }
 
     /// <summary>
-    /// The NPC Agents in the world
-    /// </summary>
-    public AgentManager agents { get { return _agents; } }
-
-    /// <summary>
     /// Initialize a new World
     /// </summary>
     public void Initialize()
     {
-        _agents = new AgentManager(this);
         _chunks = new ChunkManager(this, chunk);
         _data = new VoxelGrid(size);
     }
