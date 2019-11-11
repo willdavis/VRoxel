@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using VRoxel.Core;
+
 public class AgentManager
 {
     private World _world;

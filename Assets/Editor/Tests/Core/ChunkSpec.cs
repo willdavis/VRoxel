@@ -5,6 +5,8 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEditor;
 
+using VRoxel.Core;
+
 namespace Tests
 {
     public class ChunkSpec

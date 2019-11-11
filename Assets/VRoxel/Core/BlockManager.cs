@@ -2,47 +2,50 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Manages and configures all blocks in a world
-/// </summary>
-public class BlockManager
+namespace VRoxel.Core
 {
     /// <summary>
-    /// The texture data common to all blocks
+    /// Manages and configures all blocks in a world
     /// </summary>
-    public class TextureAtlas
+    public class BlockManager
     {
         /// <summary>
-        /// The spacing between block textures in the atlas
+        /// The texture data common to all blocks
         /// </summary>
-        public float size;
+        public class TextureAtlas
+        {
+            /// <summary>
+            /// The spacing between block textures in the atlas
+            /// </summary>
+            public float size;
+
+            /// <summary>
+            /// The source material for the texture atlas
+            /// </summary>
+            public Material material;
+        }
 
         /// <summary>
-        /// The source material for the texture atlas
+        /// The texture data common to all blocks
         /// </summary>
-        public Material material;
-    }
+        public TextureAtlas texture;
+        
+        /// <summary>
+        /// Connects each block to a byte index used in the VoxelGrid
+        /// </summary>
+        public Dictionary<byte, Block> library;
 
-    /// <summary>
-    /// The texture data common to all blocks
-    /// </summary>
-    public TextureAtlas texture;
-    
-    /// <summary>
-    /// Connects each block to a byte index used in the VoxelGrid
-    /// </summary>
-    public Dictionary<byte, Block> library;
+        public bool IsSolid(byte key)
+        {
+            if (!library.ContainsKey(key)) { return false; }
+            if (!library[key].isSolid) { return false; }
+            return true;
+        }
 
-    public bool IsSolid(byte key)
-    {
-        if (!library.ContainsKey(key)) { return false; }
-        if (!library[key].isSolid) { return false; }
-        return true;
-    }
-
-    public BlockManager()
-    {
-        library = new Dictionary<byte, Block>();
-        texture = new TextureAtlas();
+        public BlockManager()
+        {
+            library = new Dictionary<byte, Block>();
+            texture = new TextureAtlas();
+        }
     }
 }

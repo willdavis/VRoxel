@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+using VRoxel.Core;
+
 public class Demo : MonoBehaviour
 {
     World _world;

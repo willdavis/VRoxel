@@ -1,6 +1,8 @@
 ﻿using NUnit.Framework;
 using UnityEngine;
 
+using VRoxel.Core;
+
 namespace Tests
 {
     public class VoxelGridSpec

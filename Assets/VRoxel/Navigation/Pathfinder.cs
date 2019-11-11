@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Priority_Queue;
 
+using VRoxel.Core;
+
 public class Pathfinder
 {
     public struct Node

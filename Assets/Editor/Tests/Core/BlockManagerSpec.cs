@@ -4,6 +4,8 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
+using VRoxel.Core;
+
 namespace Tests
 {
     public class BlockManagerSpec

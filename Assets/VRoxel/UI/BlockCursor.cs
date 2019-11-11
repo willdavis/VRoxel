@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using VRoxel.Core;
 
 /// <summary>
 /// Allows the attached GameObject to draw a bounding box around voxels.
