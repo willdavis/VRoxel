@@ -3,7 +3,7 @@ using UnityEngine;
 
 using VRoxel.Core;
 
-namespace Tests
+namespace CoreSpecs
 {
     public class VoxelGridSpec
     {

@@ -7,7 +7,7 @@ using UnityEditor;
 
 using VRoxel.Core;
 
-namespace Tests
+namespace CoreSpecs
 {
     public class WorldSpec
     {

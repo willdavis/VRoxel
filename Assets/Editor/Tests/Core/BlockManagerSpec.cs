@@ -6,7 +6,7 @@ using UnityEngine.TestTools;
 
 using VRoxel.Core;
 
-namespace Tests
+namespace CoreSpecs
 {
     public class BlockManagerSpec
     {
