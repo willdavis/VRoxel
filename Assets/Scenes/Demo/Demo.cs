@@ -4,12 +4,13 @@ using UnityEngine;
 using UnityEngine.UI;
 
 using VRoxel.Core;
+using VRoxel.Terrain;
 using VRoxel.Navigation;
 
 public class Demo : MonoBehaviour
 {
     World _world;
-    Terrain _terrain;
+    Generator _terrain;
     AgentManager _agents;
     Pathfinder _pathfinder;
     List<GameObject> _pathNodes;
@@ -54,7 +55,7 @@ public class Demo : MonoBehaviour
         _agents = new AgentManager(_world);
         _pathfinder = new Pathfinder(_world);
         _pathNodes = new List<GameObject>();
-        _terrain = new Terrain(0, 0.25f, 25f, 10f);
+        _terrain = new Generator(0, 0.25f, 25f, 10f);
     }
 
     void Start()
