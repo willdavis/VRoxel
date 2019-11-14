@@ -3,9 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+using VRoxel.Core;
+using VRoxel.Terrain;
+using VRoxel.Navigation;
+
 public class Demo : MonoBehaviour
 {
     World _world;
+    Generator _terrain;
+    AgentManager _agents;
     Pathfinder _pathfinder;
     List<GameObject> _pathNodes;
 
@@ -46,21 +52,23 @@ public class Demo : MonoBehaviour
     void Awake()
     {
         _world = GetComponent<World>();
+        _agents = new AgentManager(_world);
         _pathfinder = new Pathfinder(_world);
         _pathNodes = new List<GameObject>();
+        _terrain = new Generator(0, 0.25f, 25f, 10f);
     }
 
     void Start()
     {
         _world.Initialize();
         _world.blocks = BuildBlockManager();
-        _world.Generate(_world.size, Vector3Int.zero);
+        Generate(_world.size, Vector3Int.zero);
         _world.chunks.Load(_world.chunks.max, Vector3Int.zero);
 
         // get the index point for the center of the world at terrain level
         int x = Mathf.FloorToInt(_world.size.x / 2f);
         int z = Mathf.FloorToInt(_world.size.z / 2f);
-        int y = _world.terrain.GetHeight(x, z) + 1;
+        int y = _terrain.GetHeight(x, z) + 1;
         goalPoint = new Vector3Int(x, y, z);
 
         // spawn a structure at the center of the world
@@ -82,8 +90,36 @@ public class Demo : MonoBehaviour
     {
         HandleUserInput();      // handle anything the user has input
         RemoveNPCsAtGoal();     // remove any NPCs that have reached the goal
-        npcCount.text = npcCountString + _world.agents.all.Count;
+        npcCount.text = npcCountString + _agents.all.Count;
         nodeCount.text = nodeCountString + _pathfinder.nodes.Count;
+    }
+
+    /// <summary>
+    /// Generate world data within the given bounds.
+    /// Any points outside the world will be skipped.
+    /// </summary>
+    /// <param name="size">The number of voxels to generate</param>
+    /// <param name="offset">The offset from the world origin</param>
+    public void Generate(Vector3Int size, Vector3Int offset)
+    {
+        int terrain;
+        Vector3Int point = Vector3Int.zero;
+        for (int x = 0; x < size.x; x++)
+        {
+            point.x = x + offset.x;
+            for (int z = 0; z < size.z; z++)
+            {
+                point.z = z + offset.z;
+                terrain = _terrain.GetHeight(point.x, point.z);
+                for (int y = 0; y < size.y; y++)
+                {
+                    point.y = y + offset.y;
+                    if (!_world.data.Contains(point)) { continue; }
+                    if (point.y == 0) { _world.data.Set(point, 1); }
+                    if (point.y <= terrain) { _world.data.Set(point, 1); }
+                }
+            }
+        }
     }
 
     void DrawPathNodes()
@@ -118,14 +154,14 @@ public class Demo : MonoBehaviour
     /// </summary>
     void RemoveNPCsAtGoal()
     {
-        for (int i = 0; i < _world.agents.all.Count; i++)
+        for (int i = 0; i < _agents.all.Count; i++)
         {
-            NavAgent agent = _world.agents.all[i];
+            NavAgent agent = _agents.all[i];
             float dist = Vector3.Distance(agent.transform.position, agent.destination);
 
             if (dist <= agent.range * agent.range * 2f)
             {
-                _world.agents.all.Remove(agent);
+                _agents.all.Remove(agent);
                 GameObject.Destroy(agent.gameObject);
             }
         }
@@ -276,7 +312,7 @@ public class Demo : MonoBehaviour
             // Key N - spawn a new NPC in the world
             if (Input.GetKey(KeyCode.N) && CanSpawnAt(hitPoint))
             {
-                NavAgent newAgent = _world.agents.Spawn(agent, hitPosition);
+                NavAgent newAgent = _agents.Spawn(agent, hitPosition);
                 newAgent.pathfinder = _pathfinder;
                 newAgent.destination = goalPosition;
             }
@@ -291,7 +327,7 @@ public class Demo : MonoBehaviour
 
                 // configure the turret
                 turret.range = 10f * _world.scale;
-                turret.targets = _world.agents.all;
+                turret.targets = _agents.all;
                 turrets.Add(turret);
             }
         }

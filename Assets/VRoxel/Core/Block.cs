@@ -1,19 +1,22 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Blocks contain information about voxels in the world
-/// </summary>
-public class Block
+namespace VRoxel.Core
 {
-    public byte index;
-    public string name;
-    public Dictionary<Cube.Direction, Vector2> textures;
-
-    public bool isSolid;
-
-    public Block()
+    /// <summary>
+    /// Blocks contain information about voxels in the world
+    /// </summary>
+    public class Block
     {
-        textures = new Dictionary<Cube.Direction, Vector2>();
+        public byte index;
+        public string name;
+        public Dictionary<Cube.Direction, Vector2> textures;
+
+        public bool isSolid;
+
+        public Block()
+        {
+            textures = new Dictionary<Cube.Direction, Vector2>();
+        }
     }
 }
