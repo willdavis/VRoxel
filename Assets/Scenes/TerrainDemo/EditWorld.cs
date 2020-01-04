@@ -7,6 +7,7 @@ using VRoxel.Core;
 public class EditWorld : MonoBehaviour
 {
     [Header("Cursor Settings")]
+    public BlockCursor.Shape shape = BlockCursor.Shape.Cuboid;
     public float size = 0;
     public bool snapToGrid = true;
 
@@ -69,6 +70,17 @@ public class EditWorld : MonoBehaviour
     /// </summary>
     void DrawCursor()
     {
-        cursor.UpdateCuboid(_world, _voxelPosition, _voxelPosition, size);
+        switch (shape)
+        {
+            case BlockCursor.Shape.Cuboid:
+                cursor.UpdateCuboid(_world, _voxelPosition, _voxelPosition, size);
+                break;
+            case BlockCursor.Shape.Spheroid:
+                cursor.UpdateSpheroid(_world, _voxelPosition, _voxelPosition, size);
+                break;
+            default:
+                Debug.Log("Shape not recognized");
+                break;
+        }
     }
 }
