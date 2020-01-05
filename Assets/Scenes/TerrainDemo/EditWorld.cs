@@ -42,7 +42,19 @@ public class EditWorld : MonoBehaviour
         if (Physics.Raycast (ray, out _hit))
         {
             CacheHitVoxelData();
+            HandlePlayerInput();
             DrawCursor();
+        }
+    }
+
+    /// <summary>
+    /// Respond to mouse input from the player
+    /// </summary>
+    void HandlePlayerInput()
+    {
+        if (Input.GetMouseButtonDown(0)) // left click
+        {
+            WorldEditor.Set(_world, _voxelPosition, blockType);
         }
     }
 
