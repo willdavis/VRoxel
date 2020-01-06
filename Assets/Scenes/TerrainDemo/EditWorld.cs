@@ -13,9 +13,12 @@ public class EditWorld : MonoBehaviour
     [Header("Cursor Settings")]
     public float size = 1;
     public bool snapToGrid = true;
+    public bool clickAndDrag = true;
     public BlockCursor.Shape shape = BlockCursor.Shape.Cuboid;
     public Cube.Point adjustHitPosition = Cube.Point.Outside;
 
+    bool _isDragging = false;
+    Vector3 _clickStart = Vector3.zero;
 
     [Header("Cursor Prefab")]
     public BlockCursor cursor;
@@ -52,9 +55,17 @@ public class EditWorld : MonoBehaviour
     /// </summary>
     void HandlePlayerInput()
     {
-        if (Input.GetMouseButtonDown(0)) // left click
+        if (Input.GetMouseButtonDown(0)) // left click - down
         {
-            WorldEditor.Set(_world, _voxelPosition, blockType);
+            _clickStart = _voxelPosition;
+            _isDragging = true;
+        }
+
+        if (Input.GetMouseButtonUp(0)) // left click - up
+        {
+            if (clickAndDrag) { WorldEditor.Set(_world, _clickStart, _voxelPosition, blockType); }
+            else { WorldEditor.Set(_world, _voxelPosition, blockType); }
+            _isDragging = false;
         }
     }
 
@@ -103,7 +114,8 @@ public class EditWorld : MonoBehaviour
         switch (shape)
         {
             case BlockCursor.Shape.Cuboid:
-                cursor.UpdateCuboid(_world, _voxelPosition, _voxelPosition, size);
+                if (clickAndDrag && _isDragging) { DrawRectangle(); }
+                else { DrawCube(); }
                 break;
             case BlockCursor.Shape.Spheroid:
                 cursor.UpdateSpheroid(_world, _voxelPosition, _voxelPosition, size);
@@ -113,4 +125,7 @@ public class EditWorld : MonoBehaviour
                 break;
         }
     }
+
+    void DrawCube() { cursor.UpdateCuboid(_world, _voxelPosition, _voxelPosition, size); }
+    void DrawRectangle() { cursor.UpdateCuboid(_world, _clickStart, _voxelPosition, size); }
 }
