@@ -376,7 +376,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15aec1e9f874f674b9c7a7e5f14887f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  destination: {x: 0, y: 0}
+  destination: {x: 64, y: 64}
   goalPost: {fileID: 1536148473}
 --- !u!1001 &1442165461
 PrefabInstance:
