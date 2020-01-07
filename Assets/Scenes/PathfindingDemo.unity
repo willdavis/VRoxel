@@ -378,6 +378,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   destination: {x: 64, y: 64}
   goalPost: {fileID: 1536148473}
+  pathfinderNodePrefab: {fileID: 1609259280482523854, guid: f846a08a524e4e14fb8cd50c087a5e60,
+    type: 3}
 --- !u!1001 &1442165461
 PrefabInstance:
   m_ObjectHideFlags: 0
