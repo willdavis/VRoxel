@@ -41,6 +41,15 @@ public class Pathfinding : MonoBehaviour
     {
         MoveTheGoalPost();
         UpdatePathfindingNodes();
+        HandlePlayerInput();
+    }
+
+    /// <summary>
+    /// Handle any input from the player
+    /// </summary>
+    void HandlePlayerInput()
+    {
+        if (Input.GetMouseButtonUp(0)) { _stalePath = true; }
     }
 
     /// <summary>
