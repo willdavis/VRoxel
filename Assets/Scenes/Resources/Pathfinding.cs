@@ -7,6 +7,7 @@ using VRoxel.Core;
 public class Pathfinding : MonoBehaviour
 {
     World _world;
+    LoadWorld _loader;
 
     [Header("Setting Goals")]
     public Vector2Int destination;
@@ -15,6 +16,7 @@ public class Pathfinding : MonoBehaviour
     void Awake()
     {
         _world = GetComponent<World>();
+        _loader = GetComponent<LoadWorld>();
     }
 
     void Start()
@@ -33,7 +35,10 @@ public class Pathfinding : MonoBehaviour
     /// </summary>
     void MoveTheGoalPost()
     {
-        int height = 32;
+        int height = _loader.terrain.GetHeight(
+            destination.x, destination.y
+        );
+
         Vector3Int goalPoint = new Vector3Int(
             destination.x, height, destination.y
         );

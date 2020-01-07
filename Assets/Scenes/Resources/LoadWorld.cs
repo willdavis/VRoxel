@@ -9,7 +9,9 @@ public class LoadWorld : MonoBehaviour
 {
 
     World _world;
-    Generator _terrain;
+
+    [HideInInspector]
+    public Generator terrain;
 
 
     [Header("Terrain Settings")]
@@ -89,7 +91,7 @@ public class LoadWorld : MonoBehaviour
     {
         int height;
         Vector3Int point = Vector3Int.zero;
-        _terrain = new Generator(seed, noise, scale, offset);
+        terrain = new Generator(seed, noise, scale, offset);
 
         for (int x = 0; x < _world.size.x; x++)
         {
@@ -97,7 +99,7 @@ public class LoadWorld : MonoBehaviour
             for (int z = 0; z < _world.size.z; z++)
             {
                 point.z = z;
-                height = _terrain.GetHeight(point.x, point.z);              // get the terrain height at (x,z)
+                height = terrain.GetHeight(point.x, point.z);              // get the terrain height at (x,z)
                 for (int y = 0; y < _world.size.y; y++)
                 {
                     point.y = y;
