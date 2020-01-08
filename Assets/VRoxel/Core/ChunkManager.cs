@@ -220,5 +220,28 @@ namespace VRoxel.Core
                 }
             }
         }
+
+        /// <summary>
+        /// Create all of the chunks in the world.
+        /// Existing chunks will be marked as stale.
+        /// </summary>
+        public void LoadAll()
+        {
+            Vector3Int index = Vector3Int.zero;
+            for (int x = 0; x < _max.x; x++)
+            {
+                index.x = x;
+                for (int z = 0; z < _max.z; z++)
+                {
+                    index.z = z;
+                    for (int y = 0; y < _max.y; y++)
+                    {
+                        index.y = y;
+                        if (!HasIndex(index)) { Create(index); }
+                        else { Update(index); }
+                    }
+                }
+            }
+        }
     }
 }
