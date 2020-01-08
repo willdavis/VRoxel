@@ -25,9 +25,13 @@ public class EditWorld : MonoBehaviour
 
     World _world;
     RaycastHit _hit;
-    Vector3Int _voxelIndex;
-    Vector3 _voxelPosition;
     Vector3 _hitPosition;
+
+    [HideInInspector]
+    public Vector3Int currentIndex;
+    
+    [HideInInspector]
+    public Vector3 currentPosition;
 
     void Awake()
     {
@@ -57,14 +61,14 @@ public class EditWorld : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0)) // left click - down
         {
-            _clickStart = _voxelPosition;
+            _clickStart = currentPosition;
             _isDragging = true;
         }
 
         if (Input.GetMouseButtonUp(0)) // left click - up
         {
-            if (clickAndDrag) { WorldEditor.Set(_world, _clickStart, _voxelPosition, blockType); }
-            else { WorldEditor.Set(_world, _voxelPosition, blockType); }
+            if (clickAndDrag) { WorldEditor.Set(_world, _clickStart, currentPosition, blockType); }
+            else { WorldEditor.Set(_world, currentPosition, blockType); }
             _isDragging = false;
         }
     }
@@ -90,19 +94,19 @@ public class EditWorld : MonoBehaviour
 
         // find and cache the index of the voxel that was hit
         // this can be used later to get/set the voxel data at that position
-        _voxelIndex = WorldEditor.Get(_world, _hitPosition);
+        currentIndex = WorldEditor.Get(_world, _hitPosition);
 
         if (snapToGrid)
         {
             // calculate and cache the scene postion of the voxel index
             // this will keep the cursor "stuck" to the current voxel until the mouse moves to another
-            _voxelPosition = WorldEditor.Get(_world, _voxelIndex);
+            currentPosition = WorldEditor.Get(_world, currentIndex);
         }
         else
         {
             // cache the scene postion of the hit point
             // this gives a more smooth motion to the cursor
-            _voxelPosition = _hitPosition;
+            currentPosition = _hitPosition;
         }
     }
 
@@ -118,7 +122,7 @@ public class EditWorld : MonoBehaviour
                 else { DrawCube(); }
                 break;
             case BlockCursor.Shape.Spheroid:
-                cursor.UpdateSpheroid(_world, _voxelPosition, _voxelPosition, size);
+                cursor.UpdateSpheroid(_world, currentPosition, currentPosition, size);
                 break;
             default:
                 Debug.Log("Shape not recognized");
@@ -126,6 +130,6 @@ public class EditWorld : MonoBehaviour
         }
     }
 
-    void DrawCube() { cursor.UpdateCuboid(_world, _voxelPosition, _voxelPosition, size); }
-    void DrawRectangle() { cursor.UpdateCuboid(_world, _clickStart, _voxelPosition, size); }
+    void DrawCube() { cursor.UpdateCuboid(_world, currentPosition, currentPosition, size); }
+    void DrawRectangle() { cursor.UpdateCuboid(_world, _clickStart, currentPosition, size); }
 }

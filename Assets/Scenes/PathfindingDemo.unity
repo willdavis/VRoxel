@@ -358,6 +358,8 @@ MonoBehaviour:
   shape: 0
   adjustHitPosition: 1
   cursor: {fileID: 1442165462}
+  currentIndex: {x: 0, y: 0, z: 0}
+  currentPosition: {x: 0, y: 0, z: 0}
 --- !u!4 &565934175 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8125868129347045579, guid: dc599e3fa98d1864cb2acc5f940bb8bf,
@@ -376,9 +378,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15aec1e9f874f674b9c7a7e5f14887f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  goalPostIndex: {x: 0, y: 0, z: 0}
+  goalPostPosition: {x: 0, y: 0, z: 0}
   destination: {x: 64, y: 64}
   goalPost: {fileID: 1536148473}
   pathfinderNodePrefab: {fileID: 1609259280482523854, guid: f846a08a524e4e14fb8cd50c087a5e60,
+    type: 3}
+--- !u!114 &565934177
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 565934172}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d88525039dfa2164296a4506aca50e57, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  navAgentPrefab: {fileID: 248189242278981012, guid: ee82bd63f2f37614992e682209d11216,
     type: 3}
 --- !u!1001 &1442165461
 PrefabInstance:

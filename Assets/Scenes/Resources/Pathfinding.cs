@@ -9,13 +9,18 @@ public class Pathfinding : MonoBehaviour
 {
     World _world;
     LoadWorld _loader;
-    Pathfinder _pathfinder;
     List<GameObject> _pathfinderNodes;
-
-
     bool _stalePath = true;
-    Vector3Int goalPostIndex = Vector3Int.zero;
-    Vector3 goalPostPosition = Vector3.zero;
+
+
+    [HideInInspector]
+    public Pathfinder pathfinder;
+
+    [HideInInspector]
+    public Vector3Int goalPostIndex = Vector3Int.zero;
+
+    [HideInInspector]
+    public Vector3 goalPostPosition = Vector3.zero;
 
 
     [Header("Setting Goals")]
@@ -27,8 +32,9 @@ public class Pathfinding : MonoBehaviour
     {
         _world = GetComponent<World>();
         _loader = GetComponent<LoadWorld>();
-        _pathfinder = new Pathfinder(_world);
         _pathfinderNodes = new List<GameObject>();
+
+        pathfinder = new Pathfinder(_world);
     }
 
     void Start()
@@ -92,8 +98,8 @@ public class Pathfinding : MonoBehaviour
     /// </summary>
     void CalculatePathfindingNodes()
     {
-        _pathfinder.BFS(goalPostIndex);
-        //_pathfinder.Dijkstra(goalPostIndex);
+        pathfinder.BFS(goalPostIndex);
+        //pathfinder.Dijkstra(goalPostIndex);
     }
 
     /// <summary>
@@ -107,7 +113,7 @@ public class Pathfinding : MonoBehaviour
         }
         _pathfinderNodes.Clear();
 
-        foreach (Pathfinder.Node node in _pathfinder.nodes.Values)
+        foreach (Pathfinder.Node node in pathfinder.nodes.Values)
         {
             Vector3 nodePosition = WorldEditor.Get(_world, node.index);
             Vector3 parentPosition = WorldEditor.Get(_world, node.parent);
