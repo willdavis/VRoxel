@@ -29,7 +29,7 @@ namespace VRoxel.Navigation
             transform.position = Vector3.MoveTowards(transform.position, _waypoint, step);
 
             distance = Vector3.Distance(transform.position, _waypoint);
-            if (distance <= range * range) { NextWaypoint(); } // agent is at the waypoint
+            if (distance <= range * range * range) { NextWaypoint(); } // agent is at the waypoint
         }
 
         public void NextWaypoint()
