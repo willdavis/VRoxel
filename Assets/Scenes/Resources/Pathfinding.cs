@@ -23,8 +23,11 @@ public class Pathfinding : MonoBehaviour
     public Vector3 goalPostPosition = Vector3.zero;
 
 
-    [Header("Setting Goals")]
     public Vector2Int destination;
+    public bool drawDebugNodes = true;
+
+
+    [Header("Prefab Settings")]
     public GameObject goalPost;
     public GameObject pathfinderNodePrefab;
 
@@ -88,7 +91,10 @@ public class Pathfinding : MonoBehaviour
         if (_stalePath)
         {
             CalculatePathfindingNodes();
-            DrawPathfindingNodes();
+
+            if (drawDebugNodes) { DrawPathfindingNodes(); }
+            else { ClearPathfindingNodes(); }
+
             _stalePath = false;
         }
     }
@@ -107,11 +113,7 @@ public class Pathfinding : MonoBehaviour
     /// </summary>
     void DrawPathfindingNodes()
     {
-        foreach (GameObject item in _pathfinderNodes)
-        {
-            Object.Destroy(item);
-        }
-        _pathfinderNodes.Clear();
+        ClearPathfindingNodes();
 
         foreach (Pathfinder.Node node in pathfinder.nodes.Values)
         {
@@ -124,5 +126,14 @@ public class Pathfinding : MonoBehaviour
             newNode.transform.LookAt(parentPosition);
             _pathfinderNodes.Add(newNode);
         }
+    }
+
+    void ClearPathfindingNodes()
+    {
+        foreach (GameObject item in _pathfinderNodes)
+        {
+            Object.Destroy(item);
+        }
+        _pathfinderNodes.Clear();
     }
 }
