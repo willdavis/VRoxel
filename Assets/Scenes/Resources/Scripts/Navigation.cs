@@ -5,7 +5,7 @@ using UnityEngine;
 using VRoxel.Core;
 using VRoxel.Navigation;
 
-public class NavAgents : MonoBehaviour
+public class Navigation : MonoBehaviour
 {
     World _world;
     EditWorld _editor;
