@@ -66,10 +66,14 @@ public class Pathfinding : MonoBehaviour
     /// </summary>
     void MoveTheGoalPost()
     {
-        // calculate the height of the terrain at the destination
-        int height = _loader.terrain.GetHeight(
-            destination.x, destination.y
-        );
+        int height = 0;
+
+        // scan from bedrock to the first air block
+        for (int i = 0; i < _world.size.y; i++)
+        {
+            bool found = _world.data.Get(destination.x, i, destination.y) == 0;
+            if (found) { height = i; break; }
+        }
 
         // cache where the goal post is in voxel world coordinates
         goalPostIndex.y = height;
