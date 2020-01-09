@@ -381,7 +381,7 @@ MonoBehaviour:
   goalPostIndex: {x: 0, y: 0, z: 0}
   goalPostPosition: {x: 0, y: 0, z: 0}
   destination: {x: 64, y: 64}
-  drawDebugNodes: 1
+  drawDebugNodes: 0
   goalPost: {fileID: 1536148473}
   pathfinderNodePrefab: {fileID: 1609259280482523854, guid: f846a08a524e4e14fb8cd50c087a5e60,
     type: 3}
@@ -397,6 +397,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d88525039dfa2164296a4506aca50e57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spawnAgent: 110
   navAgentPrefab: {fileID: 248189242278981012, guid: ee82bd63f2f37614992e682209d11216,
     type: 3}
 --- !u!1001 &1442165461

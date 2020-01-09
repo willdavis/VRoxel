@@ -12,6 +12,8 @@ public class Navigation : MonoBehaviour
     Pathfinding _pathfinding;
     AgentManager _agents;
 
+    public KeyCode spawnAgent = KeyCode.N;
+
     [Header("Prefab Settings")]
     public NavAgent navAgentPrefab;
 
@@ -35,7 +37,7 @@ public class Navigation : MonoBehaviour
 
     void HandlePlayerInput()
     {
-        if (Input.GetKey(KeyCode.N) && CanSpawnAt(_editor.currentIndex))
+        if (Input.GetKey(spawnAgent) && CanSpawnAt(_editor.currentIndex))
         {
             NavAgent newAgent = _agents.Spawn(navAgentPrefab, _editor.currentPosition);
             newAgent.pathfinder = _pathfinding.pathfinder;

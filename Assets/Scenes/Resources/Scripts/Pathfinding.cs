@@ -24,7 +24,7 @@ public class Pathfinding : MonoBehaviour
 
 
     public Vector2Int destination;
-    public bool drawDebugNodes = true;
+    public bool drawDebugNodes = false;
 
 
     [Header("Prefab Settings")]
