@@ -9,7 +9,7 @@ namespace VRoxel.Navigation
         private Vector3 _destination;
         private Vector3 _waypoint;
 
-        public float range = 0.5f;
+        public float radius = 0.5f;
         public float speed = 5.0f;
         public Pathfinder pathfinder;
 
@@ -22,14 +22,14 @@ namespace VRoxel.Navigation
         void Update()
         {
             float distance = Vector3.Distance(transform.position, destination);
-            if (distance <= range * range) { return; } // agent is at the destination
+            if (distance <= radius * radius) { return; } // agent is at the destination
 
             // move towards the next waypoint in the path
             float step = speed * Time.deltaTime;
             transform.position = Vector3.MoveTowards(transform.position, _waypoint, step);
 
             distance = Vector3.Distance(transform.position, _waypoint);
-            if (distance <= range * range * range) { NextWaypoint(); } // agent is at the waypoint
+            if (distance <= radius * radius * radius) { NextWaypoint(); } // agent is at the waypoint
         }
 
         public void NextWaypoint()
