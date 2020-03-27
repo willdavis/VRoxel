@@ -21,11 +21,6 @@ namespace VRoxel.Core
         public BlockManager blocks = new BlockManager();
 
         /// <summary>
-        /// The seed for random noise generation
-        /// </summary>
-        public int seed = 0;
-
-        /// <summary>
         /// The scale factor for the world
         /// </summary>
         public float scale = 1f;
