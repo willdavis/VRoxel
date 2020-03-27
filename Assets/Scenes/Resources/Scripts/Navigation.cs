@@ -64,7 +64,7 @@ public class Navigation : MonoBehaviour
             NavAgent agent = _agents.all[i];
             float dist = Vector3.Distance(agent.transform.position, agent.destination);
 
-            if (dist <= agent.range * agent.range * 2f)
+            if (dist <= agent.radius * agent.radius * 2f)
             {
                 _agents.all.Remove(agent);
                 GameObject.Destroy(agent.gameObject);
