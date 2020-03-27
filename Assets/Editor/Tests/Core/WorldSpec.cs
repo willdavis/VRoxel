@@ -49,7 +49,6 @@ namespace CoreSpecs
             world.chunkSize = new Vector3Int(32,32,32);
             world.size = new Vector3Int(256,32,256);
             world.scale = 0.25f;
-            world.seed = 1337;
 
             // Initialize and generate world data
             world.Initialize();
