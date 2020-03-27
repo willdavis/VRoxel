@@ -35,5 +35,16 @@ namespace VRoxel.Navigation
             _agents.Add(agent);
             return agent;
         }
+
+        /// <summary>
+        /// Update each agents position in the world
+        /// </summary>
+        public void MoveAgents(float dt)
+        {
+            for (int i = 0; i < _agents.Count; i++)
+            {
+                _agents[i].Move(dt);
+            }
+        }
     }
 }

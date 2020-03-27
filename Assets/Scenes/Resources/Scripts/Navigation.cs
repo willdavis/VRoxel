@@ -32,6 +32,7 @@ public class Navigation : MonoBehaviour
     void Update()
     {
         HandlePlayerInput();
+        UpdateAgentPositions();
         RemoveAgentsAtDestination();
     }
 
@@ -43,6 +44,11 @@ public class Navigation : MonoBehaviour
             newAgent.pathfinder = _pathfinding.pathfinder;
             newAgent.destination = _pathfinding.goalPostPosition;
         }
+    }
+
+    void UpdateAgentPositions()
+    {
+        _agents.MoveAgents(Time.deltaTime);
     }
 
     /// <summary>

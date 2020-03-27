@@ -19,13 +19,13 @@ namespace VRoxel.Navigation
             set { _destination = value; NextWaypoint(); }
         }
 
-        void Update()
+        public void Move(float dt)
         {
             float distance = Vector3.Distance(transform.position, destination);
             if (distance <= radius * radius) { return; } // agent is at the destination
 
             // move towards the next waypoint in the path
-            float step = speed * Time.deltaTime;
+            float step = speed * dt;
             transform.position = Vector3.MoveTowards(transform.position, _waypoint, step);
 
             distance = Vector3.Distance(transform.position, _waypoint);
