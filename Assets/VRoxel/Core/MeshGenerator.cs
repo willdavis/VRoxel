@@ -14,8 +14,8 @@ namespace VRoxel.Core
         private List<Vector3> _meshVert = new List<Vector3>();
         private List<int> _meshTri = new List<int>();
         private List<Vector2> _meshUV = new List<Vector2>();
-        private Vector3[] face = new Vector3[4];
-        private Vector2[] faceUV = new Vector2[4];
+        private Vector3[] _face = new Vector3[4];
+        private Vector2[] _faceUV = new Vector2[4];
         private int _faceCount = 0;
 
         public MeshGenerator(VoxelGrid data, BlockManager blocks, float scale)
@@ -111,19 +111,19 @@ namespace VRoxel.Core
             Vector2 texture = block.textures[dir];
 
             // add vertices for the face
-            Cube.Face((int)dir, position, _halfScale, ref face);
-            _meshVert.AddRange(face);
+            Cube.Face((int)dir, position, _halfScale, ref _face);
+            _meshVert.AddRange(_face);
 
             // add uv coordinates for the face
-            faceUV[0].x = size * texture.x + size;
-            faceUV[0].y = size * texture.y;
-            faceUV[1].x = size * texture.x + size;
-            faceUV[1].y = size * texture.y + size;
-            faceUV[2].x = size * texture.x;
-            faceUV[2].y = size * texture.y + size;
-            faceUV[3].x = size * texture.x;
-            faceUV[3].y = size * texture.y;
-            _meshUV.AddRange(faceUV);
+            _faceUV[0].x = size * texture.x + size;
+            _faceUV[0].y = size * texture.y;
+            _faceUV[1].x = size * texture.x + size;
+            _faceUV[1].y = size * texture.y + size;
+            _faceUV[2].x = size * texture.x;
+            _faceUV[2].y = size * texture.y + size;
+            _faceUV[3].x = size * texture.x;
+            _faceUV[3].y = size * texture.y;
+            _meshUV.AddRange(_faceUV);
 
             // add triangles for the face
             _meshTri.Add(_faceCount * 4);      // 1
