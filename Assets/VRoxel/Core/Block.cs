@@ -13,6 +13,7 @@ namespace VRoxel.Core
         public Dictionary<Cube.Direction, Vector2> textures;
 
         public bool isSolid;
+        public bool isStatic;
 
         public Block()
         {
