@@ -36,11 +36,6 @@ namespace VRoxel.Core
         public Vector3Int chunkSize = Vector3Int.one;
 
         /// <summary>
-        /// The number of chunks in a region
-        /// </summary>
-        public Vector3Int regionSize = Vector3Int.one;
-
-        /// <summary>
         /// The voxel data for the World
         /// </summary>
         public VoxelGrid data { get { return _data; } }
