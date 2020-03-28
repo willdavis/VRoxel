@@ -14,9 +14,9 @@ namespace VRoxel.Core
         private List<Vector3> _meshVert = new List<Vector3>();
         private List<int> _meshTri = new List<int>();
         private List<Vector2> _meshUV = new List<Vector2>();
-        private Vector3[] face = new Vector3[4];
-        private Vector2[] faceUV = new Vector2[4];
-        private int faceCount = 0;
+        private Vector3[] _face = new Vector3[4];
+        private Vector2[] _faceUV = new Vector2[4];
+        private int _faceCount = 0;
 
         public MeshGenerator(VoxelGrid data, BlockManager blocks, float scale)
         {
@@ -34,12 +34,13 @@ namespace VRoxel.Core
         /// <param name="mesh">The referenced Mesh to update</param>
         public void BuildMesh(Vector3Int size, Vector3Int offset, ref Mesh mesh)
         {
-            byte index;
-            Block block;
-            Vector3 position = Vector3.zero;
             Vector3Int voxel = Vector3Int.zero;
-            Vector3Int Vector3Int_front = new Vector3Int(0,0,1);
-            Vector3Int Vector3Int_back = new Vector3Int(0,0,-1);
+            Vector3 position = Vector3.zero;
+            bool hasBlock;
+            Block block;
+            byte index;
+
+            mesh.Clear();
 
             // generate faces (adjacent to air) for all solid blocks
             for (int x = 0; x < size.x; x++)
@@ -64,29 +65,38 @@ namespace VRoxel.Core
                         position.y -= 0.5f * ((float)size.y - 1f) * _scale;
                         position.z -= 0.5f * ((float)size.z - 1f) * _scale;
 
-                        block = _blocks.library[index]; // get the block metadata and check neighbors for air
-                        if (_data.Get(voxel + Vector3Int.up) == 0)    { AddFace(position, block, Cube.Direction.Top);    }
-                        if (_data.Get(voxel + Vector3Int.down) == 0)  { AddFace(position, block, Cube.Direction.Bottom); }
-                        if (_data.Get(voxel + Vector3Int_front) == 0) { AddFace(position, block, Cube.Direction.North);  }
-                        if (_data.Get(voxel + Vector3Int.right) == 0) { AddFace(position, block, Cube.Direction.East);   }
-                        if (_data.Get(voxel + Vector3Int_back) == 0)  { AddFace(position, block, Cube.Direction.South);  }
-                        if (_data.Get(voxel + Vector3Int.left) == 0)  { AddFace(position, block, Cube.Direction.West);   }
+                        // if no block data is present, exit and do not render the mesh
+                        hasBlock = _blocks.library.TryGetValue(index, out block);
+                        if(!hasBlock)
+                        {
+                            Debug.LogAssertion("Chunk failed to render: no block found with index:" + index);
+                            ClearCache();
+                            return;
+                        }
+
+                        if (_data.Get(voxel + Direction3Int.Up) == 0)    { AddFace(position, block, Cube.Direction.Top);    }
+                        if (_data.Get(voxel + Direction3Int.Down) == 0)  { AddFace(position, block, Cube.Direction.Bottom); }
+                        if (_data.Get(voxel + Direction3Int.North) == 0) { AddFace(position, block, Cube.Direction.North);  }
+                        if (_data.Get(voxel + Direction3Int.East) == 0)  { AddFace(position, block, Cube.Direction.East);   }
+                        if (_data.Get(voxel + Direction3Int.South) == 0) { AddFace(position, block, Cube.Direction.South);  }
+                        if (_data.Get(voxel + Direction3Int.West) == 0)  { AddFace(position, block, Cube.Direction.West);   }
                     }
                 }
             }
 
-            // set the mesh with the new values
-            mesh.Clear();
             mesh.vertices = _meshVert.ToArray();
             mesh.triangles = _meshTri.ToArray();
             mesh.uv = _meshUV.ToArray();
             mesh.RecalculateNormals();
+            ClearCache();
+        }
 
-            // clear the cache
+        private void ClearCache()
+        {
             _meshVert.Clear();
             _meshTri.Clear();
             _meshUV.Clear();
-            faceCount = 0;
+            _faceCount = 0;
         }
 
         /// <summary>
@@ -101,28 +111,28 @@ namespace VRoxel.Core
             Vector2 texture = block.textures[dir];
 
             // add vertices for the face
-            Cube.Face((int)dir, position, _halfScale, ref face);
-            _meshVert.AddRange(face);
+            Cube.Face((int)dir, position, _halfScale, ref _face);
+            _meshVert.AddRange(_face);
 
             // add uv coordinates for the face
-            faceUV[0].x = size * texture.x + size;
-            faceUV[0].y = size * texture.y;
-            faceUV[1].x = size * texture.x + size;
-            faceUV[1].y = size * texture.y + size;
-            faceUV[2].x = size * texture.x;
-            faceUV[2].y = size * texture.y + size;
-            faceUV[3].x = size * texture.x;
-            faceUV[3].y = size * texture.y;
-            _meshUV.AddRange(faceUV);
+            _faceUV[0].x = size * texture.x + size;
+            _faceUV[0].y = size * texture.y;
+            _faceUV[1].x = size * texture.x + size;
+            _faceUV[1].y = size * texture.y + size;
+            _faceUV[2].x = size * texture.x;
+            _faceUV[2].y = size * texture.y + size;
+            _faceUV[3].x = size * texture.x;
+            _faceUV[3].y = size * texture.y;
+            _meshUV.AddRange(_faceUV);
 
             // add triangles for the face
-            _meshTri.Add(faceCount * 4);      // 1
-            _meshTri.Add(faceCount * 4 + 1);  // 2
-            _meshTri.Add(faceCount * 4 + 2);  // 3
-            _meshTri.Add(faceCount * 4);      // 1
-            _meshTri.Add(faceCount * 4 + 2);  // 3
-            _meshTri.Add(faceCount * 4 + 3);  // 4
-            faceCount++;
+            _meshTri.Add(_faceCount * 4);      // 1
+            _meshTri.Add(_faceCount * 4 + 1);  // 2
+            _meshTri.Add(_faceCount * 4 + 2);  // 3
+            _meshTri.Add(_faceCount * 4);      // 1
+            _meshTri.Add(_faceCount * 4 + 2);  // 3
+            _meshTri.Add(_faceCount * 4 + 3);  // 4
+            _faceCount++;
         }
     }
 }
