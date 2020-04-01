@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using Unity.Jobs;
 using UnityEngine.Jobs;
 using Unity.Collections;
 
@@ -11,13 +12,15 @@ namespace VRoxel.Navigation
     public class AgentManager
     {
         private List<NavAgent> _agents;
-        private TransformAccessArray _agentTransforms;
+        private Transform[] _agentTransforms;
+        private TransformAccessArray _agentTransformsAccess;
         private NativeArray<Vector3> _agentDirections;
 
         public AgentManager()
         {
             _agents = new List<NavAgent>(1000);
-            _agentTransforms = new TransformAccessArray();
+            _agentTransforms = new Transform[1000];
+            _agentTransformsAccess = new TransformAccessArray(_agentTransforms);
             _agentDirections = new NativeArray<Vector3>(1000, Allocator.Persistent);
         }
 
@@ -31,10 +34,21 @@ namespace VRoxel.Navigation
         /// </summary>
         public void MoveAgents(float dt)
         {
+            // old version
             for (int i = 0; i < _agents.Count; i++)
             {
                 _agents[i].Move(dt);
             }
+
+            // new version
+            MoveAgentJob job = new MoveAgentJob()
+            {
+                speed = 1f,
+                deltaTime = Time.deltaTime,
+                directions = _agentDirections
+            };
+            JobHandle handle = job.Schedule(_agentTransformsAccess);
+            handle.Complete();
         }
     }
 }
