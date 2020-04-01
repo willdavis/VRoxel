@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using UnityEngine.Jobs;
+using Unity.Collections;
 
 
 namespace VRoxel.Navigation
@@ -11,11 +12,13 @@ namespace VRoxel.Navigation
     {
         private List<NavAgent> _agents;
         private TransformAccessArray _agentTransforms;
+        private NativeArray<Vector3> _agentDirections;
 
         public AgentManager()
         {
-            _agents = new List<NavAgent>();
+            _agents = new List<NavAgent>(1000);
             _agentTransforms = new TransformAccessArray();
+            _agentDirections = new NativeArray<Vector3>(1000, Allocator.Persistent);
         }
 
         /// <summary>
