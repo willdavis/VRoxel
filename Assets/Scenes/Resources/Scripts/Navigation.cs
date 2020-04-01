@@ -19,14 +19,10 @@ public class Navigation : MonoBehaviour
 
     void Awake()
     {
+        _agents = new AgentManager();
         _world = GetComponent<World>();
         _editor = GetComponent<EditWorld>();
         _pathfinding = GetComponent<Pathfinding>();
-    }
-
-    void Start()
-    {
-        _agents = new AgentManager(_world);
     }
 
     void Update()
@@ -40,7 +36,7 @@ public class Navigation : MonoBehaviour
     {
         if (Input.GetKey(spawnAgent) && CanSpawnAt(_editor.currentIndex))
         {
-            NavAgent newAgent = _agents.Spawn(navAgentPrefab, _editor.currentPosition);
+            NavAgent newAgent = Spawn(navAgentPrefab, _editor.currentPosition);
             newAgent.pathfinder = _pathfinding.pathfinder;
             newAgent.destination = _pathfinding.goalPostPosition;
         }
@@ -49,6 +45,19 @@ public class Navigation : MonoBehaviour
     void UpdateAgentPositions()
     {
         _agents.MoveAgents(Time.deltaTime);
+    }
+
+    /// <summary>
+    /// Adds a new NavAgent (NPC) to the World
+    /// </summary>
+    public NavAgent Spawn(NavAgent prefab, Vector3 position)
+    {
+        Quaternion rotation = _world.transform.rotation;
+        NavAgent agent = UnityEngine.Object.Instantiate(prefab, position, rotation) as NavAgent;
+        agent.transform.localScale = Vector3.one * _world.scale;
+        agent.transform.parent = _world.transform;
+        _agents.all.Add(agent);
+        return agent;
     }
 
     /// <summary>

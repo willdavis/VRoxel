@@ -2,19 +2,26 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-using VRoxel.Core;
+using Unity.Jobs;
+using UnityEngine.Jobs;
+using Unity.Collections;
+
 
 namespace VRoxel.Navigation
 {
     public class AgentManager
     {
-        private World _world;
         private List<NavAgent> _agents;
+        private Transform[] _agentTransforms;
+        private TransformAccessArray _agentTransformsAccess;
+        private NativeArray<Vector3> _agentDirections;
 
-        public AgentManager(World world)
+        public AgentManager()
         {
-            _world = world;
-            _agents = new List<NavAgent>();
+            _agents = new List<NavAgent>(1000);
+            _agentTransforms = new Transform[1000];
+            _agentTransformsAccess = new TransformAccessArray(_agentTransforms);
+            _agentDirections = new NativeArray<Vector3>(1000, Allocator.Persistent);
         }
 
         /// <summary>
@@ -23,28 +30,25 @@ namespace VRoxel.Navigation
         public List<NavAgent> all { get { return _agents; } }
 
         /// <summary>
-        /// Adds a new NavAgent (NPC) to the World
-        /// </summary>
-        public NavAgent Spawn(NavAgent prefab, Vector3 position)
-        {
-            Quaternion rotation = _world.transform.rotation;
-            NavAgent agent = UnityEngine.Object.Instantiate(prefab, position, rotation) as NavAgent;
-            agent.transform.localScale = Vector3.one * _world.scale;
-            agent.transform.parent = _world.transform;
-
-            _agents.Add(agent);
-            return agent;
-        }
-
-        /// <summary>
         /// Update each agents position in the world
         /// </summary>
         public void MoveAgents(float dt)
         {
+            // old version
             for (int i = 0; i < _agents.Count; i++)
             {
                 _agents[i].Move(dt);
             }
+
+            // new version
+            MoveAgentJob job = new MoveAgentJob()
+            {
+                speed = 1f,
+                deltaTime = Time.deltaTime,
+                directions = _agentDirections
+            };
+            JobHandle handle = job.Schedule(_agentTransformsAccess);
+            handle.Complete();
         }
     }
 }
