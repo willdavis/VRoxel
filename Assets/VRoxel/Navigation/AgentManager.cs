@@ -2,16 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using UnityEngine.Jobs;
+
 
 namespace VRoxel.Navigation
 {
     public class AgentManager
     {
         private List<NavAgent> _agents;
+        private TransformAccessArray _agentTransforms;
 
         public AgentManager()
         {
             _agents = new List<NavAgent>();
+            _agentTransforms = new TransformAccessArray();
         }
 
         /// <summary>
