@@ -21,9 +21,6 @@ namespace VRoxel.Navigation
             _max = max;
             _agents = new List<NavAgent>(max);
             _agentDirections = new NativeArray<Vector3>(_max, Allocator.Persistent);
-
-            for (int i = 0; i < max; i++)
-                _agentDirections[i] = Vector3.up;
         }
 
         /// <summary>
@@ -60,14 +57,20 @@ namespace VRoxel.Navigation
         /// </summary>
         public JobHandle MoveAgentsAsync(float dt)
         {
-            MoveAgentJob job = new MoveAgentJob()
+            FlowDirectionJob flowJob = new FlowDirectionJob()
+            {
+                directions = _agentDirections
+            };
+
+            MoveAgentJob moveJob = new MoveAgentJob()
             {
                 speed = 1f,
                 deltaTime = dt,
                 directions = _agentDirections
             };
 
-            return job.Schedule(_transformAccess);
+            JobHandle flowHandle = flowJob.Schedule(_max, 64);
+            return moveJob.Schedule(_transformAccess, flowHandle);
         }
 
         public void TransformAccess(Transform[] transforms)
