@@ -20,8 +20,6 @@ namespace VRoxel.Navigation
         {
             _agents = new List<NavAgent>(1000);
             _agentTransforms = new Transform[1000];
-            _agentTransformsAccess = new TransformAccessArray(_agentTransforms);
-            _agentDirections = new NativeArray<Vector3>(1000, Allocator.Persistent);
         }
 
         /// <summary>
@@ -46,6 +44,9 @@ namespace VRoxel.Navigation
         /// </summary>
         public void MoveAgentsAsync(float dt)
         {
+            _agentTransformsAccess = new TransformAccessArray(_agentTransforms);
+            _agentDirections = new NativeArray<Vector3>(1000, Allocator.Persistent);
+
             MoveAgentJob job = new MoveAgentJob()
             {
                 speed = 1f,
@@ -54,6 +55,9 @@ namespace VRoxel.Navigation
             };
             JobHandle handle = job.Schedule(_agentTransformsAccess);
             handle.Complete();
+
+            _agentTransformsAccess.Dispose();
+            _agentDirections.Dispose();
         }
     }
 }
