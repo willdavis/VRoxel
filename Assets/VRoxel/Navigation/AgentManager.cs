@@ -13,15 +13,26 @@ namespace VRoxel.Navigation
     {
         private int _max;
         private List<NavAgent> _agents;
-        private Transform[] _agentTransforms;
-        private TransformAccessArray _agentTransformsAccess;
+        private TransformAccessArray _transformAccess;
         private NativeArray<Vector3> _agentDirections;
 
         public AgentManager(int max)
         {
             _max = max;
             _agents = new List<NavAgent>(max);
-            _agentTransforms = new Transform[max];
+            _agentDirections = new NativeArray<Vector3>(_max, Allocator.Persistent);
+
+            for (int i = 0; i < max; i++)
+                _agentDirections[i] = Vector3.up;
+        }
+
+        /// <summary>
+        /// Dispose all unmanaged memory from the AgentManager
+        /// </summary>
+        public void Dispose()
+        {
+            _transformAccess.Dispose();
+            _agentDirections.Dispose();
         }
 
         /// <summary>
@@ -47,22 +58,21 @@ namespace VRoxel.Navigation
         /// Update each agents position in the world
         /// asynchronously using Unity jobs
         /// </summary>
-        public void MoveAgentsAsync(float dt)
+        public JobHandle MoveAgentsAsync(float dt)
         {
-            _agentTransformsAccess = new TransformAccessArray(_agentTransforms);
-            _agentDirections = new NativeArray<Vector3>(_max, Allocator.TempJob);
-
             MoveAgentJob job = new MoveAgentJob()
             {
                 speed = 1f,
                 deltaTime = dt,
                 directions = _agentDirections
             };
-            JobHandle handle = job.Schedule(_agentTransformsAccess);
-            handle.Complete();
 
-            _agentTransformsAccess.Dispose();
-            _agentDirections.Dispose();
+            return job.Schedule(_transformAccess);
+        }
+
+        public void TransformAccess(Transform[] transforms)
+        {
+            _transformAccess = new TransformAccessArray(transforms);
         }
     }
 }

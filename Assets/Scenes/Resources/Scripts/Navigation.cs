@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Jobs;
 
 using VRoxel.Core;
 using VRoxel.Navigation;
@@ -11,6 +12,7 @@ public class Navigation : MonoBehaviour
     EditWorld _editor;
     Pathfinding _pathfinding;
     AgentManager _agents;
+    JobHandle jobHandle;
 
     public int maxAgents = 1000;
     public KeyCode spawnAgent = KeyCode.N;
@@ -25,24 +27,41 @@ public class Navigation : MonoBehaviour
     void Start()
     {
         NavAgent[] temp = new NavAgent[maxAgents];
+        Transform[] transforms = new Transform[maxAgents];
         NavAgentPool.Instance.AddObjects(maxAgents);
         _agents = new AgentManager(maxAgents);
 
+        // initialize all of the agents
         for (int i = 0; i < maxAgents; i++)
         {
-            InitializeAgent(
-                i, NavAgentPool.Instance.Get(), ref temp
-            );
+            NavAgent agent = NavAgentPool.Instance.Get();
+            agent.transform.parent = NavAgentPool.Instance.transform;
+            _agents.all.Add(agent);
+
+            Enemy enemy = agent.GetComponent<Enemy>();
+            enemy.OnDeath.AddListener(Remove);
+
+            temp[i] = agent;
+            transforms[i] = agent.transform;
         }
 
+        // return all of the agents back to the pool
         foreach (var agent in temp)
         {
             NavAgentPool.Instance.ReturnToPool(agent);
         }
+
+        _agents.TransformAccess(transforms);
+    }
+
+    void OnDestroy()
+    {
+        _agents.Dispose();
     }
 
     void Update()
     {
+        jobHandle.Complete();
         HandlePlayerInput();
         UpdateAgentPositions();
     }
@@ -56,18 +75,7 @@ public class Navigation : MonoBehaviour
     void UpdateAgentPositions()
     {
         _agents.MoveAgents(Time.deltaTime);
-        //_agents.MoveAgentsAsync(Time.deltaTime);
-    }
-
-    void InitializeAgent(int index, NavAgent agent, ref NavAgent[] temp)
-    {
-        agent.transform.parent = NavAgentPool.Instance.transform;
-
-        Enemy enemy = agent.GetComponent<Enemy>();
-        enemy.OnDeath.AddListener(Remove);
-
-        _agents.all.Add(agent);
-        temp[index] = agent;
+        //jobHandle = _agents.MoveAgentsAsync(Time.deltaTime);
     }
 
     /// <summary>
