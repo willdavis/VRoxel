@@ -44,6 +44,7 @@ public class Navigation : MonoBehaviour
     void UpdateAgentPositions()
     {
         _agents.MoveAgents(Time.deltaTime);
+        _agents.MoveAgentsAsync(Time.deltaTime);
     }
 
     /// <summary>

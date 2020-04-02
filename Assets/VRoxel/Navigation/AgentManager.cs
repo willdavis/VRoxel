@@ -34,17 +34,22 @@ namespace VRoxel.Navigation
         /// </summary>
         public void MoveAgents(float dt)
         {
-            // old version
             for (int i = 0; i < _agents.Count; i++)
             {
                 _agents[i].Move(dt);
             }
+        }
 
-            // new version
+        /// <summary>
+        /// Update each agents position in the world
+        /// asynchronously using Unity jobs
+        /// </summary>
+        public void MoveAgentsAsync(float dt)
+        {
             MoveAgentJob job = new MoveAgentJob()
             {
                 speed = 1f,
-                deltaTime = Time.deltaTime,
+                deltaTime = dt,
                 directions = _agentDirections
             };
             JobHandle handle = job.Schedule(_agentTransformsAccess);
