@@ -26,7 +26,7 @@ public class Navigation : MonoBehaviour
     {
         NavAgent[] temp = new NavAgent[maxAgents];
         NavAgentPool.Instance.AddObjects(maxAgents);
-        _agents = new AgentManager();
+        _agents = new AgentManager(maxAgents);
 
         for (int i = 0; i < maxAgents; i++)
         {

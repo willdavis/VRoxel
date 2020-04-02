@@ -11,15 +11,17 @@ namespace VRoxel.Navigation
 {
     public class AgentManager
     {
+        private int _max;
         private List<NavAgent> _agents;
         private Transform[] _agentTransforms;
         private TransformAccessArray _agentTransformsAccess;
         private NativeArray<Vector3> _agentDirections;
 
-        public AgentManager()
+        public AgentManager(int max)
         {
-            _agents = new List<NavAgent>(1000);
-            _agentTransforms = new Transform[1000];
+            _max = max;
+            _agents = new List<NavAgent>(max);
+            _agentTransforms = new Transform[max];
         }
 
         /// <summary>
@@ -48,7 +50,7 @@ namespace VRoxel.Navigation
         public void MoveAgentsAsync(float dt)
         {
             _agentTransformsAccess = new TransformAccessArray(_agentTransforms);
-            _agentDirections = new NativeArray<Vector3>(1000, Allocator.Persistent);
+            _agentDirections = new NativeArray<Vector3>(_max, Allocator.TempJob);
 
             MoveAgentJob job = new MoveAgentJob()
             {
