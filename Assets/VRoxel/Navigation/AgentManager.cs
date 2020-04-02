@@ -11,17 +11,25 @@ namespace VRoxel.Navigation
 {
     public class AgentManager
     {
+        private int _max;
         private List<NavAgent> _agents;
-        private Transform[] _agentTransforms;
-        private TransformAccessArray _agentTransformsAccess;
+        private TransformAccessArray _transformAccess;
         private NativeArray<Vector3> _agentDirections;
 
-        public AgentManager()
+        public AgentManager(int max)
         {
-            _agents = new List<NavAgent>(1000);
-            _agentTransforms = new Transform[1000];
-            _agentTransformsAccess = new TransformAccessArray(_agentTransforms);
-            _agentDirections = new NativeArray<Vector3>(1000, Allocator.Persistent);
+            _max = max;
+            _agents = new List<NavAgent>(max);
+            _agentDirections = new NativeArray<Vector3>(_max, Allocator.Persistent);
+        }
+
+        /// <summary>
+        /// Dispose all unmanaged memory from the AgentManager
+        /// </summary>
+        public void Dispose()
+        {
+            _transformAccess.Dispose();
+            _agentDirections.Dispose();
         }
 
         /// <summary>
@@ -34,21 +42,40 @@ namespace VRoxel.Navigation
         /// </summary>
         public void MoveAgents(float dt)
         {
-            // old version
             for (int i = 0; i < _agents.Count; i++)
             {
+                if (!_agents[i].isActiveAndEnabled)
+                    continue;
+
                 _agents[i].Move(dt);
             }
+        }
 
-            // new version
-            MoveAgentJob job = new MoveAgentJob()
+        /// <summary>
+        /// Update each agents position in the world
+        /// asynchronously using Unity jobs
+        /// </summary>
+        public JobHandle MoveAgentsAsync(float dt)
+        {
+            FlowDirectionJob flowJob = new FlowDirectionJob()
             {
-                speed = 1f,
-                deltaTime = Time.deltaTime,
                 directions = _agentDirections
             };
-            JobHandle handle = job.Schedule(_agentTransformsAccess);
-            handle.Complete();
+
+            MoveAgentJob moveJob = new MoveAgentJob()
+            {
+                speed = 1f,
+                deltaTime = dt,
+                directions = _agentDirections
+            };
+
+            JobHandle flowHandle = flowJob.Schedule(_max, 64);
+            return moveJob.Schedule(_transformAccess, flowHandle);
+        }
+
+        public void TransformAccess(Transform[] transforms)
+        {
+            _transformAccess = new TransformAccessArray(transforms);
         }
     }
 }
