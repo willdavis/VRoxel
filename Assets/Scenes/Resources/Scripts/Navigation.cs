@@ -29,7 +29,6 @@ public class Navigation : MonoBehaviour
     {
         HandlePlayerInput();
         UpdateAgentPositions();
-        RemoveAgentsAtDestination();
     }
 
     void HandlePlayerInput()
@@ -48,7 +47,16 @@ public class Navigation : MonoBehaviour
     }
 
     /// <summary>
-    /// Adds a new NavAgent (NPC) to the World
+    /// Test if an agent can be spawned at the voxel world coordinates
+    /// </summary>
+    public bool CanSpawnAt(Vector3Int index)
+    {
+        return _world.data.Get(index) == 0                      // the block must be air
+            && _world.data.Get(index + Vector3Int.down) != 0;   // the block below must be solid
+    }
+
+    /// <summary>
+    /// Adds a new agent to the scene
     /// </summary>
     public NavAgent Spawn(NavAgent prefab, Vector3 position)
     {
@@ -57,33 +65,21 @@ public class Navigation : MonoBehaviour
         agent.transform.localScale = Vector3.one * _world.scale;
         agent.transform.parent = _world.transform;
         _agents.all.Add(agent);
+
+        Enemy enemy = agent.GetComponent<Enemy>();
+        enemy.OnDeath.AddListener(Remove);
+
         return agent;
     }
 
     /// <summary>
-    /// Test if an agent can be spawned at the voxel world coordinates
+    /// Removes an agent from the scene
     /// </summary>
-    bool CanSpawnAt(Vector3Int index)
+    public void Remove(Enemy enemy)
     {
-        return _world.data.Get(index) == 0                      // the block must be air
-            && _world.data.Get(index + Vector3Int.down) != 0;   // the block below must be solid
-    }
+        NavAgent agent = enemy.GetComponent<NavAgent>();
 
-    /// <summary>
-    /// Remove any agents that have reached their goal
-    /// </summary>
-    void RemoveAgentsAtDestination()
-    {
-        for (int i = 0; i < _agents.all.Count; i++)
-        {
-            NavAgent agent = _agents.all[i];
-            float dist = Vector3.Distance(agent.transform.position, agent.destination);
-
-            if (dist <= agent.radius * agent.radius * 2f)
-            {
-                _agents.all.Remove(agent);
-                GameObject.Destroy(agent.gameObject);
-            }
-        }
+        _agents.all.Remove(agent);
+        GameObject.Destroy(agent.gameObject);
     }
 }
