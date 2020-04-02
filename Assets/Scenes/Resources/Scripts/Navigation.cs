@@ -14,9 +14,6 @@ public class Navigation : MonoBehaviour
 
     public KeyCode spawnAgent = KeyCode.N;
 
-    [Header("Prefab Settings")]
-    public NavAgent navAgentPrefab;
-
     void Awake()
     {
         _agents = new AgentManager();
@@ -34,17 +31,13 @@ public class Navigation : MonoBehaviour
     void HandlePlayerInput()
     {
         if (Input.GetKey(spawnAgent) && CanSpawnAt(_editor.currentIndex))
-        {
-            NavAgent newAgent = Spawn(navAgentPrefab, _editor.currentPosition);
-            newAgent.pathfinder = _pathfinding.pathfinder;
-            newAgent.destination = _pathfinding.goalPostPosition;
-        }
+            Spawn(_editor.currentPosition);
     }
 
     void UpdateAgentPositions()
     {
         _agents.MoveAgents(Time.deltaTime);
-        _agents.MoveAgentsAsync(Time.deltaTime);
+        //_agents.MoveAgentsAsync(Time.deltaTime);
     }
 
     /// <summary>
@@ -59,17 +52,26 @@ public class Navigation : MonoBehaviour
     /// <summary>
     /// Adds a new agent to the scene
     /// </summary>
-    public NavAgent Spawn(NavAgent prefab, Vector3 position)
+    public NavAgent Spawn(Vector3 position)
     {
-        Quaternion rotation = _world.transform.rotation;
-        NavAgent agent = UnityEngine.Object.Instantiate(prefab, position, rotation) as NavAgent;
+        NavAgent agent = NavAgentPool.Instance.Get();
         agent.transform.localScale = Vector3.one * _world.scale;
-        agent.transform.parent = _world.transform;
-        _agents.all.Add(agent);
+        agent.transform.rotation = _world.transform.rotation;
+        agent.transform.position = position;
 
-        Enemy enemy = agent.GetComponent<Enemy>();
-        enemy.OnDeath.AddListener(Remove);
+        agent.pathfinder = _pathfinding.pathfinder;
+        agent.destination = _pathfinding.goalPostPosition;
 
+        if (!_agents.all.Contains(agent))
+        {
+            Enemy enemy = agent.GetComponent<Enemy>();
+            enemy.OnDeath.AddListener(Remove);
+
+            agent.transform.parent = NavAgentPool.Instance.transform;
+            _agents.all.Add(agent);
+        }
+
+        agent.gameObject.SetActive(true);
         return agent;
     }
 
@@ -79,8 +81,6 @@ public class Navigation : MonoBehaviour
     public void Remove(Enemy enemy)
     {
         NavAgent agent = enemy.GetComponent<NavAgent>();
-
-        _agents.all.Remove(agent);
-        GameObject.Destroy(agent.gameObject);
+        NavAgentPool.Instance.ReturnToPool(agent);
     }
 }
