@@ -397,6 +397,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d88525039dfa2164296a4506aca50e57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxAgents: 1000
   spawnAgent: 110
 --- !u!1001 &1442165461
 PrefabInstance:
@@ -685,7 +686,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefab: {fileID: 248189242278981012, guid: ee82bd63f2f37614992e682209d11216, type: 3}
-  resize: 1
+  resize: 0
 --- !u!4 &2138673722
 Transform:
   m_ObjectHideFlags: 0

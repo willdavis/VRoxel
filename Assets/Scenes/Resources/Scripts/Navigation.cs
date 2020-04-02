@@ -12,14 +12,33 @@ public class Navigation : MonoBehaviour
     Pathfinding _pathfinding;
     AgentManager _agents;
 
+    public int maxAgents = 1000;
     public KeyCode spawnAgent = KeyCode.N;
 
     void Awake()
     {
-        _agents = new AgentManager();
         _world = GetComponent<World>();
         _editor = GetComponent<EditWorld>();
         _pathfinding = GetComponent<Pathfinding>();
+    }
+
+    void Start()
+    {
+        NavAgent[] temp = new NavAgent[maxAgents];
+        NavAgentPool.Instance.AddObjects(maxAgents);
+        _agents = new AgentManager();
+
+        for (int i = 0; i < maxAgents; i++)
+        {
+            InitializeAgent(
+                i, NavAgentPool.Instance.Get(), ref temp
+            );
+        }
+
+        foreach (var agent in temp)
+        {
+            NavAgentPool.Instance.ReturnToPool(agent);
+        }
     }
 
     void Update()
@@ -38,6 +57,17 @@ public class Navigation : MonoBehaviour
     {
         _agents.MoveAgents(Time.deltaTime);
         //_agents.MoveAgentsAsync(Time.deltaTime);
+    }
+
+    void InitializeAgent(int index, NavAgent agent, ref NavAgent[] temp)
+    {
+        agent.transform.parent = NavAgentPool.Instance.transform;
+
+        Enemy enemy = agent.GetComponent<Enemy>();
+        enemy.OnDeath.AddListener(Remove);
+
+        _agents.all.Add(agent);
+        temp[index] = agent;
     }
 
     /// <summary>
@@ -61,15 +91,6 @@ public class Navigation : MonoBehaviour
 
         agent.pathfinder = _pathfinding.pathfinder;
         agent.destination = _pathfinding.goalPostPosition;
-
-        if (!_agents.all.Contains(agent))
-        {
-            Enemy enemy = agent.GetComponent<Enemy>();
-            enemy.OnDeath.AddListener(Remove);
-
-            agent.transform.parent = NavAgentPool.Instance.transform;
-            _agents.all.Add(agent);
-        }
 
         agent.gameObject.SetActive(true);
         return agent;

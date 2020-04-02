@@ -34,6 +34,9 @@ namespace VRoxel.Navigation
         {
             for (int i = 0; i < _agents.Count; i++)
             {
+                if (!_agents[i].isActiveAndEnabled)
+                    continue;
+
                 _agents[i].Move(dt);
             }
         }
