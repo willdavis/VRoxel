@@ -29,7 +29,7 @@ public class Navigation : MonoBehaviour
         NavAgent[] temp = new NavAgent[maxAgents];
         Transform[] transforms = new Transform[maxAgents];
         NavAgentPool.Instance.AddObjects(maxAgents);
-        _agents = new AgentManager(maxAgents);
+        _agents = new AgentManager(_world, maxAgents);
 
         // initialize all of the agents
         for (int i = 0; i < maxAgents; i++)

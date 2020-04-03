@@ -6,21 +6,25 @@ using Unity.Jobs;
 using UnityEngine.Jobs;
 using Unity.Collections;
 
+using VRoxel.Core;
 
 namespace VRoxel.Navigation
 {
     public class AgentManager
     {
+        private World _world;
+
         private int _max;
         private List<NavAgent> _agents;
         private TransformAccessArray _transformAccess;
         private NativeArray<Vector3> _agentDirections;
 
-        public AgentManager(int max)
+        public AgentManager(World world, int maxAgents)
         {
-            _max = max;
-            _agents = new List<NavAgent>(max);
-            _agentDirections = new NativeArray<Vector3>(_max, Allocator.Persistent);
+            _world = world;
+            _max = maxAgents;
+            _agents = new List<NavAgent>(maxAgents);
+            _agentDirections = new NativeArray<Vector3>(maxAgents, Allocator.Persistent);
         }
 
         /// <summary>
@@ -59,6 +63,10 @@ namespace VRoxel.Navigation
         {
             FlowDirectionJob flowJob = new FlowDirectionJob()
             {
+                world_scale = _world.scale,
+                world_center = _world.data.center,
+                world_offset = _world.transform.position,
+                world_rotation = _world.transform.rotation,
                 directions = _agentDirections
             };
 
