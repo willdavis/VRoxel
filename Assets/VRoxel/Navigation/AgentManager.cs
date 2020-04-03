@@ -69,7 +69,7 @@ namespace VRoxel.Navigation
                 directions = _agentDirections
             };
 
-            JobHandle flowHandle = flowJob.Schedule(_max, 64);
+            JobHandle flowHandle = flowJob.Schedule(_transformAccess);
             return moveJob.Schedule(_transformAccess, flowHandle);
         }
 
