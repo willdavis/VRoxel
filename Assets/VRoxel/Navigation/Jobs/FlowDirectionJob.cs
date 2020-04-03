@@ -5,12 +5,12 @@ using Unity.Jobs;
 
 namespace VRoxel.Navigation
 {
-    public struct FlowDirectionJob : IJobParallelFor
+    public struct FlowDirectionJob : IJobParallelForTransform
     {
         [WriteOnly]
         public NativeArray<Vector3> directions;
 
-        public void Execute(int i)
+        public void Execute(int i, TransformAccess transform)
         {
             directions[i] = Vector3.up;
         }
