@@ -3,10 +3,13 @@
 namespace VRoxel.Core
 {
     /// <summary>
-    /// Contains Vector3Int unit vectors for a total of 27 directions
+    /// Contains Vector3Int unit vectors for all 27 directions
     /// </summary>
     public static class Direction3Int
     {
+        /// <summary>
+        /// the names of all 27 directions
+        /// </summary>
         public enum Name
         {
             Zero, Up, Down,
@@ -15,6 +18,26 @@ namespace VRoxel.Core
             DownNorth, DownNorthEast, DownEast, DownSouthEast, DownSouth, DownSouthWest, DownWest, DownNorthWest
         }
 
+
+        /// <summary>
+        /// contains unit vectors for each direction
+        /// </summary>
+        /// <example>
+        /// Directions[(int)Name.Zero]
+        /// Directions[(int)Name.UpNorth]
+        /// </example>
+        //
+        //               Up (+y)
+        //                 |   North (+z)
+        //                 |  /
+        //                 | /
+        //                 |/
+        // West (-x) ------*------ East (+x)
+        //                /|
+        //               / |
+        //              /  |
+        //      South (-z) |
+        //              Down (-y)
         public static Vector3Int[] Directions = {
             new Vector3Int( 0, 0, 0),   // Zero
             new Vector3Int( 0, 1, 0),   // Up
