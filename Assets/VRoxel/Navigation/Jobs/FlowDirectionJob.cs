@@ -25,11 +25,19 @@ namespace VRoxel.Navigation
 
         public void Execute(int i, TransformAccess transform)
         {
-            Vector3Int gridPosition = GridPosition(transform.position);
-            Vector3Int nextGridPosition = gridPosition + Vector3Int.up;
-            Vector3 nextPosition = ScenePosition(nextGridPosition);
-            Vector3 direction = (nextPosition - transform.position).normalized;
-            directions[i] = direction;
+            Vector3Int position = GridPosition(transform.position);
+
+            if (OutOfBounds(position))
+            {
+                directions[i] = Vector3.zero;
+                return;
+            }
+
+            int fieldIndex = Flatten(position);
+            byte directionIndex = flowField[fieldIndex];
+            Vector3Int flowDirection = flowDirections[directionIndex];
+
+            directions[i] = flowDirection;
         }
 
         /// <summary>
@@ -79,6 +87,18 @@ namespace VRoxel.Navigation
             return (point.x * flowFieldSize.y * flowFieldSize.z)
                 + (point.y * flowFieldSize.z)
                 + point.z;
+        }
+
+        /// <summary>
+        /// Test if the grid position is inside the flow field
+        /// </summary>
+        /// <param name="point">A point in the voxel grid</param>
+        public bool OutOfBounds(Vector3Int point)
+        {
+            if (point.x < 0 || point.x >= flowFieldSize.x) { return true; }
+            if (point.y < 0 || point.y >= flowFieldSize.y) { return true; }
+            if (point.z < 0 || point.z >= flowFieldSize.z) { return true; }
+            return false;
         }
     }
 }
