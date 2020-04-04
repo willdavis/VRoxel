@@ -83,6 +83,7 @@ namespace VRoxel.Navigation
 
                 flowField = _flowField,
                 flowDirections = _flowDirections,
+                flowFieldSize = _world.size,
 
                 directions = _agentDirections
             };

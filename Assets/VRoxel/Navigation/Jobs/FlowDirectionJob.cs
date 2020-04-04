@@ -7,6 +7,8 @@ namespace VRoxel.Navigation
 {
     public struct FlowDirectionJob : IJobParallelForTransform
     {
+        public Vector3Int flowFieldSize;
+
         public float world_scale;
         public Vector3 world_offset;
         public Vector3 world_center;
@@ -65,6 +67,18 @@ namespace VRoxel.Navigation
             position *= world_scale;                // adjust for the worlds scale
             position += world_offset;               // adjust for the worlds offset
             return position;
+        }
+
+        /// <summary>
+        /// Calculate a 1D array index from a Vector3Int position
+        /// </summary>
+        /// <param name="point">A point in the voxel grid</param>
+        public int Flatten(Vector3Int point)
+        {
+            /// A[x,y,z] = A[ x * height * depth + y * depth + z ]
+            return (point.x * flowFieldSize.y * flowFieldSize.z)
+                + (point.y * flowFieldSize.z)
+                + point.z;
         }
     }
 }
