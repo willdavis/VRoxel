@@ -19,12 +19,19 @@ namespace VRoxel.Navigation
         private TransformAccessArray _transformAccess;
         private NativeArray<Vector3> _agentDirections;
 
+        NativeArray<byte> _flowField;
+        NativeArray<Vector3Int> _flowDirections;
+
         public AgentManager(World world, int maxAgents)
         {
             _world = world;
             _max = maxAgents;
             _agents = new List<NavAgent>(maxAgents);
             _agentDirections = new NativeArray<Vector3>(maxAgents, Allocator.Persistent);
+
+            int size = world.size.x * world.size.y * world.size.z;
+            _flowField = new NativeArray<byte>(size, Allocator.Persistent);
+            _flowDirections = new NativeArray<Vector3Int>(27, Allocator.Persistent);
         }
 
         /// <summary>
@@ -34,6 +41,9 @@ namespace VRoxel.Navigation
         {
             _transformAccess.Dispose();
             _agentDirections.Dispose();
+
+            _flowField.Dispose();
+            _flowDirections.Dispose();
         }
 
         /// <summary>
@@ -67,6 +77,10 @@ namespace VRoxel.Navigation
                 world_center = _world.data.center,
                 world_offset = _world.transform.position,
                 world_rotation = _world.transform.rotation,
+
+                flowField = _flowField,
+                flowDirections = _flowDirections,
+
                 directions = _agentDirections
             };
 

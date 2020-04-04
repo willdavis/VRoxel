@@ -15,6 +15,12 @@ namespace VRoxel.Navigation
         [WriteOnly]
         public NativeArray<Vector3> directions;
 
+        [ReadOnly]
+        public NativeArray<byte> flowField;
+
+        [ReadOnly]
+        public NativeArray<Vector3Int> flowDirections;
+
         public void Execute(int i, TransformAccess transform)
         {
             Vector3Int gridPosition = GridPosition(transform.position);
