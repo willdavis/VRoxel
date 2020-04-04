@@ -24,6 +24,10 @@ namespace NavigationSpecs
 
             FlowDirectionJob job = new FlowDirectionJob()
             {
+                world_scale = 1f,
+                world_offset = Vector3.zero,
+                world_center = new Vector3(0.5f, 0.5f, 0.5f),
+                world_rotation = Quaternion.identity,
                 directions = directions
             };
 
