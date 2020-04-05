@@ -33,6 +33,9 @@ namespace VRoxel.Navigation
             _flowField = new NativeArray<byte>(size, Allocator.Persistent);
             _flowDirections = new NativeArray<Vector3Int>(27, Allocator.Persistent);
 
+            for (int i = 0; i < size; i++)
+                _flowField[i] = (byte)Direction3Int.Name.Up;
+
             for (int i = 0; i < 27; i++)
                 _flowDirections[i] = Direction3Int.Directions[i];
         }
