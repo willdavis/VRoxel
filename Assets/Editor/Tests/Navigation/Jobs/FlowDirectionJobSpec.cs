@@ -3,6 +3,7 @@ using Unity.Jobs;
 using UnityEngine.Jobs;
 using Unity.Collections;
 
+using VRoxel.Core;
 using VRoxel.Navigation;
 
 using NUnit.Framework;
@@ -25,6 +26,12 @@ namespace NavigationSpecs
             NativeArray<byte> flowField = new NativeArray<byte>(1, Allocator.Persistent);
             NativeArray<Vector3Int> flowDirections = new NativeArray<Vector3Int>(27, Allocator.Persistent);
 
+            for (int i = 0; i < 1; i++)
+                flowField[i] = (byte)Direction3Int.Name.Up;
+
+            for (int i = 0; i < 27; i++)
+                flowDirections[i] = Direction3Int.Directions[i];
+
             FlowDirectionJob job = new FlowDirectionJob()
             {
                 world_scale = 1f,
@@ -34,6 +41,7 @@ namespace NavigationSpecs
 
                 flowField = flowField,
                 flowDirections = flowDirections,
+                flowFieldSize = new Vector3Int(1,1,1),
 
                 directions = directions
             };
