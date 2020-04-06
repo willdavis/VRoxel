@@ -24,7 +24,7 @@ namespace NavigationSpecs
 
             NativeArray<byte> flowField = new NativeArray<byte>(flatSize, Allocator.Persistent);
             NativeArray<ushort> intField = new NativeArray<ushort>(flatSize, Allocator.Persistent);
-            NativeArray<Vector3Int> flowDirections = new NativeArray<Vector3Int>(27, Allocator.Persistent);
+            NativeArray<Vector3Int> directions = new NativeArray<Vector3Int>(27, Allocator.Persistent);
 
             intField[0] = 0;
             intField[1] = 1;
@@ -32,11 +32,11 @@ namespace NavigationSpecs
             intField[3] = 3;
 
             for (int i = 0; i < 27; i++)
-                flowDirections[i] = Direction3Int.Directions[i];
+                directions[i] = Direction3Int.Directions[i];
 
             UpdateFlowFieldJob job = new UpdateFlowFieldJob()
             {
-                flowDirections = flowDirections,
+                directions = directions,
                 flowField = flowField,
                 intField = intField,
                 size = size
@@ -52,7 +52,7 @@ namespace NavigationSpecs
 
             intField.Dispose();
             flowField.Dispose();
-            flowDirections.Dispose();
+            directions.Dispose();
         }
 
         [Test]
@@ -63,11 +63,11 @@ namespace NavigationSpecs
 
             NativeArray<byte> flowField = new NativeArray<byte>(flatSize, Allocator.Persistent);
             NativeArray<ushort> intField = new NativeArray<ushort>(flatSize, Allocator.Persistent);
-            NativeArray<Vector3Int> flowDirections = new NativeArray<Vector3Int>(27, Allocator.Persistent);
+            NativeArray<Vector3Int> directions = new NativeArray<Vector3Int>(27, Allocator.Persistent);
 
             UpdateFlowFieldJob job = new UpdateFlowFieldJob()
             {
-                flowDirections = flowDirections,
+                directions = directions,
                 flowField = flowField,
                 intField = intField,
                 size = size
@@ -95,7 +95,7 @@ namespace NavigationSpecs
 
             intField.Dispose();
             flowField.Dispose();
-            flowDirections.Dispose();
+            directions.Dispose();
         }
 
         [Test]
@@ -106,11 +106,11 @@ namespace NavigationSpecs
 
             NativeArray<byte> flowField = new NativeArray<byte>(flatSize, Allocator.Persistent);
             NativeArray<ushort> intField = new NativeArray<ushort>(flatSize, Allocator.Persistent);
-            NativeArray<Vector3Int> flowDirections = new NativeArray<Vector3Int>(27, Allocator.Persistent);
+            NativeArray<Vector3Int> directions = new NativeArray<Vector3Int>(27, Allocator.Persistent);
 
             UpdateFlowFieldJob job = new UpdateFlowFieldJob()
             {
-                flowDirections = flowDirections,
+                directions = directions,
                 flowField = flowField,
                 intField = intField,
                 size = size
@@ -143,7 +143,7 @@ namespace NavigationSpecs
 
             intField.Dispose();
             flowField.Dispose();
-            flowDirections.Dispose();
+            directions.Dispose();
         }
     }
 }

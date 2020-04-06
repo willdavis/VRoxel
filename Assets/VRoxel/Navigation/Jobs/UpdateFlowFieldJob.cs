@@ -13,10 +13,10 @@ namespace VRoxel.Navigation
         public Vector3Int size;
 
         [ReadOnly]
-        public NativeArray<ushort> intField;
+        public NativeArray<Vector3Int> directions;
 
         [ReadOnly]
-        public NativeArray<Vector3Int> flowDirections;
+        public NativeArray<ushort> intField;
 
         [WriteOnly]
         public NativeArray<byte> flowField;
@@ -34,7 +34,7 @@ namespace VRoxel.Navigation
             // with the lowest integration value
             for (int d = 1; d < 27; d++)
             {
-                nextPoint = currentPoint + flowDirections[d];
+                nextPoint = currentPoint + directions[d];
                 if (OutOfBounds(nextPoint)) { continue; }
 
                 nextIndex = Flatten(nextPoint);
