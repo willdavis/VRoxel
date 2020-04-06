@@ -46,5 +46,96 @@ namespace NavigationSpecs
             flowField.Dispose();
             flowDirections.Dispose();
         }
+
+        [Test]
+        public void UnFlattensIndexes()
+        {
+            Vector3Int size = new Vector3Int(3, 3, 3);
+            int flatSize = size.x * size.y * size.z;
+
+            NativeArray<int> intField = new NativeArray<int>(flatSize, Allocator.Persistent);
+            NativeArray<byte> flowField = new NativeArray<byte>(flatSize, Allocator.Persistent);
+            NativeArray<Vector3Int> flowDirections = new NativeArray<Vector3Int>(27, Allocator.Persistent);
+
+            UpdateFlowFieldJob job = new UpdateFlowFieldJob()
+            {
+                flowDirections = flowDirections,
+                flowField = flowField,
+                intField = intField,
+                size = size
+            };
+
+            Vector3Int result = job.UnFlatten(0);
+            Vector3Int expected = new Vector3Int(0,0,0);
+            Assert.AreEqual(expected, result);
+
+            result = job.UnFlatten(3);
+            expected = new Vector3Int(0,1,0);
+            Assert.AreEqual(expected, result);
+
+            result = job.UnFlatten(9);
+            expected = new Vector3Int(1,0,0);
+            Assert.AreEqual(expected, result);
+
+            result = job.UnFlatten(18);
+            expected = new Vector3Int(2,0,0);
+            Assert.AreEqual(expected, result);
+
+            result = job.UnFlatten(26);
+            expected = new Vector3Int(2,2,2);
+            Assert.AreEqual(expected, result);
+
+            intField.Dispose();
+            flowField.Dispose();
+            flowDirections.Dispose();
+        }
+
+        [Test]
+        public void FlattensVector3Ints()
+        {
+            Vector3Int size = new Vector3Int(3, 3, 3);
+            int flatSize = size.x * size.y * size.z;
+
+            NativeArray<int> intField = new NativeArray<int>(flatSize, Allocator.Persistent);
+            NativeArray<byte> flowField = new NativeArray<byte>(flatSize, Allocator.Persistent);
+            NativeArray<Vector3Int> flowDirections = new NativeArray<Vector3Int>(27, Allocator.Persistent);
+
+            UpdateFlowFieldJob job = new UpdateFlowFieldJob()
+            {
+                flowDirections = flowDirections,
+                flowField = flowField,
+                intField = intField,
+                size = size
+            };
+
+            Vector3Int vector = Vector3Int.zero;
+            int result = job.Flatten(vector);
+            int expected = 0;
+            Assert.AreEqual(expected, result);
+
+            vector = new Vector3Int(0,1,0);
+            result = job.Flatten(vector);
+            expected = 3;
+            Assert.AreEqual(expected, result);
+
+            vector = new Vector3Int(1,0,0);
+            result = job.Flatten(vector);
+            expected = 9;
+            Assert.AreEqual(expected, result);
+
+            vector = new Vector3Int(2,0,0);
+            result = job.Flatten(vector);
+            expected = 18;
+            Assert.AreEqual(expected, result);
+
+            vector = new Vector3Int(2,2,2);
+            result = job.Flatten(vector);
+            expected = 26;
+            Assert.AreEqual(expected, result);
+
+            intField.Dispose();
+            flowField.Dispose();
+            flowDirections.Dispose();
+        }
     }
 }
