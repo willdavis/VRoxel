@@ -19,12 +19,17 @@ namespace NavigationSpecs
         [Test]
         public void UpdatesTheFlowField()
         {
-            Vector3Int size = new Vector3Int(1, 1, 2);
+            Vector3Int size = new Vector3Int(1, 2, 2);
             int flatSize = size.x * size.y * size.z;
 
             NativeArray<int> intField = new NativeArray<int>(flatSize, Allocator.Persistent);
             NativeArray<byte> flowField = new NativeArray<byte>(flatSize, Allocator.Persistent);
             NativeArray<Vector3Int> flowDirections = new NativeArray<Vector3Int>(27, Allocator.Persistent);
+
+            intField[0] = 0;
+            intField[1] = 1;
+            intField[2] = 2;
+            intField[3] = 3;
 
             for (int i = 0; i < 27; i++)
                 flowDirections[i] = Direction3Int.Directions[i];
@@ -33,14 +38,17 @@ namespace NavigationSpecs
             {
                 flowDirections = flowDirections,
                 flowField = flowField,
-                intField = intField
+                intField = intField,
+                size = size
             };
 
             JobHandle handle = job.Schedule(flatSize, 1);
             handle.Complete();
 
-            Assert.AreEqual((byte)Direction3Int.Name.Zero, flowField[0]);
-            Assert.AreEqual((byte)Direction3Int.Name.Zero, flowField[1]);
+            Assert.AreEqual((byte)Direction3Int.Name.Zero,      flowField[0]);
+            Assert.AreEqual((byte)Direction3Int.Name.South,     flowField[1]);
+            Assert.AreEqual((byte)Direction3Int.Name.Down,      flowField[2]);
+            Assert.AreEqual((byte)Direction3Int.Name.DownSouth, flowField[3]);
 
             intField.Dispose();
             flowField.Dispose();

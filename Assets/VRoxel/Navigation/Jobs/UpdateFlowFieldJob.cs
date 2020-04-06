@@ -23,11 +23,35 @@ namespace VRoxel.Navigation
 
         public void Execute(int i)
         {
-            
+            Vector3Int currentPoint = UnFlatten(i);
+            Vector3Int nextPoint = Vector3Int.zero;
+
+            int lowest = intField[i];
+            int direction = 0;
+            int nextIndex;
+
+            // find the best direction by comparing neighbors
+            // with the lowest integration value
+            for (int d = 1; d < 27; d++)
+            {
+                nextPoint = currentPoint + flowDirections[d];
+                if (OutOfBounds(nextPoint)) { continue; }
+
+                nextIndex = Flatten(nextPoint);
+                if (intField[nextIndex] < lowest)
+                {
+                    lowest = intField[nextIndex];
+                    direction = d;
+                }
+            }
+
+            // update the flow field with the best direction
+            // if no direction was found, it will default to 0
+            flowField[i] = (byte)direction;
         }
 
         /// <summary>
-        /// Calculate a 1D array index from a Vector3Int point
+        /// Calculate an array index from a Vector3Int point
         /// </summary>
         /// <param name="point">A point in the flow field</param>
         public int Flatten(Vector3Int point)
@@ -37,7 +61,7 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Calculate a Vector3Int from a 1D array index
+        /// Calculate a Vector3Int point from an array index
         /// </summary>
         public Vector3Int UnFlatten(int index)
         {
