@@ -13,7 +13,7 @@ namespace VRoxel.Navigation
         public Vector3Int size;
 
         [ReadOnly]
-        public NativeArray<int> intField;
+        public NativeArray<ushort> intField;
 
         [ReadOnly]
         public NativeArray<Vector3Int> flowDirections;

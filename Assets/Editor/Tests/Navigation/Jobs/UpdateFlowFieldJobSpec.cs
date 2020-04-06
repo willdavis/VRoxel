@@ -22,8 +22,8 @@ namespace NavigationSpecs
             Vector3Int size = new Vector3Int(1, 2, 2);
             int flatSize = size.x * size.y * size.z;
 
-            NativeArray<int> intField = new NativeArray<int>(flatSize, Allocator.Persistent);
             NativeArray<byte> flowField = new NativeArray<byte>(flatSize, Allocator.Persistent);
+            NativeArray<ushort> intField = new NativeArray<ushort>(flatSize, Allocator.Persistent);
             NativeArray<Vector3Int> flowDirections = new NativeArray<Vector3Int>(27, Allocator.Persistent);
 
             intField[0] = 0;
@@ -61,8 +61,8 @@ namespace NavigationSpecs
             Vector3Int size = new Vector3Int(3, 3, 3);
             int flatSize = size.x * size.y * size.z;
 
-            NativeArray<int> intField = new NativeArray<int>(flatSize, Allocator.Persistent);
             NativeArray<byte> flowField = new NativeArray<byte>(flatSize, Allocator.Persistent);
+            NativeArray<ushort> intField = new NativeArray<ushort>(flatSize, Allocator.Persistent);
             NativeArray<Vector3Int> flowDirections = new NativeArray<Vector3Int>(27, Allocator.Persistent);
 
             UpdateFlowFieldJob job = new UpdateFlowFieldJob()
@@ -104,8 +104,8 @@ namespace NavigationSpecs
             Vector3Int size = new Vector3Int(3, 3, 3);
             int flatSize = size.x * size.y * size.z;
 
-            NativeArray<int> intField = new NativeArray<int>(flatSize, Allocator.Persistent);
             NativeArray<byte> flowField = new NativeArray<byte>(flatSize, Allocator.Persistent);
+            NativeArray<ushort> intField = new NativeArray<ushort>(flatSize, Allocator.Persistent);
             NativeArray<Vector3Int> flowDirections = new NativeArray<Vector3Int>(27, Allocator.Persistent);
 
             UpdateFlowFieldJob job = new UpdateFlowFieldJob()
