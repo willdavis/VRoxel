@@ -46,6 +46,15 @@ namespace VRoxel.Core
         }
 
         /// <summary>
+        /// Convert (x,y,z) coordinates to an array index
+        /// </summary>
+        public int Flatten(int x, int y, int z)
+        {
+            /// A[x,y,z] = A[ x * height * depth + y * depth + z ]
+            return (x * _size.y * _size.z) + (y * _size.z) + z;
+        }
+
+        /// <summary>
         /// Unsafely get a block type from the voxel grid cache
         /// </summary>
         /// <param name="x">the X coordinate</param>
@@ -70,7 +79,11 @@ namespace VRoxel.Core
         /// <param name="y">the Y coordinate</param>
         /// <param name="z">the Z coordinate</param>
         /// <param name="block">The block index to set</param>
-        public void Set(int x, int y, int z, byte block) { _cache[x, y, z] = block; }
+        public void Set(int x, int y, int z, byte block)
+        {
+            _cache[x, y, z] = block;
+            _voxels[Flatten(x,y,z)] = block;
+        }
 
         /// <summary>
         /// Safely set a block in the voxel grid cache
