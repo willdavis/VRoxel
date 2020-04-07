@@ -24,7 +24,7 @@ namespace NavigationJobSpecs
 
             VRoxel.Navigation.Block airBlock = new VRoxel.Navigation.Block();
             airBlock.solid = false;
-            airBlock.cost = 1;
+            airBlock.cost = 2;
             blocks[0] = airBlock;
 
             VRoxel.Navigation.Block solidBlock = new VRoxel.Navigation.Block();

@@ -37,7 +37,7 @@ namespace VRoxel.Navigation
             if (Walkable(block, position))
                 costField[i] = block.cost;
             else if (Climbable(block, position))
-                costField[i] = Convert.ToByte(block.cost * 2);
+                costField[i] = block.cost;
             else
                 costField[i] = 255;
         }
@@ -49,13 +49,17 @@ namespace VRoxel.Navigation
         {
             if (!block.solid) { return false; }
 
+            byte nextVoxel;
+            Block nextBlock;
+            Vector3Int next;
+
             for (int i = 0; i < height; i++)
             {
-                Vector3Int next = position + (directions[1] * (i+1));
+                next = position + (directions[1] * (i+1));
                 if (OutOfBounds(next)) { return false; }
 
-                byte nextVoxel = voxels[Flatten(next)];
-                Block nextBlock = blocks[nextVoxel];
+                nextVoxel = voxels[Flatten(next)];
+                nextBlock = blocks[nextVoxel];
                 if (nextBlock.solid) { return false; }
             }
 
@@ -73,13 +77,17 @@ namespace VRoxel.Navigation
             bool climbable = false;
             int[] mask = { 3, 5, 7, 9 };
 
-            for (int i = 0; i < 4; i++)
+            byte nextVoxel;
+            Block nextBlock;
+            Vector3Int next;
+
+            for (int i = 0; i < mask.Length; i++)
             {
-                Vector3Int next = position + directions[mask[i]];
+                next = position + directions[mask[i]];
                 if (OutOfBounds(next)) { continue; }
 
-                byte nextVoxel = voxels[Flatten(next)];
-                Block nextBlock = blocks[nextVoxel];
+                nextVoxel = voxels[Flatten(next)];
+                nextBlock = blocks[nextVoxel];
                 if (nextBlock.solid) { climbable = true; break; }
             }
 
