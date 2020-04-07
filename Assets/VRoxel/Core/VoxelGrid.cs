@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using Unity.Collections;
 
 namespace VRoxel.Core
 {
@@ -11,11 +12,20 @@ namespace VRoxel.Core
         private Vector3 _center;
         private Vector3Int _size;
 
+        private NativeArray<byte> _voxels;
+        public NativeArray<byte> voxels { get { return _voxels; } }
+
         public VoxelGrid(Vector3Int size)
         {
             _size = size;
             _cache = new byte[size.x, size.y, size.z];
             _center = new Vector3(size.x / 2f, size.y / 2f, size.z / 2f);
+            _voxels = new NativeArray<byte>(size.x * size.y * size.z, Allocator.Persistent);
+        }
+
+        public void Dispose()
+        {
+            _voxels.Dispose();
         }
 
         /// <summary>
@@ -33,6 +43,15 @@ namespace VRoxel.Core
             if (point.y < 0 || point.y >= _size.y) { return false; }
             if (point.z < 0 || point.z >= _size.z) { return false; }
             return true;
+        }
+
+        /// <summary>
+        /// Convert (x,y,z) coordinates to an array index
+        /// </summary>
+        public int Flatten(int x, int y, int z)
+        {
+            /// A[x,y,z] = A[ x * height * depth + y * depth + z ]
+            return (x * _size.y * _size.z) + (y * _size.z) + z;
         }
 
         /// <summary>
@@ -60,7 +79,11 @@ namespace VRoxel.Core
         /// <param name="y">the Y coordinate</param>
         /// <param name="z">the Z coordinate</param>
         /// <param name="block">The block index to set</param>
-        public void Set(int x, int y, int z, byte block) { _cache[x, y, z] = block; }
+        public void Set(int x, int y, int z, byte block)
+        {
+            _cache[x, y, z] = block;
+            _voxels[Flatten(x,y,z)] = block;
+        }
 
         /// <summary>
         /// Safely set a block in the voxel grid cache

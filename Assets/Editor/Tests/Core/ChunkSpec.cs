@@ -25,9 +25,11 @@ namespace CoreSpecs
             World world = UnityEngine.Object.Instantiate(prefab_world, Vector3.zero, Quaternion.identity) as World;
             Chunk chunk = UnityEngine.Object.Instantiate(prefab_chunk, Vector3.zero, Quaternion.identity) as Chunk;
 
+            world.Initialize();
             world.blocks.texture.material = material;
             chunk.Initialize(world, Vector3Int.zero);
 
+            world.data.Dispose();
             Object.DestroyImmediate(chunk);
             Object.DestroyImmediate(world);
             yield return null;
@@ -51,6 +53,7 @@ namespace CoreSpecs
 
             yield return null;
 
+            world.data.Dispose();
             Object.DestroyImmediate(chunk);
             Object.DestroyImmediate(world);
         }
@@ -80,6 +83,7 @@ namespace CoreSpecs
             Assert.AreEqual(600, mesh.vertices.GetLength(0));
             Assert.AreEqual(900, mesh.triangles.GetLength(0));
 
+            world.data.Dispose();
             Object.DestroyImmediate(chunk);
             Object.DestroyImmediate(world);
         }

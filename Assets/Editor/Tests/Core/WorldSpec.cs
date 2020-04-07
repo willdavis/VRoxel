@@ -66,6 +66,7 @@ namespace CoreSpecs
             WorldEditor.Set(world, start, end, air.index);
             WorldEditor.Set(world, center, 16, stone.index);
 
+            world.data.Dispose();
             Object.DestroyImmediate(world);
         }
 

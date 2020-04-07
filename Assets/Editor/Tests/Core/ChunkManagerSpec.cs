@@ -41,6 +41,7 @@ namespace CoreSpecs
             Chunk chunk = manager.Create(Vector3Int.zero);
             Assert.AreSame(chunk, manager.Get(Vector3Int.zero)); // confirm chunk was cached
 
+            world.data.Dispose();
             Object.DestroyImmediate(chunk);
             Object.DestroyImmediate(world);
         }
@@ -62,6 +63,7 @@ namespace CoreSpecs
             Assert.AreEqual(false, chunk.collidable);
             Assert.AreEqual(null, collider);
 
+            world.data.Dispose();
             Object.DestroyImmediate(chunk);
             Object.DestroyImmediate(world);
         }
@@ -92,6 +94,7 @@ namespace CoreSpecs
                 "The given key was not present in the dictionary."
             );
 
+            world.data.Dispose();
             Object.DestroyImmediate(chunk);
             Object.DestroyImmediate(world);
         }
@@ -117,6 +120,7 @@ namespace CoreSpecs
             Assert.AreEqual(true, neighbor.stale);
             Assert.AreEqual(false, control.stale);
 
+            world.data.Dispose();
             Object.DestroyImmediate(chunk);
             Object.DestroyImmediate(control);
             Object.DestroyImmediate(neighbor);
@@ -140,6 +144,7 @@ namespace CoreSpecs
             foreach (Chunk chunk in manager.all) { Assert.AreEqual(false, chunk.stale); }
 
             // clean up
+            world.data.Dispose();
             foreach (Chunk chunk in manager.all) { Object.DestroyImmediate(chunk); }
             Object.DestroyImmediate(world);
         }
@@ -164,6 +169,7 @@ namespace CoreSpecs
             foreach (Chunk chunk in manager.all) { Assert.AreEqual(true, chunk.stale); }
 
             // clean up
+            world.data.Dispose();
             foreach (Chunk chunk in manager.all) { Object.DestroyImmediate(chunk); }
             Object.DestroyImmediate(world);
         }
