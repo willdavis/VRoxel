@@ -54,6 +54,11 @@ namespace VRoxel.Core
             _data = new VoxelGrid(size);
         }
 
+        void OnDestroy()
+        {
+            _data.Dispose();
+        }
+
         public bool Contains(Vector3 position)
         {
             Vector3Int point = WorldEditor.Get(this, position);

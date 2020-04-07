@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using Unity.Collections;
 
 namespace VRoxel.Core
 {
@@ -11,11 +12,20 @@ namespace VRoxel.Core
         private Vector3 _center;
         private Vector3Int _size;
 
+        private NativeArray<byte> _voxels;
+        public NativeArray<byte> voxels { get { return _voxels; } }
+
         public VoxelGrid(Vector3Int size)
         {
             _size = size;
             _cache = new byte[size.x, size.y, size.z];
             _center = new Vector3(size.x / 2f, size.y / 2f, size.z / 2f);
+            _voxels = new NativeArray<byte>(size.x * size.y * size.z, Allocator.Persistent);
+        }
+
+        public void Dispose()
+        {
+            _voxels.Dispose();
         }
 
         /// <summary>

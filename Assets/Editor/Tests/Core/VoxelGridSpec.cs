@@ -16,6 +16,8 @@ namespace CoreSpecs
             Assert.AreEqual(5f, data.center.x);
             Assert.AreEqual(4f, data.center.y);
             Assert.AreEqual(3f, data.center.z);
+
+            data.Dispose();
         }
 
         [Test]
@@ -26,6 +28,8 @@ namespace CoreSpecs
 
             Assert.AreEqual(1, data.Get(Vector3Int.zero)); // check point inside the world
             Assert.AreEqual(0, data.Get(Vector3Int.one));  // check point outside the world
+
+            data.Dispose();
         }
 
         [Test]
@@ -38,6 +42,8 @@ namespace CoreSpecs
 
             data.Set(Vector3Int.one, 12);  // set point outside the world
             Assert.AreEqual(0, data.Get(Vector3Int.one));
+
+            data.Dispose();
         }
 
         [Test]
@@ -47,6 +53,8 @@ namespace CoreSpecs
 
             Assert.AreEqual(true, data.Contains(Vector3Int.zero));   // check point inside the world
             Assert.AreEqual(false, data.Contains(Vector3Int.right)); // check point outside the world
+
+            data.Dispose();
         }
     }
 }

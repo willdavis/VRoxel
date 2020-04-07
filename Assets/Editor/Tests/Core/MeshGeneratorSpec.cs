@@ -37,6 +37,8 @@ namespace CoreSpecs
             Assert.AreEqual(24, mesh.vertices.GetLength(0));  // expect 4x6 vertices
             Assert.AreEqual(36, mesh.triangles.GetLength(0)); // expect 6x6 triangles
             Assert.AreEqual(24, mesh.uv.GetLength(0));        // expect 4x6 uv coordinates
+
+            data.Dispose();
         }
     }
 }
