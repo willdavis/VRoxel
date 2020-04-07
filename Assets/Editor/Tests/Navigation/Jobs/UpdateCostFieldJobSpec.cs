@@ -24,6 +24,7 @@ namespace NavigationJobSpecs
 
             VRoxel.Navigation.Block airBlock = new VRoxel.Navigation.Block();
             airBlock.solid = false;
+            airBlock.cost = 1;
             blocks[0] = airBlock;
 
             VRoxel.Navigation.Block solidBlock = new VRoxel.Navigation.Block();
@@ -53,7 +54,7 @@ namespace NavigationJobSpecs
             handle.Complete();
 
             Assert.AreEqual(1, costField[0]);   // walkable node
-            Assert.AreEqual(255, costField[1]); // obstructed node
+            Assert.AreEqual(2, costField[1]);   // climbable node
             Assert.AreEqual(255, costField[2]); // obstructed node
             Assert.AreEqual(255, costField[3]); // obstructed node
 

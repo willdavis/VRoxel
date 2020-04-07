@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using Unity.Collections;
 using Unity.Jobs;
 
@@ -35,15 +36,19 @@ namespace VRoxel.Navigation
 
             if (Walkable(block, position))
                 costField[i] = block.cost;
+            else if (Climbable(block, position))
+                costField[i] = Convert.ToByte(block.cost * 2);
             else
                 costField[i] = 255;
         }
 
+        /// <summary>
+        /// Test for a solid block and N air blocks above, where N is the agent height
+        /// </summary>
         public bool Walkable(Block block, Vector3Int position)
         {
             if (!block.solid) { return false; }
 
-            // check blocks above the current position
             for (int i = 0; i < height; i++)
             {
                 Vector3Int next = position + (directions[1] * (i+1));
@@ -55,6 +60,30 @@ namespace VRoxel.Navigation
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Test for solid N,E,S,W neighbors around and air block
+        /// to determine if a block is climbable
+        /// </summary>
+        public bool Climbable(Block block, Vector3Int position)
+        {
+            if (block.solid) { return false; }
+
+            bool climbable = false;
+            int[] mask = { 3, 5, 7, 9 };
+
+            for (int i = 0; i < 4; i++)
+            {
+                Vector3Int next = position + directions[mask[i]];
+                if (OutOfBounds(next)) { continue; }
+
+                byte nextVoxel = voxels[Flatten(next)];
+                Block nextBlock = blocks[nextVoxel];
+                if (nextBlock.solid) { climbable = true; break; }
+            }
+
+            return climbable;
         }
 
         /// <summary>
