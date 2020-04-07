@@ -4,9 +4,17 @@ using Unity.Jobs;
 
 namespace VRoxel.Navigation
 {
+    public struct Block
+    {
+        public bool solid;
+    }
+
     public struct UpdateCostFieldJob : IJobParallelFor
     {
         public Vector3Int size;
+
+        [ReadOnly]
+        public NativeArray<Block> blocks;
 
         [ReadOnly]
         public NativeArray<Vector3Int> directions;
@@ -19,7 +27,13 @@ namespace VRoxel.Navigation
 
         public void Execute(int i)
         {
-            
+            byte voxel = voxels[i];
+            Block block = blocks[voxel];
+
+            if (block.solid)
+                costField[i] = 1;
+            else
+                costField[i] = 255;
         }
 
         /// <summary>
