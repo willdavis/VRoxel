@@ -28,6 +28,7 @@ namespace NavigationJobSpecs
 
             VRoxel.Navigation.Block solidBlock = new VRoxel.Navigation.Block();
             solidBlock.solid = true;
+            solidBlock.cost = 1;
             blocks[1] = solidBlock;
 
             voxels[0] = 1;  // solid block
@@ -44,7 +45,8 @@ namespace NavigationJobSpecs
                 costField = costField,
                 voxels = voxels,
                 blocks = blocks,
-                size = size
+                size = size,
+                height = 1
             };
 
             JobHandle handle = job.Schedule(flatSize, 1);

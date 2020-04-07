@@ -7,10 +7,12 @@ namespace VRoxel.Navigation
     public struct Block
     {
         public bool solid;
+        public byte cost;
     }
 
     public struct UpdateCostFieldJob : IJobParallelFor
     {
+        public int height;
         public Vector3Int size;
 
         [ReadOnly]
@@ -29,11 +31,30 @@ namespace VRoxel.Navigation
         {
             byte voxel = voxels[i];
             Block block = blocks[voxel];
+            Vector3Int position = UnFlatten(i);
 
-            if (block.solid)
-                costField[i] = 1;
+            if (Walkable(block, position))
+                costField[i] = block.cost;
             else
                 costField[i] = 255;
+        }
+
+        public bool Walkable(Block block, Vector3Int position)
+        {
+            if (!block.solid) { return false; }
+
+            // check blocks above the current position
+            for (int i = 0; i < height; i++)
+            {
+                Vector3Int next = position + (directions[1] * (i+1));
+                if (OutOfBounds(next)) { return false; }
+
+                byte nextVoxel = voxels[Flatten(next)];
+                Block nextBlock = blocks[nextVoxel];
+                if (nextBlock.solid) { return false; }
+            }
+
+            return true;
         }
 
         /// <summary>
