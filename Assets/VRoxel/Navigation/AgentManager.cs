@@ -22,6 +22,7 @@ namespace VRoxel.Navigation
         NativeArray<byte> _flowField;
         NativeArray<byte> _costField;
         NativeArray<ushort> _intField;
+        NativeArray<Block> _blockData;
         NativeArray<Vector3Int> _directions;
 
         public AgentManager(World world, int maxAgents)
@@ -35,13 +36,29 @@ namespace VRoxel.Navigation
             _flowField = new NativeArray<byte>(size, Allocator.Persistent);
             _costField = new NativeArray<byte>(size, Allocator.Persistent);
             _intField = new NativeArray<ushort>(size, Allocator.Persistent);
+
             _directions = new NativeArray<Vector3Int>(27, Allocator.Persistent);
-
-            for (int i = 0; i < size; i++)
-                _flowField[i] = (byte)Direction3Int.Name.Up;
-
             for (int i = 0; i < 27; i++)
                 _directions[i] = Direction3Int.Directions[i];
+
+            int blockCount = _world.blocks.library.Keys.Count;
+            _blockData = new NativeArray<Block>(blockCount, Allocator.Persistent);
+            foreach (VRoxel.Core.Block block in _world.blocks.library.Values)
+            {
+                Block data = new Block();
+                data.solid = block.isSolid;
+
+                if (data.solid)
+                    data.cost = 1;
+                else
+                    data.cost = 2;
+
+                _blockData[block.index] = data;
+                Debug.Log("added block with id:" + block.index
+                    + ", solid: " + _blockData[block.index].solid 
+                    + ", cost: " + _blockData[block.index].cost
+                );
+            }
         }
 
         /// <summary>
@@ -52,9 +69,11 @@ namespace VRoxel.Navigation
             _transformAccess.Dispose();
             _agentDirections.Dispose();
 
+
             _intField.Dispose();
             _flowField.Dispose();
             _costField.Dispose();
+            _blockData.Dispose();
             _directions.Dispose();
         }
 
