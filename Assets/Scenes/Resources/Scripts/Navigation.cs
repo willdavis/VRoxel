@@ -52,7 +52,7 @@ public class Navigation : MonoBehaviour
         }
 
         _agents.TransformAccess(transforms);
-        GetGoalPosition();
+        //_agents.UpdateFlowField(GetGoalPosition()).Complete();
     }
 
     void OnDestroy()

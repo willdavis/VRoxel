@@ -124,6 +124,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e82d71bff6759546906413355b3bea5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  OnDeath:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: DeathEvent, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &248189242278981012
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -137,7 +141,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   radius: 0.5
-  speed: 2.5
+  speed: 1
 --- !u!136 &1548514560002395747
 CapsuleCollider:
   m_ObjectHideFlags: 0

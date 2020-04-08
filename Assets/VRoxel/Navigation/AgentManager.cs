@@ -127,6 +127,51 @@ namespace VRoxel.Navigation
             return moveJob.Schedule(_transformAccess, flowHandle);
         }
 
+        public JobHandle UpdateFlowField(Vector3Int goal)
+        {
+            int size = _world.size.x * _world.size.y * _world.size.z;
+            Vector3Int worldSize = new Vector3Int(_world.size.x, _world.size.y, _world.size.z);
+
+            UpdateCostFieldJob costJob = new UpdateCostFieldJob()
+            {
+                voxels = _world.data.voxels,
+                directions = _directions,
+                costField = _costField,
+                blocks = _blockData,
+                size = worldSize,
+                height = 1
+            };
+            JobHandle costHandle = costJob.Schedule(size, 1);
+
+
+            ClearIntFieldJob clearJob = new ClearIntFieldJob()
+            {
+                intField = _intField
+            };
+            JobHandle clearHandle = clearJob.Schedule(size, 1, costHandle);
+
+
+            UpdateIntFieldJob intJob = new UpdateIntFieldJob()
+            {
+                directions = _directions,
+                costField = _costField,
+                intField = _intField,
+                size = worldSize,
+                goal = goal
+            };
+            JobHandle intHandle = intJob.Schedule(clearHandle);
+
+
+            UpdateFlowFieldJob flowJob = new UpdateFlowFieldJob()
+            {
+                directions = _directions,
+                flowField = _flowField,
+                intField = _intField,
+                size = worldSize,
+            };
+            return flowJob.Schedule(size, 1, intHandle);
+        }
+
         public void TransformAccess(Transform[] transforms)
         {
             _transformAccess = new TransformAccessArray(transforms);
