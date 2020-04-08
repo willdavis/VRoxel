@@ -52,6 +52,7 @@ public class Navigation : MonoBehaviour
         }
 
         _agents.TransformAccess(transforms);
+        //_agents.UpdateFlowField(GetGoalPosition()).Complete();
     }
 
     void OnDestroy()
@@ -76,6 +77,27 @@ public class Navigation : MonoBehaviour
     {
         _agents.MoveAgents(Time.deltaTime);
         //jobHandle = _agents.MoveAgentsAsync(Time.deltaTime);
+    }
+
+    /// <summary>
+    /// Calculates the goal position at the center the voxel grid
+    /// </summary>
+    Vector3Int GetGoalPosition()
+    {
+        int y = _world.size.y - 1;
+        int x = _world.size.x / 2;
+        int z = _world.size.z / 2;
+
+        // scan from bedrock to the first air block
+        for (int i = 0; i < _world.size.y; i++)
+        {
+            bool found = _world.data.Get(x, i, z) == 0;
+            if (found) { y = i - 1; break; }
+        }
+
+        Vector3Int goal = new Vector3Int(x,y,z);
+        Debug.Log("Goal is at: " + goal);
+        return goal;
     }
 
     /// <summary>

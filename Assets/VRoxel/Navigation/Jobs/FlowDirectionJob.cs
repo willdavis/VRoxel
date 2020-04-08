@@ -26,6 +26,7 @@ namespace VRoxel.Navigation
         public void Execute(int i, TransformAccess transform)
         {
             Vector3Int position = GridPosition(transform.position);
+            position += Vector3Int.down;
 
             if (OutOfBounds(position))
             {
@@ -36,7 +37,7 @@ namespace VRoxel.Navigation
             int fieldIndex = Flatten(position);
             byte directionIndex = flowField[fieldIndex];
             Vector3Int flowUnitDirection = flowDirections[directionIndex];
-            Vector3Int desiredPosition = position + flowUnitDirection;
+            Vector3Int desiredPosition = position + flowUnitDirection + Vector3Int.up;
             Vector3 desiredScenePosition = ScenePosition(desiredPosition);
 
             directions[i] = (desiredScenePosition - transform.position).normalized;
