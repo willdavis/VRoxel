@@ -4,6 +4,8 @@ using Unity.Collections;
 using UnityEngine.Jobs;
 using Unity.Jobs;
 using Priority_Queue;
+using Unity.Mathematics;
+using Unity.Burst;
 
 namespace VRoxel.Navigation
 {
@@ -15,15 +17,15 @@ namespace VRoxel.Navigation
         /// <summary>
         /// the size of the integration field
         /// </summary>
-        public Vector3Int size;
+        public int3 size;
 
         /// <summary>
         /// the goal where all paths will direct to
         /// </summary>
-        public Vector3Int goal;
+        public int3 goal;
 
         [ReadOnly]
-        public NativeArray<Vector3Int> directions;
+        public NativeArray<int3> directions;
 
         [ReadOnly]
         public NativeArray<byte> costField;
@@ -34,13 +36,16 @@ namespace VRoxel.Navigation
         {
             if (OutOfBounds(goal)) { return; }
 
-            SimplePriorityQueue<Vector3Int, ushort> open = new SimplePriorityQueue<Vector3Int, ushort>();
-            open.Enqueue(goal, 0);          // queue the goal position as the first open node
-            intField[Flatten(goal)] = 0;    // set the goal position integration cost to zero
+            int flatSize = size.x * size.y * size.z;
+            NativeQueue<int3> open = new NativeQueue<int3>(Allocator.Temp);
+
+            int flatIndex = Flatten(goal);
+            open.Enqueue(goal);         // queue the goal position as the first open node
+            intField[flatIndex] = 0;    // set the goal position integration cost to zero
 
             ushort cost;
             int index, nextIndex;
-            Vector3Int position, nextPosition;
+            int3 position, nextPosition;
 
             while (open.Count != 0)
             {
@@ -59,17 +64,19 @@ namespace VRoxel.Navigation
                     if (intField[nextIndex] == ushort.MaxValue || cost < intField[nextIndex])
                     {
                         intField[nextIndex] = cost;
-                        open.Enqueue(nextPosition, cost);
+                        open.Enqueue(nextPosition);
                     }
                 }
             }
+
+            open.Dispose();
         }
 
         /// <summary>
         /// Calculate an array index from a Vector3Int point
         /// </summary>
         /// <param name="point">A point in the flow field</param>
-        public int Flatten(Vector3Int point)
+        public int Flatten(int3 point)
         {
             /// A[x,y,z] = A[ x * height * depth + y * depth + z ]
             return (point.x * size.y * size.z) + (point.y * size.z) + point.z;
@@ -79,7 +86,7 @@ namespace VRoxel.Navigation
         /// Test if a point is inside the flow field
         /// </summary>
         /// <param name="point">A point in the flow field</param>
-        public bool OutOfBounds(Vector3Int point)
+        public bool OutOfBounds(int3 point)
         {
             if (point.x < 0 || point.x >= size.x) { return true; }
             if (point.y < 0 || point.y >= size.y) { return true; }

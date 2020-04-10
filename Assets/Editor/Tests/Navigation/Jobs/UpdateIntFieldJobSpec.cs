@@ -5,6 +5,7 @@ using UnityEngine;
 using Unity.Jobs;
 using UnityEngine.Jobs;
 using Unity.Collections;
+using Unity.Mathematics;
 
 using VRoxel.Navigation;
 using VRoxel.Core;
@@ -19,12 +20,12 @@ namespace NavigationSpecs
         [Test]
         public void UpdatesTheIntegrationField()
         {
-            Vector3Int size = new Vector3Int(1, 1, 4);
+            int3 size = new int3(1, 1, 4);
             int flatSize = size.x * size.y * size.z;
 
             NativeArray<byte> costField = new NativeArray<byte>(flatSize, Allocator.Persistent);
             NativeArray<ushort> intField = new NativeArray<ushort>(flatSize, Allocator.Persistent);
-            NativeArray<Vector3Int> directions = new NativeArray<Vector3Int>(27, Allocator.Persistent);
+            NativeArray<int3> directions = new NativeArray<int3>(27, Allocator.Persistent);
 
             for (int i = 0; i < flatSize; i++)
             {
@@ -33,12 +34,15 @@ namespace NavigationSpecs
             }
 
             for (int i = 0; i < 27; i++)
-                directions[i] = Direction3Int.Directions[i];
+            {
+                Vector3Int dir = Direction3Int.Directions[i];
+                directions[i] = new int3(dir.x, dir.y, dir.z);
+            }
             
             UpdateIntFieldJob job = new UpdateIntFieldJob()
             {
                 size = size,
-                goal = Vector3Int.zero,
+                goal = int3.zero,
                 directions = directions,
                 costField = costField,
                 intField = intField

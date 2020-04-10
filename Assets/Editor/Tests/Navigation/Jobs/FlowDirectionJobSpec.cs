@@ -2,6 +2,7 @@
 using Unity.Jobs;
 using UnityEngine.Jobs;
 using Unity.Collections;
+using Unity.Mathematics;
 
 using VRoxel.Core;
 using VRoxel.Navigation;
@@ -16,32 +17,35 @@ namespace NavigationSpecs
         [Test]
         public void UpdatesDirections()
         {
-            int size = 2;
-            Transform[] transforms = new Transform[2];
+            Transform[] transforms = new Transform[1];
             transforms[0] = GameObject.CreatePrimitive(PrimitiveType.Cube).transform;
-            transforms[1] = GameObject.CreatePrimitive(PrimitiveType.Cube).transform;
+            transforms[0].position += Vector3.up;
+
             TransformAccessArray transformAccess = new TransformAccessArray(transforms);
-            NativeArray<Vector3> directions = new NativeArray<Vector3>(size, Allocator.Persistent);
+            NativeArray<float3> directions = new NativeArray<float3>(1, Allocator.Persistent);
 
             NativeArray<byte> flowField = new NativeArray<byte>(1, Allocator.Persistent);
-            NativeArray<Vector3Int> flowDirections = new NativeArray<Vector3Int>(27, Allocator.Persistent);
+            NativeArray<int3> flowDirections = new NativeArray<int3>(27, Allocator.Persistent);
 
             for (int i = 0; i < 1; i++)
                 flowField[i] = (byte)Direction3Int.Name.Up;
 
             for (int i = 0; i < 27; i++)
-                flowDirections[i] = Direction3Int.Directions[i];
+            {
+                Vector3Int dir = Direction3Int.Directions[i];
+                flowDirections[i] = new int3(dir.x, dir.y, dir.z);
+            }
 
             FlowDirectionJob job = new FlowDirectionJob()
             {
                 world_scale = 1f,
-                world_offset = Vector3.zero,
-                world_center = new Vector3(0.5f, 0.5f, 0.5f),
-                world_rotation = Quaternion.identity,
+                world_offset = float3.zero,
+                world_center = new float3(0.5f, 0.5f, 0.5f),
+                world_rotation = quaternion.identity,
 
                 flowField = flowField,
                 flowDirections = flowDirections,
-                flowFieldSize = new Vector3Int(1,1,1),
+                flowFieldSize = new int3(1,1,1),
 
                 directions = directions
             };
@@ -49,8 +53,7 @@ namespace NavigationSpecs
             JobHandle handle = job.Schedule(transformAccess);
             handle.Complete();
 
-            Assert.AreEqual(Vector3.up, directions[0]);
-            Assert.AreEqual(Vector3.up, directions[1]);
+            Assert.AreEqual(new float3(0,1,0), directions[0]);
 
             flowDirections.Dispose();
             flowField.Dispose();
