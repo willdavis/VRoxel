@@ -5,6 +5,7 @@ using UnityEngine;
 using Unity.Jobs;
 using UnityEngine.Jobs;
 using Unity.Collections;
+using Unity.Mathematics;
 
 using VRoxel.Core;
 
@@ -17,29 +18,40 @@ namespace VRoxel.Navigation
         private int _max;
         private List<NavAgent> _agents;
         private TransformAccessArray _transformAccess;
-        private NativeArray<Vector3> _agentDirections;
+        private NativeArray<float3> _agentDirections;
 
         NativeArray<byte> _flowField;
         NativeArray<byte> _costField;
         NativeArray<ushort> _intField;
         NativeArray<Block> _blockData;
-        NativeArray<Vector3Int> _directions;
+        NativeArray<int3> _directions;
+        NativeArray<int> _directionsNESW;
 
         public AgentManager(World world, int maxAgents)
         {
             _world = world;
             _max = maxAgents;
             _agents = new List<NavAgent>(maxAgents);
-            _agentDirections = new NativeArray<Vector3>(maxAgents, Allocator.Persistent);
+            _agentDirections = new NativeArray<float3>(maxAgents, Allocator.Persistent);
 
             int size = world.size.x * world.size.y * world.size.z;
             _flowField = new NativeArray<byte>(size, Allocator.Persistent);
             _costField = new NativeArray<byte>(size, Allocator.Persistent);
             _intField = new NativeArray<ushort>(size, Allocator.Persistent);
 
-            _directions = new NativeArray<Vector3Int>(27, Allocator.Persistent);
+            _directions = new NativeArray<int3>(27, Allocator.Persistent);
             for (int i = 0; i < 27; i++)
-                _directions[i] = Direction3Int.Directions[i];
+            {
+                Vector3Int dir = Direction3Int.Directions[i];
+                _directions[i] = new int3(dir.x, dir.y, dir.z);
+            }
+
+            // cache directions for climbable check
+            _directionsNESW = new NativeArray<int>(4, Allocator.Persistent);
+            _directionsNESW[0] = 3;
+            _directionsNESW[1] = 5;
+            _directionsNESW[2] = 7;
+            _directionsNESW[3] = 9;
 
             int blockCount = _world.blocks.library.Keys.Count;
             _blockData = new NativeArray<Block>(blockCount, Allocator.Persistent);
@@ -75,6 +87,7 @@ namespace VRoxel.Navigation
             _costField.Dispose();
             _blockData.Dispose();
             _directions.Dispose();
+            _directionsNESW.Dispose();
         }
 
         /// <summary>
@@ -102,6 +115,8 @@ namespace VRoxel.Navigation
         /// </summary>
         public JobHandle MoveAgentsAsync(float dt)
         {
+            int3 worldSize = new int3(_world.size.x, _world.size.y, _world.size.z);
+
             FlowDirectionJob flowJob = new FlowDirectionJob()
             {
                 world_scale = _world.scale,
@@ -111,7 +126,7 @@ namespace VRoxel.Navigation
 
                 flowField = _flowField,
                 flowDirections = _directions,
-                flowFieldSize = _world.size,
+                flowFieldSize = worldSize,
 
                 directions = _agentDirections
             };
@@ -129,12 +144,14 @@ namespace VRoxel.Navigation
 
         public JobHandle UpdateFlowField(Vector3Int goal)
         {
+            int3 target = new int3(goal.x, goal.y, goal.z);
             int size = _world.size.x * _world.size.y * _world.size.z;
-            Vector3Int worldSize = new Vector3Int(_world.size.x, _world.size.y, _world.size.z);
+            int3 worldSize = new int3(_world.size.x, _world.size.y, _world.size.z);
 
             UpdateCostFieldJob costJob = new UpdateCostFieldJob()
             {
                 voxels = _world.data.voxels,
+                directionMask = _directionsNESW,
                 directions = _directions,
                 costField = _costField,
                 blocks = _blockData,
@@ -157,7 +174,7 @@ namespace VRoxel.Navigation
                 costField = _costField,
                 intField = _intField,
                 size = worldSize,
-                goal = goal
+                goal = target
             };
             JobHandle intHandle = intJob.Schedule(clearHandle);
 

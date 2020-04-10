@@ -2,6 +2,7 @@
 using Unity.Jobs;
 using UnityEngine.Jobs;
 using Unity.Collections;
+using Unity.Mathematics;
 
 using VRoxel.Core;
 using VRoxel.Navigation;
@@ -14,12 +15,13 @@ namespace NavigationJobSpecs
         [Test]
         public void UpdatesTheField()
         {
-            Vector3Int size = new Vector3Int(1, 2, 2);
+            int3 size = new int3(1, 2, 2);
             int flatSize = size.x * size.y * size.z;
 
             NativeArray<byte> voxels = new NativeArray<byte>(flatSize, Allocator.Persistent);
             NativeArray<byte> costField = new NativeArray<byte>(flatSize, Allocator.Persistent);
-            NativeArray<Vector3Int> directions = new NativeArray<Vector3Int>(27, Allocator.Persistent);
+            NativeArray<int3> directions = new NativeArray<int3>(27, Allocator.Persistent);
+            NativeArray<int> directionMask = new NativeArray<int>(4, Allocator.Persistent);
             NativeArray<VRoxel.Navigation.Block> blocks = new NativeArray<VRoxel.Navigation.Block>(2, Allocator.Persistent);
 
             VRoxel.Navigation.Block airBlock = new VRoxel.Navigation.Block();
@@ -37,11 +39,20 @@ namespace NavigationJobSpecs
             voxels[2] = 0;  // air block
             voxels[3] = 0;  // air block
 
+            directionMask[0] = 3;
+            directionMask[1] = 5;
+            directionMask[2] = 7;
+            directionMask[3] = 9;
+
             for (int i = 0; i < 27; i++)
-                directions[i] = Direction3Int.Directions[i];
+            {
+                Vector3Int dir = Direction3Int.Directions[i];
+                directions[i] = new int3(dir.x, dir.y, dir.z);
+            }
 
             UpdateCostFieldJob job = new UpdateCostFieldJob()
             {
+                directionMask = directionMask,
                 directions = directions,
                 costField = costField,
                 voxels = voxels,
@@ -62,6 +73,7 @@ namespace NavigationJobSpecs
             voxels.Dispose();
             costField.Dispose();
             directions.Dispose();
+            directionMask.Dispose();
         }
     }
 }

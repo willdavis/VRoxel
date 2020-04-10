@@ -2,6 +2,8 @@
 using UnityEngine;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
+using Unity.Burst;
 
 namespace VRoxel.Navigation
 {
@@ -11,16 +13,20 @@ namespace VRoxel.Navigation
         public byte cost;
     }
 
+    [BurstCompile]
     public struct UpdateCostFieldJob : IJobParallelFor
     {
         public int height;
-        public Vector3Int size;
+        public int3 size;
 
         [ReadOnly]
         public NativeArray<Block> blocks;
 
         [ReadOnly]
-        public NativeArray<Vector3Int> directions;
+        public NativeArray<int3> directions;
+
+        [ReadOnly]
+        public NativeArray<int> directionMask;
 
         [ReadOnly]
         public NativeArray<byte> voxels;
@@ -32,7 +38,7 @@ namespace VRoxel.Navigation
         {
             byte voxel = voxels[i];
             Block block = blocks[voxel];
-            Vector3Int position = UnFlatten(i);
+            int3 position = UnFlatten(i);
 
             if (Walkable(block, position))
                 costField[i] = block.cost;
@@ -45,13 +51,13 @@ namespace VRoxel.Navigation
         /// <summary>
         /// Test for a solid block and N air blocks above, where N is the agent height
         /// </summary>
-        public bool Walkable(Block block, Vector3Int position)
+        public bool Walkable(Block block, int3 position)
         {
             if (!block.solid) { return false; }
 
             byte nextVoxel;
             Block nextBlock;
-            Vector3Int next;
+            int3 next;
 
             for (int i = 0; i < height; i++)
             {
@@ -70,20 +76,18 @@ namespace VRoxel.Navigation
         /// Test for solid N,E,S,W neighbors around and air block
         /// to determine if a block is climbable
         /// </summary>
-        public bool Climbable(Block block, Vector3Int position)
+        public bool Climbable(Block block, int3 position)
         {
             if (block.solid) { return false; }
 
-            bool climbable = false;
-            int[] mask = { 3, 5, 7, 9 };
-
+            int3 next;
             byte nextVoxel;
             Block nextBlock;
-            Vector3Int next;
+            bool climbable = false;
 
-            for (int i = 0; i < mask.Length; i++)
+            for (int i = 0; i < directionMask.Length; i++)
             {
-                next = position + directions[mask[i]];
+                next = position + directions[directionMask[i]];
                 if (OutOfBounds(next)) { continue; }
 
                 nextVoxel = voxels[Flatten(next)];
@@ -98,7 +102,7 @@ namespace VRoxel.Navigation
         /// Calculate an array index from a Vector3Int point
         /// </summary>
         /// <param name="point">A point in the flow field</param>
-        public int Flatten(Vector3Int point)
+        public int Flatten(int3 point)
         {
             /// A[x,y,z] = A[ x * height * depth + y * depth + z ]
             return (point.x * size.y * size.z) + (point.y * size.z) + point.z;
@@ -107,19 +111,19 @@ namespace VRoxel.Navigation
         /// <summary>
         /// Calculate a Vector3Int point from an array index
         /// </summary>
-        public Vector3Int UnFlatten(int index)
+        public int3 UnFlatten(int index)
         {
             int x = index / (size.y * size.z);
             int y = (index - x * size.y * size.z) / size.z;
             int z = index - x * size.y * size.z - y * size.z;
-            return new Vector3Int(x,y,z);
+            return new int3(x,y,z);
         }
 
         /// <summary>
         /// Test if a point is inside the flow field
         /// </summary>
         /// <param name="point">A point in the flow field</param>
-        public bool OutOfBounds(Vector3Int point)
+        public bool OutOfBounds(int3 point)
         {
             if (point.x < 0 || point.x >= size.x) { return true; }
             if (point.y < 0 || point.y >= size.y) { return true; }

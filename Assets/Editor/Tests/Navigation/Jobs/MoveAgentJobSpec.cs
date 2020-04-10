@@ -5,6 +5,7 @@ using UnityEngine;
 using Unity.Jobs;
 using UnityEngine.Jobs;
 using Unity.Collections;
+using Unity.Mathematics;
 
 using VRoxel.Navigation;
 
@@ -23,7 +24,7 @@ namespace NavigationSpecs
             transforms[1] = GameObject.CreatePrimitive(PrimitiveType.Cube).transform;
             TransformAccessArray asyncTransforms = new TransformAccessArray(transforms);
 
-            NativeArray<Vector3> directions = new NativeArray<Vector3>(2, Allocator.Persistent);
+            NativeArray<float3> directions = new NativeArray<float3>(2, Allocator.Persistent);
             directions[0] = Vector3.right;
             directions[1] = Vector3.left;
 
@@ -35,18 +36,42 @@ namespace NavigationSpecs
                 directions = directions
             };
 
-            Vector3 position_0 = transforms[0].position + (directions[0] * speed * Time.deltaTime);
-            Vector3 position_1 = transforms[1].position + (directions[1] * speed * Time.deltaTime);
-            Quaternion rotation_0 = Quaternion.LookRotation(directions[0], Vector3.up);
-            Quaternion rotation_1 = Quaternion.LookRotation(directions[1], Vector3.up);
+            float3 position_0 = new float3(
+                transforms[0].position.x, transforms[0].position.y, transforms[0].position.z
+            );
+            float3 position_1 = new float3(
+                transforms[1].position.x, transforms[1].position.y, transforms[1].position.z
+            );
+
+            float3 expected_position_0 = position_0 + (directions[0] * speed * Time.deltaTime);
+            float3 expected_position_1 = position_1 + (directions[1] * speed * Time.deltaTime);
+            quaternion rotation_0 = quaternion.LookRotation(directions[0], new float3(0,1,0));
+            quaternion rotation_1 = quaternion.LookRotation(directions[1], new float3(0,1,0));
 
             JobHandle handle = job.Schedule(asyncTransforms);
             handle.Complete();
 
-            Assert.AreEqual(position_0, transforms[0].position);
-            Assert.AreEqual(position_1, transforms[1].position);
-            Assert.AreEqual(rotation_0, transforms[0].rotation);
-            Assert.AreEqual(rotation_1, transforms[1].rotation);
+            // check that the two vectors have the same position
+            float3 position = new float3(
+                transforms[0].position.x,
+                transforms[0].position.y,
+                transforms[0].position.z
+            );
+            Assert.AreEqual(expected_position_0, position);
+
+            position = new float3(
+                transforms[1].position.x,
+                transforms[1].position.y,
+                transforms[1].position.z
+            );
+            Assert.AreEqual(expected_position_1, position);
+
+            // check that the two quaternions have the same orientation
+            quaternion rotation = transforms[0].rotation;
+            Assert.AreEqual(math.abs(math.dot(rotation_0, rotation)), 1);
+
+            rotation = transforms[1].rotation;
+            Assert.AreEqual(math.abs(math.dot(rotation_1, rotation)), 1);
 
             directions.Dispose();
             asyncTransforms.Dispose();
