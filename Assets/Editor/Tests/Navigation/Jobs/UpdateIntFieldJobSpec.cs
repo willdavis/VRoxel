@@ -13,7 +13,7 @@ using VRoxel.Core;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 
-namespace NavigationSpecs
+namespace NavigationJobSpecs
 {
     public class UpdateIntFieldJobSpec
     {
@@ -26,6 +26,7 @@ namespace NavigationSpecs
             NativeArray<byte> costField = new NativeArray<byte>(flatSize, Allocator.Persistent);
             NativeArray<ushort> intField = new NativeArray<ushort>(flatSize, Allocator.Persistent);
             NativeArray<int3> directions = new NativeArray<int3>(27, Allocator.Persistent);
+            NativeQueue<int3> open = new NativeQueue<int3>(Allocator.Persistent);
 
             for (int i = 0; i < flatSize; i++)
             {
@@ -42,6 +43,7 @@ namespace NavigationSpecs
             UpdateIntFieldJob job = new UpdateIntFieldJob()
             {
                 size = size,
+                open = open,
                 goal = int3.zero,
                 directions = directions,
                 costField = costField,
@@ -56,6 +58,7 @@ namespace NavigationSpecs
             Assert.AreEqual(4, intField[2]);
             Assert.AreEqual(6, intField[3]);
 
+            open.Dispose();
             costField.Dispose();
             intField.Dispose();
             directions.Dispose();

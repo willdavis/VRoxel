@@ -26,6 +26,7 @@ namespace VRoxel.Navigation
         NativeArray<Block> _blockData;
         NativeArray<int3> _directions;
         NativeArray<int> _directionsNESW;
+        NativeQueue<int3> _openList;
 
         public AgentManager(World world, int maxAgents)
         {
@@ -38,6 +39,7 @@ namespace VRoxel.Navigation
             _flowField = new NativeArray<byte>(size, Allocator.Persistent);
             _costField = new NativeArray<byte>(size, Allocator.Persistent);
             _intField = new NativeArray<ushort>(size, Allocator.Persistent);
+            _openList = new NativeQueue<int3>(Allocator.Persistent);
 
             _directions = new NativeArray<int3>(27, Allocator.Persistent);
             for (int i = 0; i < 27; i++)
@@ -82,6 +84,7 @@ namespace VRoxel.Navigation
             _agentDirections.Dispose();
 
 
+            _openList.Dispose();
             _intField.Dispose();
             _flowField.Dispose();
             _costField.Dispose();
@@ -174,6 +177,7 @@ namespace VRoxel.Navigation
                 costField = _costField,
                 intField = _intField,
                 size = worldSize,
+                open = _openList,
                 goal = target
             };
             JobHandle intHandle = intJob.Schedule(clearHandle);

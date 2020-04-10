@@ -13,7 +13,7 @@ using VRoxel.Navigation;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 
-namespace NavigationSpecs
+namespace NavigationJobSpecs
 {
     public class UpdateFlowFieldJobSpec
     {

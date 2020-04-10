@@ -12,6 +12,7 @@ namespace VRoxel.Navigation
     /// <summary>
     /// Updates the integration field
     /// </summary>
+    [BurstCompile]
     public struct UpdateIntFieldJob : IJob
     {
         /// <summary>
@@ -32,14 +33,16 @@ namespace VRoxel.Navigation
 
         public NativeArray<ushort> intField;
 
+        public NativeQueue<int3> open;
+
         public void Execute()
         {
             if (OutOfBounds(goal)) { return; }
 
             int flatSize = size.x * size.y * size.z;
-            NativeQueue<int3> open = new NativeQueue<int3>(Allocator.Temp);
-
             int flatIndex = Flatten(goal);
+
+            open.Clear();
             open.Enqueue(goal);         // queue the goal position as the first open node
             intField[flatIndex] = 0;    // set the goal position integration cost to zero
 
@@ -68,8 +71,6 @@ namespace VRoxel.Navigation
                     }
                 }
             }
-
-            open.Dispose();
         }
 
         /// <summary>
