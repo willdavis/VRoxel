@@ -1,36 +1,56 @@
-﻿using System;
-using UnityEngine;
-using Unity.Collections;
-using Unity.Jobs;
+﻿using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Burst;
+using Unity.Jobs;
 
 namespace VRoxel.Navigation
 {
-    public struct Block
-    {
-        public bool solid;
-        public byte cost;
-    }
-
+    /// <summary>
+    /// updates the cost field by testing if each voxel
+    /// can be walked or climbed on.
+    /// </summary>
     [BurstCompile]
     public struct UpdateCostFieldJob : IJobParallelFor
     {
+        /// <summary>
+        /// the height, in blocks, of the
+        /// agents that use this field
+        /// </summary>
         public int height;
+
+        /// <summary>
+        /// the size of the cost field
+        /// </summary>
         public int3 size;
 
+        /// <summary>
+        /// a reference to all block types
+        /// </summary>
         [ReadOnly]
         public NativeArray<Block> blocks;
 
+        /// <summary>
+        /// a reference to all 27 directions
+        /// </summary>
         [ReadOnly]
         public NativeArray<int3> directions;
 
+        /// <summary>
+        /// the directions to compare as climbable
+        /// </summary>
         [ReadOnly]
         public NativeArray<int> directionMask;
 
+        /// <summary>
+        /// the block indexes for each voxel in the world.
+        /// </summary>
         [ReadOnly]
         public NativeArray<byte> voxels;
 
+        /// <summary>
+        /// the movement costs for each block in the world.
+        /// Blocks with a value of 255 are obstructed.
+        /// </summary>
         [WriteOnly]
         public NativeArray<byte> costField;
 
@@ -49,7 +69,8 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Test for a solid block and N air blocks above, where N is the agent height
+        /// Test for a solid block and N air blocks above,
+        /// where N is the agent height
         /// </summary>
         public bool Walkable(Block block, int3 position)
         {
@@ -99,7 +120,7 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Calculate an array index from a Vector3Int point
+        /// Calculate an array index from a int3 (Vector3Int) point
         /// </summary>
         /// <param name="point">A point in the flow field</param>
         public int Flatten(int3 point)
@@ -109,7 +130,7 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Calculate a Vector3Int point from an array index
+        /// Calculate a int3 (Vector3Int) point from an array index
         /// </summary>
         public int3 UnFlatten(int index)
         {
@@ -120,7 +141,7 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Test if a point is inside the flow field
+        /// Test if a point is outside the flow field
         /// </summary>
         /// <param name="point">A point in the flow field</param>
         public bool OutOfBounds(int3 point)
@@ -130,5 +151,14 @@ namespace VRoxel.Navigation
             if (point.z < 0 || point.z >= size.z) { return true; }
             return false;
         }
+    }
+
+    /// <summary>
+    /// navigation data for blocks in the voxel world
+    /// </summary>
+    public struct Block
+    {
+        public bool solid;
+        public byte cost;
     }
 }

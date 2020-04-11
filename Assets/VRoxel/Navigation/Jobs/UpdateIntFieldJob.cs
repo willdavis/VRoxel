@@ -1,16 +1,13 @@
 ﻿using System;
-using UnityEngine;
 using Unity.Collections;
-using UnityEngine.Jobs;
 using Unity.Jobs;
-using Priority_Queue;
 using Unity.Mathematics;
 using Unity.Burst;
 
 namespace VRoxel.Navigation
 {
     /// <summary>
-    /// Updates the integration field
+    /// Updates the integration field around a goal position
     /// </summary>
     [BurstCompile]
     public struct UpdateIntFieldJob : IJob
@@ -21,18 +18,32 @@ namespace VRoxel.Navigation
         public int3 size;
 
         /// <summary>
-        /// the goal where all paths will direct to
+        /// the goal where all paths lead to
         /// </summary>
         public int3 goal;
 
+        /// <summary>
+        /// a reference to all 27 directions
+        /// </summary>
         [ReadOnly]
         public NativeArray<int3> directions;
 
+        /// <summary>
+        /// the movement costs for each block in the world.
+        /// Blocks with a value of 255 are obstructed.
+        /// </summary>
         [ReadOnly]
         public NativeArray<byte> costField;
 
+        /// <summary>
+        /// the integrated cost values for each block in the world.
+        /// Blocks with a value of 65535 are obstructed.
+        /// </summary>
         public NativeArray<ushort> intField;
 
+        /// <summary>
+        /// the frontier nodes in a Dijkstra or Breadth First Search
+        /// </summary>
         public NativeQueue<int3> open;
 
         public void Execute()
@@ -58,10 +69,10 @@ namespace VRoxel.Navigation
                 for (int i = 1; i < 27; i++)    // check neighbors
                 {
                     nextPosition = position + directions[i];
-                    if (OutOfBounds(nextPosition)) { continue; }
+                    if (OutOfBounds(nextPosition)) { continue; }    // node is out of bounds
 
                     nextIndex = Flatten(nextPosition);
-                    if (costField[nextIndex] == 255) { continue; }  // check for obstructed node
+                    if (costField[nextIndex] == 255) { continue; }  // node is obstructed
 
                     cost = Convert.ToUInt16(intField[index] + costField[nextIndex]);
                     if (intField[nextIndex] == ushort.MaxValue || cost < intField[nextIndex])
@@ -74,7 +85,7 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Calculate an array index from a Vector3Int point
+        /// Calculate an array index from an int3 (Vector3Int) position
         /// </summary>
         /// <param name="point">A point in the flow field</param>
         public int Flatten(int3 point)
@@ -84,7 +95,7 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Test if a point is inside the flow field
+        /// Test if a point is outside the flow field
         /// </summary>
         /// <param name="point">A point in the flow field</param>
         public bool OutOfBounds(int3 point)

@@ -1,9 +1,7 @@
-﻿using UnityEngine;
-using Unity.Collections;
-using UnityEngine.Jobs;
-using Unity.Jobs;
+﻿using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Burst;
+using Unity.Jobs;
 
 namespace VRoxel.Navigation
 {
@@ -15,12 +13,23 @@ namespace VRoxel.Navigation
         /// </summary>
         public int3 size;
 
+        /// <summary>
+        /// a reference to all 27 directions
+        /// </summary>
         [ReadOnly]
         public NativeArray<int3> directions;
 
+        /// <summary>
+        /// the integrated cost values for each block in the world.
+        /// Blocks with a value of 65535 are obstructed.
+        /// </summary>
         [ReadOnly]
         public NativeArray<ushort> intField;
 
+        /// <summary>
+        /// the direction indexes for each block in the world.
+        /// Blocks with a value of 0 have no direction.
+        /// </summary>
         [WriteOnly]
         public NativeArray<byte> flowField;
 
@@ -34,7 +43,7 @@ namespace VRoxel.Navigation
             int nextIndex;
 
             // find the best direction by comparing neighbors
-            // with the lowest integration value
+            // with the lowest integration cost
             for (int d = 1; d < 27; d++)
             {
                 nextPoint = currentPoint + directions[d];
@@ -54,7 +63,7 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Calculate an array index from a Vector3Int point
+        /// Calculate an array index from an int3 (Vector3Int) point
         /// </summary>
         /// <param name="point">A point in the flow field</param>
         public int Flatten(int3 point)
@@ -64,7 +73,7 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Calculate a Vector3Int point from an array index
+        /// Calculate an int3 (Vector3Int) point from an array index
         /// </summary>
         public int3 UnFlatten(int index)
         {
@@ -75,7 +84,7 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Test if a point is inside the flow field
+        /// Test if a point is outside the flow field
         /// </summary>
         /// <param name="point">A point in the flow field</param>
         public bool OutOfBounds(int3 point)

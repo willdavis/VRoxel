@@ -68,10 +68,6 @@ namespace VRoxel.Navigation
                     data.cost = 2;
 
                 _blockData[block.index] = data;
-                Debug.Log("added block with id:" + block.index
-                    + ", solid: " + _blockData[block.index].solid 
-                    + ", cost: " + _blockData[block.index].cost
-                );
             }
         }
 

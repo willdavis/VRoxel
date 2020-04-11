@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 using Unity.Collections;
-using UnityEngine.Jobs;
-using Unity.Jobs;
 using Unity.Mathematics;
+using UnityEngine.Jobs;
 using Unity.Burst;
 
 namespace VRoxel.Navigation
@@ -10,19 +9,47 @@ namespace VRoxel.Navigation
     [BurstCompile]
     public struct FlowDirectionJob : IJobParallelForTransform
     {
+        /// <summary>
+        /// the size of the flow field
+        /// </summary>
         public int3 flowFieldSize;
 
+        /// <summary>
+        /// the scale of the voxel world
+        /// </summary>
         public float world_scale;
+
+        /// <summary>
+        /// the scene offset of the world
+        /// </summary>
         public float3 world_offset;
+
+        /// <summary>
+        /// the center point of the world
+        /// </summary>
         public float3 world_center;
+
+        /// <summary>
+        /// the orientation of the world
+        /// </summary>
         public quaternion world_rotation;
 
+        /// <summary>
+        /// the desired direction for each agent
+        /// </summary>
         [WriteOnly]
         public NativeArray<float3> directions;
 
+        /// <summary>
+        /// the direction indexes for each block in the world.
+        /// Blocks with a value of 0 have no direction
+        /// </summary>
         [ReadOnly]
         public NativeArray<byte> flowField;
 
+        /// <summary>
+        /// a reference to all 27 directions
+        /// </summary>
         [ReadOnly]
         public NativeArray<int3> flowDirections;
 
@@ -48,7 +75,8 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Calculates the voxel grid coordinates for a Vector3 position
+        /// Calculates an int3 (Vector3Int) grid coordinate
+        /// from a float3 (Vector3) scene position
         /// </summary>
         /// <param name="position">A position in the scene</param>
         public int3 GridPosition(float3 position)
@@ -70,13 +98,14 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Calculates the scene position for a point in the voxel grid
+        /// Calculates the float3 (Vector3) scene position
+        /// from an int3 (Vector3Int) grid coordinate
         /// </summary>
         /// <param name="gridPosition">A point in the voxel grid</param>
         public float3 ScenePosition(int3 gridPosition)
         {
             float3 position = gridPosition;
-            position += new float3(1,1,1) * 0.5f;         // adjust for the chunks center
+            position += new float3(1,1,1) * 0.5f;   // adjust for the chunks center
             position += world_center * -1f;         // adjust for the worlds center
             position = math.rotate(world_rotation, position);   // adjust for the worlds rotation
             position *= world_scale;                // adjust for the worlds scale
@@ -85,7 +114,7 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Calculate a 1D array index from a Vector3Int position
+        /// Calculate an array index from a int3 (Vector3Int) grid coordinate
         /// </summary>
         /// <param name="point">A point in the voxel grid</param>
         public int Flatten(int3 point)
@@ -97,7 +126,7 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Test if the grid position is inside the flow field
+        /// Test if the grid position is outside the flow field
         /// </summary>
         /// <param name="point">A point in the voxel grid</param>
         public bool OutOfBounds(int3 point)
