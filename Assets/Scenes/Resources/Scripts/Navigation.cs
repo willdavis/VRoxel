@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using Unity.Jobs;
 
 using VRoxel.Core;
@@ -10,7 +8,6 @@ public class Navigation : MonoBehaviour
 {
     World _world;
     EditWorld _editor;
-    Pathfinding _pathfinding;
     AgentManager _agents;
 
     JobHandle moveHandle;
@@ -19,17 +16,22 @@ public class Navigation : MonoBehaviour
     public int maxAgents = 1000;
     public KeyCode spawnAgent = KeyCode.N;
 
+    [Header("Goal Settings")]
+    public Vector2Int goalPosition;
+    public GameObject goal;
+
     void Awake()
     {
         _world = GetComponent<World>();
         _editor = GetComponent<EditWorld>();
-        _pathfinding = GetComponent<Pathfinding>();
     }
 
     void Start()
     {
-        NavAgent[] temp = new NavAgent[maxAgents];
+        NavAgent[] agents = new NavAgent[maxAgents];
         Transform[] transforms = new Transform[maxAgents];
+
+        // initialize the object pool and agent manager
         NavAgentPool.Instance.AddObjects(maxAgents);
         _agents = new AgentManager(_world, maxAgents);
 
@@ -43,19 +45,22 @@ public class Navigation : MonoBehaviour
             Enemy enemy = agent.GetComponent<Enemy>();
             enemy.OnDeath.AddListener(Remove);
 
-            temp[i] = agent;
+            agents[i] = agent;
             transforms[i] = agent.transform;
         }
-
-        // return all of the agents back to the pool
-        foreach (var agent in temp)
+        foreach (var agent in agents)
         {
             NavAgentPool.Instance.ReturnToPool(agent);
         }
 
+        // configure the goal post position and scale
+        goal.transform.localScale = Vector3.one * _world.scale;
+        goal.transform.position = GetGoalScenePosition();
+
+        // configure the flow field and initialize it
         _agents.TransformAccess(transforms);
         _world.data.OnEdit.AddListener(UpdatePathfindingAsync);
-        _agents.UpdateFlowField(GetGoalPosition(), updateHandle).Complete();
+        _agents.UpdateFlowField(GetGoalGridPosition(), updateHandle).Complete();
     }
 
     void OnDestroy()
@@ -65,9 +70,12 @@ public class Navigation : MonoBehaviour
 
     void Update()
     {
-        HandlePlayerInput();
-        UpdateAgentsAsync();
-        //UpdateAgentPositions();
+        UpdateGoalPostPosition();
+
+        if (Input.GetKey(spawnAgent) && CanSpawnAt(_editor.currentIndex))
+            Spawn(_editor.currentPosition);
+
+        moveHandle = _agents.MoveAgentsAsync(Time.deltaTime);
     }
 
     void LateUpdate()
@@ -78,36 +86,30 @@ public class Navigation : MonoBehaviour
 
     void UpdatePathfindingAsync(JobHandle handle)
     {
-        Vector3Int goal = GetGoalPosition();
+        Vector3Int goal = GetGoalGridPosition();
         updateHandle = _agents.UpdateFlowField(goal, handle);
     }
 
-    void HandlePlayerInput()
+    void UpdateGoalPostPosition()
     {
-        if (Input.GetKey(spawnAgent) && CanSpawnAt(_editor.currentIndex))
-            Spawn(_editor.currentPosition);
-    }
+        Vector3 goalPosition = GetGoalScenePosition();
+        Vector3Int goalGridPoint = GetGoalGridPosition();
+        if (goal.transform.position == goalPosition) { return; }
 
-    void UpdateAgentPositions()
-    {
-        _agents.MoveAgents(Time.deltaTime);
-    }
-
-    void UpdateAgentsAsync()
-    {
-        moveHandle = _agents.MoveAgentsAsync(Time.deltaTime);
+        goal.transform.position = goalPosition;
+        updateHandle = _agents.UpdateFlowField(goalGridPoint, _editor.editHandle);
     }
 
     /// <summary>
-    /// Calculates the goal position at the center the voxel grid
+    /// Calculates the voxel coordinates for the goal
     /// </summary>
-    Vector3Int GetGoalPosition()
+    Vector3Int GetGoalGridPosition()
     {
         int y = _world.size.y - 1;
-        int x = _world.size.x / 2;
-        int z = _world.size.z / 2;
+        int x = goalPosition.x;
+        int z = goalPosition.y;
 
-        // scan from bedrock to the first air block
+        // scan bottom to top for the first air block
         for (int i = 0; i < _world.size.y; i++)
         {
             bool found = _world.data.Get(x, i, z) == 0;
@@ -118,7 +120,18 @@ public class Navigation : MonoBehaviour
     }
 
     /// <summary>
-    /// Test if an agent can be spawned at the voxel world coordinates
+    /// Calculates the scene position for the goal
+    /// </summary>
+    Vector3 GetGoalScenePosition()
+    {
+        Vector3Int grid = GetGoalGridPosition();
+        Vector3 position = WorldEditor.Get(_world, grid);
+        position += Vector3.down * 0.5f * _world.scale;
+        return position;
+    }
+
+    /// <summary>
+    /// Test if an agent can be spawned at the voxel coordinates
     /// </summary>
     public bool CanSpawnAt(Vector3Int index)
     {
@@ -135,10 +148,6 @@ public class Navigation : MonoBehaviour
         agent.transform.localScale = Vector3.one * _world.scale;
         agent.transform.rotation = _world.transform.rotation;
         agent.transform.position = position;
-
-        agent.pathfinder = _pathfinding.pathfinder;
-        agent.destination = _pathfinding.goalPostPosition;
-
         agent.gameObject.SetActive(true);
         return agent;
     }

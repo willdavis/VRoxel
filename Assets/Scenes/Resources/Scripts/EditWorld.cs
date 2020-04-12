@@ -28,7 +28,8 @@ public class EditWorld : MonoBehaviour
     World _world;
     RaycastHit _hit;
     Vector3 _hitPosition;
-    JobHandle editHandle;
+
+    public JobHandle editHandle;
 
     [HideInInspector]
     public Vector3Int currentIndex;
@@ -39,11 +40,6 @@ public class EditWorld : MonoBehaviour
     void Awake()
     {
         _world = GetComponent<World>();
-    }
-
-    void Start()
-    {
-        
     }
 
     void Update()
