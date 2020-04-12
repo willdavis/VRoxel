@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Mathematics;
+using Unity.Jobs;
 
 using VRoxel.Core;
 
@@ -26,6 +28,7 @@ public class EditWorld : MonoBehaviour
     World _world;
     RaycastHit _hit;
     Vector3 _hitPosition;
+    JobHandle editHandle;
 
     [HideInInspector]
     public Vector3Int currentIndex;
@@ -45,6 +48,8 @@ public class EditWorld : MonoBehaviour
 
     void Update()
     {
+        editHandle.Complete();
+
         Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
         if (Physics.Raycast (ray, out _hit))
         {
@@ -67,10 +72,32 @@ public class EditWorld : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0)) // left click - up
         {
-            if (clickAndDrag) { WorldEditor.Set(_world, _clickStart, currentPosition, blockType); }
+            if (clickAndDrag) { EditRectangle(); }
             else { WorldEditor.Set(_world, currentPosition, blockType); }
             _isDragging = false;
         }
+    }
+
+    void EditRectangle()
+    {
+        /// old version, still used for rendering
+        WorldEditor.Set(_world, _clickStart, currentPosition, blockType);
+
+        /// new version, for async pathfinding
+        Vector3Int start = WorldEditor.Get(_world, _clickStart);
+        Vector3Int end = WorldEditor.Get(_world, currentPosition);
+
+        EditVoxelJob job = new EditVoxelJob()
+        {
+            size = new int3(_world.size.x, _world.size.y, _world.size.z),
+            start = new int3(start.x, start.y, start.z),
+            end = new int3(end.x, end.y, end.z),
+            voxels = _world.data.voxels,
+            block = blockType
+        };
+
+        editHandle = job.Schedule();
+        _world.data.OnEdit.Invoke(editHandle);
     }
 
     /// <summary>
