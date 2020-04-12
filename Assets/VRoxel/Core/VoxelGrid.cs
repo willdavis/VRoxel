@@ -1,13 +1,20 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using Unity.Collections;
+using Unity.Jobs;
 
 namespace VRoxel.Core
 {
+    [System.Serializable]
+    public class VoxelEditEvent : UnityEvent<JobHandle> { }
+
     /// <summary>
     /// Contains voxel data, configuration, and helper methods
     /// </summary>
     public class VoxelGrid
     {
+        public VoxelEditEvent OnEdit;
+
         private byte[,,] _cache;
         private Vector3 _center;
         private Vector3Int _size;
