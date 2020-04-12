@@ -58,7 +58,7 @@ public class Pathfinding : MonoBehaviour
     /// </summary>
     void HandlePlayerInput()
     {
-        if (Input.GetMouseButtonUp(0)) { _stalePath = true; }
+        //if (Input.GetMouseButtonUp(0)) { _stalePath = true; }
     }
 
     /// <summary>

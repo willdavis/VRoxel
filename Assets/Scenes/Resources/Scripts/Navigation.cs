@@ -12,7 +12,9 @@ public class Navigation : MonoBehaviour
     EditWorld _editor;
     Pathfinding _pathfinding;
     AgentManager _agents;
-    JobHandle jobHandle;
+
+    JobHandle moveHandle;
+    JobHandle updateHandle;
 
     public int maxAgents = 1000;
     public KeyCode spawnAgent = KeyCode.N;
@@ -52,7 +54,8 @@ public class Navigation : MonoBehaviour
         }
 
         _agents.TransformAccess(transforms);
-        //_agents.UpdateFlowField(GetGoalPosition()).Complete();
+        _world.data.OnEdit.AddListener(UpdatePathfindingAsync);
+        _agents.UpdateFlowField(GetGoalPosition(), updateHandle).Complete();
     }
 
     void OnDestroy()
@@ -62,9 +65,21 @@ public class Navigation : MonoBehaviour
 
     void Update()
     {
-        jobHandle.Complete();
         HandlePlayerInput();
-        UpdateAgentPositions();
+        UpdateAgentsAsync();
+        //UpdateAgentPositions();
+    }
+
+    void LateUpdate()
+    {
+        updateHandle.Complete();
+        moveHandle.Complete();
+    }
+
+    void UpdatePathfindingAsync(JobHandle handle)
+    {
+        Vector3Int goal = GetGoalPosition();
+        updateHandle = _agents.UpdateFlowField(goal, handle);
     }
 
     void HandlePlayerInput()
@@ -76,7 +91,11 @@ public class Navigation : MonoBehaviour
     void UpdateAgentPositions()
     {
         _agents.MoveAgents(Time.deltaTime);
-        //jobHandle = _agents.MoveAgentsAsync(Time.deltaTime);
+    }
+
+    void UpdateAgentsAsync()
+    {
+        moveHandle = _agents.MoveAgentsAsync(Time.deltaTime);
     }
 
     /// <summary>
@@ -95,9 +114,7 @@ public class Navigation : MonoBehaviour
             if (found) { y = i - 1; break; }
         }
 
-        Vector3Int goal = new Vector3Int(x,y,z);
-        Debug.Log("Goal is at: " + goal);
-        return goal;
+        return new Vector3Int(x,y,z);
     }
 
     /// <summary>
