@@ -135,6 +135,7 @@ namespace VRoxel.Navigation
             MoveAgentJob moveJob = new MoveAgentJob()
             {
                 speed = 1f,
+                turnSpeed = 5f,
                 deltaTime = dt,
                 directions = _agentDirections
             };
