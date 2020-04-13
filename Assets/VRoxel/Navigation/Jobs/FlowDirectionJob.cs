@@ -83,16 +83,16 @@ namespace VRoxel.Navigation
         {
             float3 adjusted = position;
             int3 gridPosition = int3.zero;
-            quaternion rotation = Quaternion.Inverse(world_rotation);
+            quaternion rotation = math.inverse(world_rotation);
 
             adjusted += world_offset * -1f;     // adjust for the worlds offset
             adjusted *= 1 / world_scale;        // adjust for the worlds scale
             adjusted = math.rotate(rotation, adjusted);     // adjust for the worlds rotation
             adjusted += world_center;           // adjust for the worlds center
 
-            gridPosition.x = Mathf.FloorToInt(adjusted.x);
-            gridPosition.y = Mathf.FloorToInt(adjusted.y);
-            gridPosition.z = Mathf.FloorToInt(adjusted.z);
+            gridPosition.x = (int)math.floor(adjusted.x);
+            gridPosition.y = (int)math.floor(adjusted.y);
+            gridPosition.z = (int)math.floor(adjusted.z);
 
             return gridPosition;
         }

@@ -28,6 +28,8 @@ namespace VRoxel.Navigation
         NativeArray<int> _directionsNESW;
         NativeQueue<int3> _openList;
 
+        JobHandle updateHandle;
+
         public AgentManager(World world, int maxAgents)
         {
             _world = world;
@@ -137,11 +139,11 @@ namespace VRoxel.Navigation
                 directions = _agentDirections
             };
 
-            JobHandle flowHandle = flowJob.Schedule(_transformAccess);
+            JobHandle flowHandle = flowJob.Schedule(_transformAccess, updateHandle);
             return moveJob.Schedule(_transformAccess, flowHandle);
         }
 
-        public JobHandle UpdateFlowField(Vector3Int goal)
+        public JobHandle UpdateFlowField(Vector3Int goal, JobHandle handle)
         {
             int3 target = new int3(goal.x, goal.y, goal.z);
             int size = _world.size.x * _world.size.y * _world.size.z;
@@ -157,7 +159,7 @@ namespace VRoxel.Navigation
                 size = worldSize,
                 height = 1
             };
-            JobHandle costHandle = costJob.Schedule(size, 1);
+            JobHandle costHandle = costJob.Schedule(size, 1, handle);
 
 
             ClearIntFieldJob clearJob = new ClearIntFieldJob()
@@ -186,7 +188,9 @@ namespace VRoxel.Navigation
                 intField = _intField,
                 size = worldSize,
             };
-            return flowJob.Schedule(size, 1, intHandle);
+
+            updateHandle = flowJob.Schedule(size, 1, intHandle);
+            return updateHandle;
         }
 
         public void TransformAccess(Transform[] transforms)

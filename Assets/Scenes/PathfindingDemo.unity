@@ -366,25 +366,6 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 565934171}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &565934176
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 565934172}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 15aec1e9f874f674b9c7a7e5f14887f5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  goalPostIndex: {x: 0, y: 0, z: 0}
-  goalPostPosition: {x: 0, y: 0, z: 0}
-  destination: {x: 64, y: 64}
-  drawDebugNodes: 0
-  goalPost: {fileID: 1536148473}
-  pathfinderNodePrefab: {fileID: 1609259280482523854, guid: f846a08a524e4e14fb8cd50c087a5e60,
-    type: 3}
 --- !u!114 &565934177
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -399,6 +380,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxAgents: 1000
   spawnAgent: 110
+  goalPosition: {x: 64, y: 64}
+  goal: {fileID: 1536148473}
 --- !u!1001 &1442165461
 PrefabInstance:
   m_ObjectHideFlags: 0

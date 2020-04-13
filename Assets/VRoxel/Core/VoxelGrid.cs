@@ -13,7 +13,7 @@ namespace VRoxel.Core
     /// </summary>
     public class VoxelGrid
     {
-        public VoxelEditEvent OnEdit;
+        public VoxelEditEvent OnEdit = new VoxelEditEvent();
 
         private byte[,,] _cache;
         private Vector3 _center;
