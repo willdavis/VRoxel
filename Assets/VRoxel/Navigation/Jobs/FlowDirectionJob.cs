@@ -70,8 +70,10 @@ namespace VRoxel.Navigation
             int3 desiredPosition = position + flowUnitDirection + new int3(0, 1, 0);
             float3 desiredScenePosition = ScenePosition(desiredPosition);
             float3 currentPosition = transform.position;
+            float3 dir = desiredScenePosition - currentPosition;
 
-            directions[i] = math.normalize(desiredScenePosition - currentPosition);
+            if (math.length(dir) == 0) { directions[i] = dir; }
+            else { directions[i] = math.normalize(dir); }
         }
 
         /// <summary>
