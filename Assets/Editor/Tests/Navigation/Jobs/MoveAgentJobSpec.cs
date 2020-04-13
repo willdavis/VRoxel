@@ -32,46 +32,28 @@ namespace NavigationSpecs
             MoveAgentJob job = new MoveAgentJob()
             {
                 speed = speed,
+                turnSpeed = speed,
                 deltaTime = Time.deltaTime,
                 directions = directions
             };
 
-            float3 position_0 = new float3(
-                transforms[0].position.x, transforms[0].position.y, transforms[0].position.z
-            );
-            float3 position_1 = new float3(
-                transforms[1].position.x, transforms[1].position.y, transforms[1].position.z
-            );
+            Vector3 position_0 = transforms[0].position;
+            Vector3 position_1 = transforms[1].position;
 
-            float3 expected_position_0 = position_0 + (directions[0] * speed * Time.deltaTime);
-            float3 expected_position_1 = position_1 + (directions[1] * speed * Time.deltaTime);
-            quaternion rotation_0 = quaternion.LookRotation(directions[0], new float3(0,1,0));
-            quaternion rotation_1 = quaternion.LookRotation(directions[1], new float3(0,1,0));
+            Quaternion rotation_0 = transforms[0].rotation;
+            Quaternion rotation_1 = transforms[1].rotation;
+
 
             JobHandle handle = job.Schedule(asyncTransforms);
             handle.Complete();
 
-            // check that the two vectors have the same position
-            float3 position = new float3(
-                transforms[0].position.x,
-                transforms[0].position.y,
-                transforms[0].position.z
-            );
-            Assert.AreEqual(expected_position_0, position);
 
-            position = new float3(
-                transforms[1].position.x,
-                transforms[1].position.y,
-                transforms[1].position.z
-            );
-            Assert.AreEqual(expected_position_1, position);
+            Assert.AreNotEqual(position_0, transforms[0].position);
+            Assert.AreNotEqual(position_1, transforms[1].position);
 
-            // check that the two quaternions have the same orientation
-            quaternion rotation = transforms[0].rotation;
-            Assert.AreEqual(math.abs(math.dot(rotation_0, rotation)), 1);
+            Assert.AreNotEqual(rotation_0, transforms[0].rotation);
+            Assert.AreNotEqual(rotation_1, transforms[1].rotation);
 
-            rotation = transforms[1].rotation;
-            Assert.AreEqual(math.abs(math.dot(rotation_1, rotation)), 1);
 
             directions.Dispose();
             asyncTransforms.Dispose();
