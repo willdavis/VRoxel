@@ -97,7 +97,7 @@ public class Navigation : MonoBehaviour
         if (goal.transform.position == goalPosition) { return; }
 
         goal.transform.position = goalPosition;
-        updateHandle = _agents.UpdateFlowField(goalGridPoint, _editor.editHandle);
+        updateHandle = _agents.UpdateFlowField(goalGridPoint, updateHandle);
     }
 
     /// <summary>
