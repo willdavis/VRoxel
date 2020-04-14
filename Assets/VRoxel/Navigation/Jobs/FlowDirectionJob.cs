@@ -72,8 +72,7 @@ namespace VRoxel.Navigation
             float3 currentPosition = transform.position;
             float3 dir = desiredScenePosition - currentPosition;
 
-            if (math.length(dir) == 0) { directions[i] = dir; }
-            else { directions[i] = math.normalize(dir); }
+            directions[i] = math.normalizesafe(dir, float3.zero);
         }
 
         /// <summary>
