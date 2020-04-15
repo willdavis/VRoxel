@@ -136,6 +136,7 @@ namespace VRoxel.Navigation
                 world_offset = _world.transform.position,
                 world_rotation = _world.transform.rotation,
                 spatialMap = _agentSpatialMapWriter,
+                positions = _agentPositions
             };
 
             FlowDirectionJob flowJob = new FlowDirectionJob()

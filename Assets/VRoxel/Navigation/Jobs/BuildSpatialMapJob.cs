@@ -34,6 +34,9 @@ namespace VRoxel.Navigation
         public quaternion world_rotation;
 
         [WriteOnly]
+        public NativeArray<float3> positions;
+
+        [WriteOnly]
         public NativeMultiHashMap<int3, float3>.ParallelWriter spatialMap;
 
         public void Execute(int i, TransformAccess transform)
@@ -45,6 +48,7 @@ namespace VRoxel.Navigation
                 grid.z / size.z
             );
 
+            positions[i] = transform.position;
             spatialMap.Add(bucket, transform.position);
         }
 
