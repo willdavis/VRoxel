@@ -150,6 +150,7 @@ namespace VRoxel.Navigation
                 flowDirections = _directions,
                 flowFieldSize = worldSize,
 
+                positions = _agentPositions,
                 directions = _agentDirections
             };
 
@@ -162,7 +163,7 @@ namespace VRoxel.Navigation
             };
 
             JobHandle spaceHandle = spaceJob.Schedule(_transformAccess, updateHandle);
-            JobHandle flowHandle = flowJob.Schedule(_transformAccess, spaceHandle);
+            JobHandle flowHandle = flowJob.Schedule(_max, 100, spaceHandle);
             return moveJob.Schedule(_transformAccess, flowHandle);
         }
 
