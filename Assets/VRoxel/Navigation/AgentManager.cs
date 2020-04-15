@@ -18,7 +18,8 @@ namespace VRoxel.Navigation
         private int _max;
         private List<NavAgent> _agents;
         private TransformAccessArray _transformAccess;
-        private NativeArray<float3> _agentDirections;
+        NativeArray<float3> _agentDirections;
+        NativeArray<float3> _agentPositions;
 
         NativeArray<byte> _flowField;
         NativeArray<byte> _costField;
@@ -36,6 +37,7 @@ namespace VRoxel.Navigation
             _max = maxAgents;
             _agents = new List<NavAgent>(maxAgents);
             _agentDirections = new NativeArray<float3>(maxAgents, Allocator.Persistent);
+            _agentPositions = new NativeArray<float3>(maxAgents, Allocator.Persistent);
 
             int size = world.size.x * world.size.y * world.size.z;
             _flowField = new NativeArray<byte>(size, Allocator.Persistent);
@@ -80,6 +82,7 @@ namespace VRoxel.Navigation
         {
             _transformAccess.Dispose();
             _agentDirections.Dispose();
+            _agentPositions.Dispose();
 
 
             _openList.Dispose();
@@ -118,6 +121,11 @@ namespace VRoxel.Navigation
         {
             int3 worldSize = new int3(_world.size.x, _world.size.y, _world.size.z);
 
+            CollectPositionsJob positionsJob = new CollectPositionsJob()
+            {
+                positions = _agentPositions
+            };
+
             FlowDirectionJob flowJob = new FlowDirectionJob()
             {
                 world_scale = _world.scale,
@@ -140,7 +148,8 @@ namespace VRoxel.Navigation
                 directions = _agentDirections
             };
 
-            JobHandle flowHandle = flowJob.Schedule(_transformAccess, updateHandle);
+            JobHandle positionHandle = positionsJob.Schedule(_transformAccess, updateHandle);
+            JobHandle flowHandle = flowJob.Schedule(_transformAccess, positionHandle);
             return moveJob.Schedule(_transformAccess, flowHandle);
         }
 
