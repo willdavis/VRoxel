@@ -67,8 +67,6 @@ namespace VRoxel.Navigation
                 // add resolution vector to the desired direction
                 // exit bucket if maxDepth is reached
             // normalize the new desired direction vector
-
-            directions[i] = new float3(0,-1,0);
         }
 
         public int3 GetSpatialBucket(float3 position)
