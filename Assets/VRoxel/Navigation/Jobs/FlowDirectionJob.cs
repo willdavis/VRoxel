@@ -72,6 +72,13 @@ namespace VRoxel.Navigation
 
             int fieldIndex = Flatten(position);
             byte directionIndex = flowField[fieldIndex];
+
+            if (directionIndex == 0)    // no direction
+            {
+                directions[i] = float3.zero;
+                return;
+            }
+
             int3 flowUnitDirection = flowDirections[directionIndex];
             int3 desiredPosition = position + flowUnitDirection + new int3(0, 1, 0);
             float3 desiredScenePosition = ScenePosition(desiredPosition);
