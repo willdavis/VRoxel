@@ -41,7 +41,6 @@ namespace VRoxel.Navigation
         /// <summary>
         /// the desired direction for each agent
         /// </summary>
-        [WriteOnly]
         public NativeArray<float3> directions;
 
         /// <summary>
@@ -58,15 +57,33 @@ namespace VRoxel.Navigation
 
         public void Execute(int i)
         {
-            // get the spatial subdivision containing the current agent
-            int3 bucket = GetSpatialBucket(positions[i]);
+            // get the spatial buckets that overlap with the agents radius
+            int3 minBucket = GetSpatialBucket(positions[i] + new float3(-radius, -radius, -radius));
+            int3 maxBucket = GetSpatialBucket(positions[i] + new float3( radius,  radius,  radius));
 
             // get any adjacent buckets that overlap with the agents radius
-            // query each bucket for other agents that are colliding with the agent
-                // calculate inverse direction of collision
-                // add resolution vector to the desired direction
-                // exit bucket if maxDepth is reached
-            // normalize the new desired direction vector
+            // and check those buckets for collisions with other agents
+            if (minBucket.Equals(maxBucket))    // only one bucket to check for collisions
+            {
+                ResolveCollisions(i, minBucket);
+            }
+            else    // loop from min to max and check each bucket for collisions
+            {
+                int3 bucket = int3.zero;
+                for (int x = minBucket.x; x < maxBucket.x; x++)
+                {
+                    bucket.x = x;
+                    for (int y = minBucket.y; y < maxBucket.y; y++)
+                    {
+                        bucket.y = y;
+                        for (int z = minBucket.z; z < maxBucket.z; z++)
+                        {
+                            bucket.z = z;
+                            ResolveCollisions(i, bucket);
+                        }
+                    }
+                }
+            }
         }
 
         public int3 GetSpatialBucket(float3 position)
@@ -78,6 +95,39 @@ namespace VRoxel.Navigation
                 grid.z / size.z
             );
             return bucket;
+        }
+
+        public void ResolveCollisions(int i, int3 bucket)
+        {
+            bool hasValues;
+            float3 agent = float3.zero;
+            NativeMultiHashMapIterator<int3> iter;
+
+            int count = 0;
+            int maxDepth = 200;
+            float3 direction = float3.zero;
+
+            hasValues = spatialMap.TryGetFirstValue(bucket, out agent, out iter);
+            while (hasValues)
+            {
+                if (count == maxDepth) { break; }
+                count++;
+
+                if (!positions[i].Equals(agent))
+                {
+                    direction = positions[i] - agent;
+                    if (math.length(direction) <= radius)
+                        ResolveAgentCollision(i, direction);
+                }
+
+                hasValues = spatialMap.TryGetNextValue(out agent, ref iter);
+            }
+        }
+
+        public void ResolveAgentCollision(int i, float3 direction)
+        {
+            float weight = 1 / math.length(direction);
+            directions[i] += direction * weight;
         }
 
         /// <summary>

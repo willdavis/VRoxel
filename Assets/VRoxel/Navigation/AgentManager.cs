@@ -137,7 +137,7 @@ namespace VRoxel.Navigation
 
                 spatialMap = _agentSpatialMapWriter,
                 positions = _agentPositions,
-                size = new int3(8,8,8)
+                size = new int3(2,2,2)
             };
 
             FlowDirectionJob flowJob = new FlowDirectionJob()
@@ -167,7 +167,7 @@ namespace VRoxel.Navigation
                 spatialMap = _agentSpatialMap,
 
                 radius = 1f * _world.scale,
-                size = new int3(8,8,8)
+                size = new int3(2,2,2)
             };
 
             MoveAgentJob moveJob = new MoveAgentJob()
