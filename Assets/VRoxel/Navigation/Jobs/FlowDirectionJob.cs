@@ -1,13 +1,13 @@
 ﻿using UnityEngine;
 using Unity.Collections;
 using Unity.Mathematics;
-using UnityEngine.Jobs;
+using Unity.Jobs;
 using Unity.Burst;
 
 namespace VRoxel.Navigation
 {
     [BurstCompile]
-    public struct FlowDirectionJob : IJobParallelForTransform
+    public struct FlowDirectionJob : IJobParallelFor
     {
         /// <summary>
         /// the size of the flow field
@@ -41,6 +41,12 @@ namespace VRoxel.Navigation
         public NativeArray<float3> directions;
 
         /// <summary>
+        /// the current position of each agent
+        /// </summary>
+        [ReadOnly]
+        public NativeArray<float3> positions;
+
+        /// <summary>
         /// the direction indexes for each block in the world.
         /// Blocks with a value of 0 have no direction
         /// </summary>
@@ -53,9 +59,9 @@ namespace VRoxel.Navigation
         [ReadOnly]
         public NativeArray<int3> flowDirections;
 
-        public void Execute(int i, TransformAccess transform)
+        public void Execute(int i)
         {
-            int3 position = GridPosition(transform.position);
+            int3 position = GridPosition(positions[i]);
             position += new int3(0, -1, 0);
 
             if (OutOfBounds(position))
@@ -66,11 +72,17 @@ namespace VRoxel.Navigation
 
             int fieldIndex = Flatten(position);
             byte directionIndex = flowField[fieldIndex];
+
+            if (directionIndex == 0)    // no direction
+            {
+                directions[i] = float3.zero;
+                return;
+            }
+
             int3 flowUnitDirection = flowDirections[directionIndex];
             int3 desiredPosition = position + flowUnitDirection + new int3(0, 1, 0);
             float3 desiredScenePosition = ScenePosition(desiredPosition);
-            float3 currentPosition = transform.position;
-            float3 dir = desiredScenePosition - currentPosition;
+            float3 dir = desiredScenePosition - positions[i];
 
             directions[i] = math.normalizesafe(dir, float3.zero);
         }

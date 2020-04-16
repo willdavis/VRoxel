@@ -18,7 +18,11 @@ namespace VRoxel.Navigation
         private int _max;
         private List<NavAgent> _agents;
         private TransformAccessArray _transformAccess;
-        private NativeArray<float3> _agentDirections;
+        NativeArray<float3> _agentDirections;
+        NativeArray<float3> _agentPositions;
+
+        NativeMultiHashMap<int3, float3> _agentSpatialMap;
+        NativeMultiHashMap<int3, float3>.ParallelWriter _agentSpatialMapWriter;
 
         NativeArray<byte> _flowField;
         NativeArray<byte> _costField;
@@ -36,6 +40,9 @@ namespace VRoxel.Navigation
             _max = maxAgents;
             _agents = new List<NavAgent>(maxAgents);
             _agentDirections = new NativeArray<float3>(maxAgents, Allocator.Persistent);
+            _agentPositions = new NativeArray<float3>(maxAgents, Allocator.Persistent);
+            _agentSpatialMap = new NativeMultiHashMap<int3, float3>(maxAgents, Allocator.Persistent);
+            _agentSpatialMapWriter = _agentSpatialMap.AsParallelWriter();
 
             int size = world.size.x * world.size.y * world.size.z;
             _flowField = new NativeArray<byte>(size, Allocator.Persistent);
@@ -80,6 +87,8 @@ namespace VRoxel.Navigation
         {
             _transformAccess.Dispose();
             _agentDirections.Dispose();
+            _agentPositions.Dispose();
+            _agentSpatialMap.Dispose();
 
 
             _openList.Dispose();
@@ -117,6 +126,18 @@ namespace VRoxel.Navigation
         public JobHandle MoveAgentsAsync(float dt)
         {
             int3 worldSize = new int3(_world.size.x, _world.size.y, _world.size.z);
+            _agentSpatialMap.Clear();
+
+            BuildSpatialMapJob spaceJob = new BuildSpatialMapJob()
+            {
+                size = new int3(8,8,8),
+                world_scale = _world.scale,
+                world_center = _world.data.center,
+                world_offset = _world.transform.position,
+                world_rotation = _world.transform.rotation,
+                spatialMap = _agentSpatialMapWriter,
+                positions = _agentPositions
+            };
 
             FlowDirectionJob flowJob = new FlowDirectionJob()
             {
@@ -129,6 +150,7 @@ namespace VRoxel.Navigation
                 flowDirections = _directions,
                 flowFieldSize = worldSize,
 
+                positions = _agentPositions,
                 directions = _agentDirections
             };
 
@@ -140,7 +162,8 @@ namespace VRoxel.Navigation
                 directions = _agentDirections
             };
 
-            JobHandle flowHandle = flowJob.Schedule(_transformAccess, updateHandle);
+            JobHandle spaceHandle = spaceJob.Schedule(_transformAccess, updateHandle);
+            JobHandle flowHandle = flowJob.Schedule(_max, 100, spaceHandle);
             return moveJob.Schedule(_transformAccess, flowHandle);
         }
 

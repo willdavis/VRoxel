@@ -17,12 +17,9 @@ namespace NavigationSpecs
         [Test]
         public void UpdatesDirections()
         {
-            Transform[] transforms = new Transform[1];
-            transforms[0] = GameObject.CreatePrimitive(PrimitiveType.Cube).transform;
-            transforms[0].position += Vector3.up;
-
-            TransformAccessArray transformAccess = new TransformAccessArray(transforms);
             NativeArray<float3> directions = new NativeArray<float3>(1, Allocator.Persistent);
+            NativeArray<float3> positions = new NativeArray<float3>(1, Allocator.Persistent);
+            positions[0] = Vector3.up;
 
             NativeArray<byte> flowField = new NativeArray<byte>(1, Allocator.Persistent);
             NativeArray<int3> flowDirections = new NativeArray<int3>(27, Allocator.Persistent);
@@ -47,21 +44,19 @@ namespace NavigationSpecs
                 flowDirections = flowDirections,
                 flowFieldSize = new int3(1,1,1),
 
+                positions = positions,
                 directions = directions
             };
 
-            JobHandle handle = job.Schedule(transformAccess);
+            JobHandle handle = job.Schedule(1,1);
             handle.Complete();
 
             Assert.AreEqual(new float3(0,1,0), directions[0]);
 
             flowDirections.Dispose();
             flowField.Dispose();
-
+            positions.Dispose();
             directions.Dispose();
-            transformAccess.Dispose();
-            foreach (var t in transforms)
-                GameObject.DestroyImmediate(t.gameObject);
         }
     }
 }
