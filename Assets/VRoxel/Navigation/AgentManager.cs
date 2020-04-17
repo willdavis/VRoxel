@@ -130,13 +130,14 @@ namespace VRoxel.Navigation
 
             BuildSpatialMapJob spaceJob = new BuildSpatialMapJob()
             {
-                size = new int3(8,8,8),
                 world_scale = _world.scale,
                 world_center = _world.data.center,
                 world_offset = _world.transform.position,
                 world_rotation = _world.transform.rotation,
+
                 spatialMap = _agentSpatialMapWriter,
-                positions = _agentPositions
+                positions = _agentPositions,
+                size = new int3(2,2,2)
             };
 
             FlowDirectionJob flowJob = new FlowDirectionJob()
@@ -154,17 +155,33 @@ namespace VRoxel.Navigation
                 directions = _agentDirections
             };
 
+            LocalAvoidanceJob avoidJob = new LocalAvoidanceJob()
+            {
+                world_scale = _world.scale,
+                world_center = _world.data.center,
+                world_offset = _world.transform.position,
+                world_rotation = _world.transform.rotation,
+
+                positions = _agentPositions,
+                directions = _agentDirections,
+                spatialMap = _agentSpatialMap,
+
+                radius = 0.5f * _world.scale,
+                size = new int3(2,2,2)
+            };
+
             MoveAgentJob moveJob = new MoveAgentJob()
             {
                 speed = 1f,
-                turnSpeed = 5f,
+                turnSpeed = 1f,
                 deltaTime = dt,
                 directions = _agentDirections
             };
 
             JobHandle spaceHandle = spaceJob.Schedule(_transformAccess, updateHandle);
             JobHandle flowHandle = flowJob.Schedule(_max, 100, spaceHandle);
-            return moveJob.Schedule(_transformAccess, flowHandle);
+            JobHandle avoidHandle = avoidJob.Schedule(_max, 100, flowHandle);
+            return moveJob.Schedule(_transformAccess, avoidHandle);
         }
 
         public JobHandle UpdateFlowField(Vector3Int goal, JobHandle handle)
