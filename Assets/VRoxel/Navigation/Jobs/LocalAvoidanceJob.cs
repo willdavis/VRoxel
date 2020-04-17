@@ -151,8 +151,7 @@ namespace VRoxel.Navigation
         /// </summary>
         public void ResolveAgentCollision(int i, float3 direction)
         {
-            float weight = 1 / math.length(direction);
-            directions[i] += direction * weight;
+            directions[i] += math.normalizesafe(direction, float3.zero);
         }
 
         /// <summary>
