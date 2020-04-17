@@ -65,8 +65,14 @@ namespace VRoxel.Navigation
             // and check those buckets for collisions with other agents
             if (minBucket.Equals(maxBucket)) { ResolveCollisions(i, minBucket); }
             else { ResolveCollisions(i, minBucket, maxBucket); }
+
+            // normalize the final direction back into a unit vector
+            directions[i] = math.normalizesafe(directions[i], float3.zero);
         }
 
+        /// <summary>
+        /// calculates the spatial bucket that contains the given position
+        /// </summary>
         public int3 GetSpatialBucket(float3 position)
         {
             int3 grid = GridPosition(position);
@@ -78,6 +84,10 @@ namespace VRoxel.Navigation
             return bucket;
         }
 
+        /// <summary>
+        /// resolves all collisions with an agent for all
+        /// spatial buckets from {min} to {max}
+        /// </summary>
         public void ResolveCollisions(int i, int3 min, int3 max)
         {
             int3 bucket = int3.zero;
@@ -96,6 +106,9 @@ namespace VRoxel.Navigation
             }
         }
 
+        /// <summary>
+        /// resolves all collisions with an agent from a single spatial bucket
+        /// </summary>
         public void ResolveCollisions(int i, int3 bucket)
         {
             bool hasValues;
@@ -123,6 +136,9 @@ namespace VRoxel.Navigation
             }
         }
 
+        /// <summary>
+        /// test if the agent is colliding with another agent
+        /// </summary>
         public bool AgentCollision(float3 distance)
         {
             float length = math.length(distance) - radius;
@@ -130,6 +146,9 @@ namespace VRoxel.Navigation
             return true;
         }
 
+        /// <summary>
+        /// adjusts the agents desired direction to resolve the collision
+        /// </summary>
         public void ResolveAgentCollision(int i, float3 direction)
         {
             float weight = 1 / math.length(direction);
