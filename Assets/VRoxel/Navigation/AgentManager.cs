@@ -166,7 +166,7 @@ namespace VRoxel.Navigation
                 directions = _agentDirections,
                 spatialMap = _agentSpatialMap,
 
-                radius = 1f * _world.scale,
+                radius = 0.5f * _world.scale,
                 size = new int3(2,2,2)
             };
 

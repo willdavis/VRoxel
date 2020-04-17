@@ -63,27 +63,8 @@ namespace VRoxel.Navigation
 
             // get any adjacent buckets that overlap with the agents radius
             // and check those buckets for collisions with other agents
-            if (minBucket.Equals(maxBucket))    // only one bucket to check for collisions
-            {
-                ResolveCollisions(i, minBucket);
-            }
-            else    // loop from min to max and check each bucket for collisions
-            {
-                int3 bucket = int3.zero;
-                for (int x = minBucket.x; x < maxBucket.x; x++)
-                {
-                    bucket.x = x;
-                    for (int y = minBucket.y; y < maxBucket.y; y++)
-                    {
-                        bucket.y = y;
-                        for (int z = minBucket.z; z < maxBucket.z; z++)
-                        {
-                            bucket.z = z;
-                            ResolveCollisions(i, bucket);
-                        }
-                    }
-                }
-            }
+            if (minBucket.Equals(maxBucket)) { ResolveCollisions(i, minBucket); }
+            else { ResolveCollisions(i, minBucket, maxBucket); }
         }
 
         public int3 GetSpatialBucket(float3 position)
@@ -97,6 +78,24 @@ namespace VRoxel.Navigation
             return bucket;
         }
 
+        public void ResolveCollisions(int i, int3 min, int3 max)
+        {
+            int3 bucket = int3.zero;
+            for (int x = min.x; x < max.x; x++)
+            {
+                bucket.x = x;
+                for (int y = min.y; y < max.y; y++)
+                {
+                    bucket.y = y;
+                    for (int z = min.z; z < max.z; z++)
+                    {
+                        bucket.z = z;
+                        ResolveCollisions(i, bucket);
+                    }
+                }
+            }
+        }
+
         public void ResolveCollisions(int i, int3 bucket)
         {
             bool hasValues;
@@ -105,7 +104,7 @@ namespace VRoxel.Navigation
 
             int count = 0;
             int maxDepth = 200;
-            float3 direction = float3.zero;
+            float3 distance = float3.zero;
 
             hasValues = spatialMap.TryGetFirstValue(bucket, out agent, out iter);
             while (hasValues)
@@ -115,13 +114,20 @@ namespace VRoxel.Navigation
 
                 if (!positions[i].Equals(agent))
                 {
-                    direction = positions[i] - agent;
-                    if (math.length(direction) <= radius)
-                        ResolveAgentCollision(i, direction);
+                    distance = positions[i] - agent;
+                    if (AgentCollision(distance))
+                        ResolveAgentCollision(i, distance);
                 }
 
                 hasValues = spatialMap.TryGetNextValue(out agent, ref iter);
             }
+        }
+
+        public bool AgentCollision(float3 distance)
+        {
+            float length = math.length(distance) - radius;
+            if (length > radius) { return false; }
+            return true;
         }
 
         public void ResolveAgentCollision(int i, float3 direction)
