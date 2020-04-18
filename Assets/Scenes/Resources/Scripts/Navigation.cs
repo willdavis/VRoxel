@@ -35,6 +35,13 @@ public class Navigation : MonoBehaviour
         NavAgentPool.Instance.AddObjects(maxAgents);
         _agents = new AgentManager(_world, maxAgents);
 
+        // configure the agent manager
+        _agents.spatialBucketSize = new Unity.Mathematics.int3(2,2,2);
+        _agents.agentRadius = 0.5f;
+        _agents.agentHeight = 2;
+        _agents.agentSpeed = 1f;
+        _agents.agentTurnSpeed = 2f;
+
         // initialize all of the agents
         for (int i = 0; i < maxAgents; i++)
         {
