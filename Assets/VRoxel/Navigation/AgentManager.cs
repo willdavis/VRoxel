@@ -13,24 +13,30 @@ namespace VRoxel.Navigation
 {
     public class AgentManager
     {
-        private World _world;
+        public int agentHeight = 0;
+        public float agentRadius = 0;
+        public float agentSpeed = 0;
+        public float agentTurnSpeed = 0;
+        public int3 spatialBucketSize = int3.zero;
 
-        private int _max;
-        private List<NavAgent> _agents;
-        private TransformAccessArray _transformAccess;
+        World _world;
+        int _max;
+
+        List<NavAgent> _agents;
+        TransformAccessArray _transformAccess;
         NativeArray<float3> _agentDirections;
         NativeArray<float3> _agentPositions;
 
         NativeMultiHashMap<int3, float3> _agentSpatialMap;
         NativeMultiHashMap<int3, float3>.ParallelWriter _agentSpatialMapWriter;
 
+        NativeQueue<int3> _openList;
         NativeArray<byte> _flowField;
         NativeArray<byte> _costField;
         NativeArray<ushort> _intField;
         NativeArray<Block> _blockData;
         NativeArray<int3> _directions;
         NativeArray<int> _directionsNESW;
-        NativeQueue<int3> _openList;
 
         JobHandle updateHandle;
 
@@ -38,18 +44,24 @@ namespace VRoxel.Navigation
         {
             _world = world;
             _max = maxAgents;
+
+            // initialize agent data structures
             _agents = new List<NavAgent>(maxAgents);
             _agentDirections = new NativeArray<float3>(maxAgents, Allocator.Persistent);
             _agentPositions = new NativeArray<float3>(maxAgents, Allocator.Persistent);
+
+            // initialize collision detection & avoidance data structures
             _agentSpatialMap = new NativeMultiHashMap<int3, float3>(maxAgents, Allocator.Persistent);
             _agentSpatialMapWriter = _agentSpatialMap.AsParallelWriter();
 
+            // initialize pathfinding data structures
             int size = world.size.x * world.size.y * world.size.z;
             _flowField = new NativeArray<byte>(size, Allocator.Persistent);
             _costField = new NativeArray<byte>(size, Allocator.Persistent);
             _intField = new NativeArray<ushort>(size, Allocator.Persistent);
             _openList = new NativeQueue<int3>(Allocator.Persistent);
 
+            // cache all directions
             _directions = new NativeArray<int3>(27, Allocator.Persistent);
             for (int i = 0; i < 27; i++)
             {
@@ -64,6 +76,7 @@ namespace VRoxel.Navigation
             _directionsNESW[2] = 7;
             _directionsNESW[3] = 9;
 
+            // cache block data
             int blockCount = _world.blocks.library.Keys.Count;
             _blockData = new NativeArray<Block>(blockCount, Allocator.Persistent);
             foreach (VRoxel.Core.Block block in _world.blocks.library.Values)
@@ -137,7 +150,7 @@ namespace VRoxel.Navigation
 
                 spatialMap = _agentSpatialMapWriter,
                 positions = _agentPositions,
-                size = new int3(2,2,2)
+                size = spatialBucketSize
             };
 
             FlowDirectionJob flowJob = new FlowDirectionJob()
@@ -166,15 +179,15 @@ namespace VRoxel.Navigation
                 directions = _agentDirections,
                 spatialMap = _agentSpatialMap,
 
-                radius = 0.5f * _world.scale,
-                size = new int3(2,2,2)
+                radius = agentRadius * _world.scale,
+                size = spatialBucketSize
             };
 
             MoveAgentJob moveJob = new MoveAgentJob()
             {
-                speed = 1f,
-                turnSpeed = 1f,
                 deltaTime = dt,
+                speed = agentSpeed,
+                turnSpeed = agentTurnSpeed,
                 directions = _agentDirections
             };
 
@@ -198,7 +211,7 @@ namespace VRoxel.Navigation
                 costField = _costField,
                 blocks = _blockData,
                 size = worldSize,
-                height = 1
+                height = agentHeight
             };
             JobHandle costHandle = costJob.Schedule(size, 1, handle);
 
