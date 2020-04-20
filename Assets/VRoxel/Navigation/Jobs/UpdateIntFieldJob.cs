@@ -61,14 +61,22 @@ namespace VRoxel.Navigation
             int index, nextIndex;
             int3 position, nextPosition;
 
+            NativeArray<int> mask = new NativeArray<int>(6, Allocator.Temp);
+            mask[0] = 1;
+            mask[1] = 2;
+            mask[2] = 3;
+            mask[3] = 5;
+            mask[4] = 7;
+            mask[5] = 9;
+
             while (open.Count != 0)
             {
                 position = open.Dequeue();
                 index = Flatten(position);
 
-                for (int i = 1; i < 27; i++)    // check neighbors
+                for (int i = 0; i < mask.Length; i++)    // check neighbors
                 {
-                    nextPosition = position + directions[i];
+                    nextPosition = position + directions[mask[i]];
                     if (OutOfBounds(nextPosition)) { continue; }    // node is out of bounds
 
                     nextIndex = Flatten(nextPosition);
@@ -82,6 +90,8 @@ namespace VRoxel.Navigation
                     }
                 }
             }
+
+            mask.Dispose();
         }
 
         /// <summary>
