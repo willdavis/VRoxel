@@ -36,8 +36,8 @@ public class Navigation : MonoBehaviour
         _agents = new AgentManager(_world, maxAgents);
 
         // configure the agent manager
-        _agents.spatialBucketSize = new Unity.Mathematics.int3(2,2,2);
-        _agents.agentRadius = 0.5f;
+        _agents.spatialBucketSize = new Unity.Mathematics.int3(1,1,1);
+        _agents.agentRadius = 1f;
         _agents.agentHeight = 2;
         _agents.agentSpeed = 1f;
         _agents.agentTurnSpeed = 2f;
@@ -72,6 +72,9 @@ public class Navigation : MonoBehaviour
 
     void OnDestroy()
     {
+        updateHandle.Complete();
+        moveHandle.Complete();
+
         _agents.Dispose();
     }
 
@@ -82,18 +85,15 @@ public class Navigation : MonoBehaviour
         if (Input.GetKey(spawnAgent) && CanSpawnAt(_editor.currentIndex))
             Spawn(_editor.currentPosition);
 
-        moveHandle = _agents.MoveAgentsAsync(Time.deltaTime);
-    }
-
-    void LateUpdate()
-    {
-        updateHandle.Complete();
         moveHandle.Complete();
+        moveHandle = _agents.MoveAgentsAsync(Time.deltaTime);
     }
 
     void UpdatePathfindingAsync(JobHandle handle)
     {
         Vector3Int goal = GetGoalGridPosition();
+
+        updateHandle.Complete();
         updateHandle = _agents.UpdateFlowField(goal, handle);
     }
 
@@ -101,9 +101,11 @@ public class Navigation : MonoBehaviour
     {
         Vector3 goalPosition = GetGoalScenePosition();
         Vector3Int goalGridPoint = GetGoalGridPosition();
-        if (goal.transform.position == goalPosition) { return; }
 
+        if (goal.transform.position == goalPosition) { return; }
         goal.transform.position = goalPosition;
+
+        updateHandle.Complete();
         updateHandle = _agents.UpdateFlowField(goalGridPoint, updateHandle);
     }
 

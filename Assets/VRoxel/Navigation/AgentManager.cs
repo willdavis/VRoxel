@@ -179,6 +179,10 @@ namespace VRoxel.Navigation
                 directions = _agentDirections,
                 spatialMap = _agentSpatialMap,
 
+                flowField = _flowField,
+                flowDirections = _directions,
+                flowFieldSize = worldSize,
+
                 radius = agentRadius * _world.scale,
                 size = spatialBucketSize
             };
