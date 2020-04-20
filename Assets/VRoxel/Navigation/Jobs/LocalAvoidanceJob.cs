@@ -55,6 +55,24 @@ namespace VRoxel.Navigation
         [ReadOnly]
         public NativeMultiHashMap<int3, float3> spatialMap;
 
+        /// <summary>
+        /// the direction indexes for each block in the world.
+        /// Blocks with a value of 0 have no direction
+        /// </summary>
+        [ReadOnly]
+        public NativeArray<byte> flowField;
+
+        /// <summary>
+        /// a reference to all 27 directions
+        /// </summary>
+        [ReadOnly]
+        public NativeArray<int3> flowDirections;
+
+        /// <summary>
+        /// the size of the flow field
+        /// </summary>
+        public int3 flowFieldSize;
+
         public void Execute(int i)
         {
             // get the spatial buckets that overlap with the agents radius
@@ -151,7 +169,13 @@ namespace VRoxel.Navigation
         /// </summary>
         public void ResolveAgentCollision(int i, float3 direction)
         {
-            directions[i] += math.normalizesafe(direction, float3.zero);
+            float3 next = positions[i] + direction;
+            int3 grid = GridPosition(next);
+
+            if (OutOfBounds(grid)) { return; }
+            if (flowField[Flatten(grid)] == 0) { return; }
+
+            directions[i] += direction;
         }
 
         /// <summary>
@@ -175,6 +199,30 @@ namespace VRoxel.Navigation
             gridPosition.z = (int)math.floor(adjusted.z);
 
             return gridPosition;
+        }
+
+        /// <summary>
+        /// Calculate an array index from a int3 (Vector3Int) grid coordinate
+        /// </summary>
+        /// <param name="point">A point in the voxel grid</param>
+        public int Flatten(int3 point)
+        {
+            /// A[x,y,z] = A[ x * height * depth + y * depth + z ]
+            return (point.x * flowFieldSize.y * flowFieldSize.z)
+                + (point.y * flowFieldSize.z)
+                + point.z;
+        }
+
+        /// <summary>
+        /// Test if the grid position is outside the flow field
+        /// </summary>
+        /// <param name="point">A point in the voxel grid</param>
+        public bool OutOfBounds(int3 point)
+        {
+            if (point.x < 0 || point.x >= flowFieldSize.x) { return true; }
+            if (point.y < 0 || point.y >= flowFieldSize.y) { return true; }
+            if (point.z < 0 || point.z >= flowFieldSize.z) { return true; }
+            return false;
         }
     }
 }
