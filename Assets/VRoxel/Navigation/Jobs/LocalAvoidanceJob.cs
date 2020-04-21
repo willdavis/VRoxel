@@ -169,13 +169,15 @@ namespace VRoxel.Navigation
         /// </summary>
         public void ResolveAgentCollision(int i, float3 direction)
         {
-            float3 next = positions[i] + direction;
-            int3 grid = GridPosition(next);
+            float otherAgentRadius = radius;
+            float length = math.length(direction) + otherAgentRadius;
+            float3 next = positions[i] + direction * (length / radius);
 
+            int3 grid = GridPosition(next);
             if (OutOfBounds(grid)) { return; }
             if (flowField[Flatten(grid)] == 0) { return; }
 
-            directions[i] += direction;
+            directions[i] += direction * (length / radius);
         }
 
         /// <summary>
