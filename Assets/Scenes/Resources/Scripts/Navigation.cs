@@ -37,10 +37,10 @@ public class Navigation : MonoBehaviour
 
         // configure the agent manager
         _agents.spatialBucketSize = new Unity.Mathematics.int3(1,1,1);
-        _agents.agentRadius = 1f;
-        _agents.agentHeight = 2;
-        _agents.agentSpeed = 1f;
+        _agents.agentRadius = 4f * _world.scale;
+        _agents.agentSpeed = 4f * _world.scale;
         _agents.agentTurnSpeed = 2f;
+        _agents.agentHeight = 2;
 
         // initialize all of the agents
         for (int i = 0; i < maxAgents; i++)
