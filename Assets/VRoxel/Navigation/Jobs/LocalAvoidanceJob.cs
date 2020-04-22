@@ -75,6 +75,9 @@ namespace VRoxel.Navigation
 
         public void Execute(int i)
         {
+            // clear the direction for this agent
+            directions[i] = float3.zero;
+
             // get the spatial buckets that overlap with the agents radius
             int3 minBucket = GetSpatialBucket(positions[i] + new float3(-radius, -radius, -radius));
             int3 maxBucket = GetSpatialBucket(positions[i] + new float3( radius,  radius,  radius));

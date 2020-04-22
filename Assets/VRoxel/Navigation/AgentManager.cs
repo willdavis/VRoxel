@@ -196,9 +196,9 @@ namespace VRoxel.Navigation
             };
 
             JobHandle spaceHandle = spaceJob.Schedule(_transformAccess, updateHandle);
-            JobHandle flowHandle = flowJob.Schedule(_max, 100, spaceHandle);
-            JobHandle avoidHandle = avoidJob.Schedule(_max, 100, flowHandle);
-            return moveJob.Schedule(_transformAccess, avoidHandle);
+            JobHandle avoidHandle = avoidJob.Schedule(_max, 100, spaceHandle);
+            JobHandle flowHandle = flowJob.Schedule(_max, 100, avoidHandle);
+            return moveJob.Schedule(_transformAccess, flowHandle);
         }
 
         public JobHandle UpdateFlowField(Vector3Int goal, JobHandle handle)
