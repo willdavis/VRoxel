@@ -61,13 +61,21 @@ namespace VRoxel.Navigation
             int index, nextIndex;
             int3 position, nextPosition;
 
-            NativeArray<int> mask = new NativeArray<int>(6, Allocator.Temp);
-            mask[0] = 1;
-            mask[1] = 2;
-            mask[2] = 3;
-            mask[3] = 5;
-            mask[4] = 7;
-            mask[5] = 9;
+            NativeArray<int> mask = new NativeArray<int>(18, Allocator.Temp);
+            for (int i = 0; i < 10; i++) // up, down, N, NE, E, SE, S, SW, W, NW
+                mask[i] = i + 1;
+
+            // top N, E, S, W
+            mask[10] = 11;
+            mask[11] = 13;
+            mask[12] = 15;
+            mask[13] = 17;
+
+            // bottom N, E, S, W
+            mask[14] = 19;
+            mask[15] = 21;
+            mask[16] = 23;
+            mask[17] = 25;
 
             while (open.Count != 0)
             {
