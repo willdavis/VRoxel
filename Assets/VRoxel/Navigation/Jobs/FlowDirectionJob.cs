@@ -37,7 +37,6 @@ namespace VRoxel.Navigation
         /// <summary>
         /// the desired direction for each agent
         /// </summary>
-        [WriteOnly]
         public NativeArray<float3> directions;
 
         /// <summary>
@@ -61,6 +60,9 @@ namespace VRoxel.Navigation
 
         public void Execute(int i)
         {
+            // exit if the agent already has a direction to move
+            if (!directions[i].Equals(float3.zero)) { return; }
+
             int3 position = GridPosition(positions[i]);
             position += new int3(0, -1, 0);
 
