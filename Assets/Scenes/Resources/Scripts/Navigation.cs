@@ -38,15 +38,14 @@ public class Navigation : MonoBehaviour
         // configure the agent manager
         _agents.spatialBucketSize = new Unity.Mathematics.int3(4,4,4);
         _agents.agentRadius = 2f * _world.scale;
-        _agents.agentSpeed = 2f * _world.scale;
-        _agents.agentTurnSpeed = 2f;
+        _agents.agentSpeed = 4f * _world.scale;
+        _agents.agentTurnSpeed = 4f;
         _agents.agentHeight = 2;
 
         // initialize all of the agents
         for (int i = 0; i < maxAgents; i++)
         {
             NavAgent agent = NavAgentPool.Instance.Get();
-            agent.transform.parent = NavAgentPool.Instance.transform;
             _agents.all.Add(agent);
 
             Enemy enemy = agent.GetComponent<Enemy>();
@@ -61,7 +60,6 @@ public class Navigation : MonoBehaviour
         }
 
         // configure the goal post position and scale
-        goal.transform.localScale = Vector3.one * _world.scale;
         goal.transform.position = GetGoalScenePosition();
 
         // configure the flow field and initialize it
@@ -82,8 +80,9 @@ public class Navigation : MonoBehaviour
     {
         UpdateGoalPostPosition();
 
-        if (Input.GetKey(spawnAgent) && CanSpawnAt(_editor.currentIndex))
-            Spawn(_editor.currentPosition);
+        SpawnAgents(1);
+        //if (Input.GetKey(spawnAgent) && CanSpawnAt(_editor.currentIndex))
+        //    Spawn(_editor.currentPosition);
 
         moveHandle.Complete();
         moveHandle = _agents.MoveAgentsAsync(Time.deltaTime);
@@ -159,6 +158,48 @@ public class Navigation : MonoBehaviour
         agent.transform.position = position;
         agent.gameObject.SetActive(true);
         return agent;
+    }
+
+    public void SpawnAgents(int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            // position the enemy on the board
+            Vector3 position = Vector3.zero;
+            Vector3Int point = Vector3Int.zero;
+
+            Vector2 center = new Vector2(
+                _world.size.x / 2,
+                _world.size.z / 2
+            );
+            Vector2 randomXZ = Random.insideUnitCircle;
+            randomXZ *= _world.size.x / 2;
+            randomXZ += center;
+
+            point.x = (int)randomXZ.x;
+            point.z = (int)randomXZ.y;
+            point.y = _world.size.y;
+
+            // find the terrain height
+            for (int j = 0; j < _world.size.y; j++)
+            {
+                if (_world.data.Get(point.x, j, point.z) == 0)
+                {
+                    point.y = j;
+                    break;
+                }
+            }
+
+            // convert from voxel space to scene space
+            position = WorldEditor.Get(_world, point);
+
+            // spawn the new enemy
+            NavAgent agent = NavAgentPool.Instance.Get();
+            agent.transform.localScale = Vector3.one * _world.scale;
+            agent.transform.rotation = _world.transform.rotation;
+            agent.transform.position = position;
+            agent.gameObject.SetActive(true);
+        }
     }
 
     /// <summary>

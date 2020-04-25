@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1325846307742175812
+--- !u!1 &2405658528980794261
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,52 +8,53 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6599247228643581596}
-  - component: {fileID: 4674568695092355931}
-  - component: {fileID: 7431066622615108926}
+  - component: {fileID: 4735076300185037184}
+  - component: {fileID: 998696130821772203}
+  - component: {fileID: 505286946774511812}
   m_Layer: 0
-  m_Name: Capsule
+  m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &6599247228643581596
+--- !u!4 &4735076300185037184
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1325846307742175812}
+  m_GameObject: {fileID: 2405658528980794261}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 2, z: 1}
   m_Children: []
   m_Father: {fileID: 1451848961220061103}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &4674568695092355931
+--- !u!33 &998696130821772203
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1325846307742175812}
-  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &7431066622615108926
+  m_GameObject: {fileID: 2405658528980794261}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &505286946774511812
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1325846307742175812}
+  m_GameObject: {fileID: 2405658528980794261}
   m_Enabled: 1
   m_CastShadows: 0
-  m_ReceiveShadows: 0
+  m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -89,7 +90,7 @@ GameObject:
   - component: {fileID: 1451848961220061103}
   - component: {fileID: 464519020847437199}
   - component: {fileID: 248189242278981012}
-  - component: {fileID: 1548514560002395747}
+  - component: {fileID: 4607905061452639972}
   m_Layer: 0
   m_Name: RedNPC
   m_TagString: Untagged
@@ -108,8 +109,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 6599247228643581596}
   - {fileID: 5556702462195438925}
+  - {fileID: 4735076300185037184}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -128,7 +129,6 @@ MonoBehaviour:
   OnDeath:
     m_PersistentCalls:
       m_Calls: []
-    m_TypeName: DeathEvent, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &248189242278981012
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -143,8 +143,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   radius: 0.5
   speed: 1
---- !u!136 &1548514560002395747
-CapsuleCollider:
+--- !u!135 &4607905061452639972
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -153,9 +153,8 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 1
   m_Enabled: 1
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
+  serializedVersion: 2
+  m_Radius: 1
   m_Center: {x: 0, y: 1, z: 0}
 --- !u!1 &8190356063733692050
 GameObject:
@@ -169,7 +168,7 @@ GameObject:
   - component: {fileID: 7155834862601596857}
   - component: {fileID: 6302884519786161996}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: Eyes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -187,7 +186,7 @@ Transform:
   m_LocalScale: {x: 0.5, y: 0.2, z: 0.2}
   m_Children: []
   m_Father: {fileID: 1451848961220061103}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &7155834862601596857
 MeshFilter:
@@ -211,6 +210,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
