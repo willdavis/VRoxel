@@ -13,3 +13,5 @@ This project is in it's early stages and is not ready for production use.
 ## Examples
 
 Grabbing voxels - https://gfycat.com/immediateharmoniousiraniangroundjay
+
+Pathfinding for 5k agents - https://gfycat.com/goodcreamycassowary
