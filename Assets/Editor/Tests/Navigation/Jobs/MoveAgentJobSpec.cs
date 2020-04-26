@@ -17,6 +17,30 @@ namespace NavigationSpecs
     public class MoveAgentJobSpec
     {
         [Test]
+        public void CanClampVectors()
+        {
+            MoveAgentJob job = new MoveAgentJob(){};
+
+            // ignores vectors less than the limit
+            Assert.AreEqual(
+                new float3(1,1,1),
+                job.Clamp(new float3(1,1,1), 10f)
+            );
+
+            // scales vectors if they are larger than the limit
+            Assert.AreEqual(
+                new float3(0,1,0),
+                job.Clamp(new float3(0,2,0), 1f)
+            );
+
+            Assert.AreEqual(
+                float3.zero,
+                job.Clamp(new float3(1,1,1), 0f)
+            );
+        }
+
+
+        [Test]
         public void UpdatesPositionAndRotation()
         {
             Transform[] transforms = new Transform[2];

@@ -40,5 +40,15 @@ namespace VRoxel.Navigation
             transform.position = position + directions[i] * speed * deltaTime;
             transform.rotation = math.slerp(transform.rotation, look, turnSpeed * deltaTime);
         }
+
+        /// <summary>
+        /// limits the magnitude of a vector to the max length
+        /// </summary>
+        public float3 Clamp(float3 vector, float max)
+        {
+            float length = max / math.length(vector);
+            if (length < 1f) { return vector * length; }
+            else { return vector; }
+        }
     }
 }
