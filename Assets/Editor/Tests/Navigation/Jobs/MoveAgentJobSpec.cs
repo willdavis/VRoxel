@@ -48,6 +48,7 @@ namespace NavigationSpecs
             transforms[1] = GameObject.CreatePrimitive(PrimitiveType.Cube).transform;
             TransformAccessArray asyncTransforms = new TransformAccessArray(transforms);
 
+            NativeArray<float3> velocity = new NativeArray<float3>(2, Allocator.Persistent);
             NativeArray<float3> directions = new NativeArray<float3>(2, Allocator.Persistent);
             directions[0] = Vector3.right;
             directions[1] = Vector3.left;
@@ -58,7 +59,8 @@ namespace NavigationSpecs
                 speed = speed,
                 turnSpeed = speed,
                 deltaTime = Time.deltaTime,
-                directions = directions
+                directions = directions,
+                velocity = velocity
             };
 
             Vector3 position_0 = transforms[0].position;
@@ -79,6 +81,7 @@ namespace NavigationSpecs
             Assert.AreNotEqual(rotation_1, transforms[1].rotation);
 
 
+            velocity.Dispose();
             directions.Dispose();
             asyncTransforms.Dispose();
             foreach (var t in transforms)

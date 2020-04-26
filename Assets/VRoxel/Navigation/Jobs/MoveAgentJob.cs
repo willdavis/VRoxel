@@ -32,6 +32,8 @@ namespace VRoxel.Navigation
         [ReadOnly]
         public NativeArray<float3> directions;
 
+        public NativeArray<float3> velocity;
+
         public void Execute(int i, TransformAccess transform)
         {
             float3 position = transform.position;
