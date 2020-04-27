@@ -10,9 +10,9 @@ using VRoxel.Navigation;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 
-namespace NavigationSpecs
+namespace NavigationBehaviorSpecs
 {
-    public class FlowDirectionJobSpec
+    public class FlowFieldSeekJobSpec
     {
         [Test]
         public void UpdatesDirections()
@@ -33,7 +33,7 @@ namespace NavigationSpecs
                 flowDirections[i] = new int3(dir.x, dir.y, dir.z);
             }
 
-            FlowDirectionJob job = new FlowDirectionJob()
+            FlowFieldSeekJob job = new FlowFieldSeekJob()
             {
                 world_scale = 1f,
                 world_offset = float3.zero,

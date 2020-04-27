@@ -8,7 +8,7 @@ using Unity.Mathematics;
 
 using VRoxel.Navigation;
 
-namespace NavigationJobSpecs
+namespace NavigationBehaviorSpecs
 {
     public class LocalAvoidanceJobSpec
     {

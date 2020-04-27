@@ -156,7 +156,7 @@ namespace VRoxel.Navigation
                 size = spatialBucketSize
             };
 
-            FlowDirectionJob flowJob = new FlowDirectionJob()
+            FlowFieldSeekJob seekJob = new FlowFieldSeekJob()
             {
                 world_scale = _world.scale,
                 world_center = _world.data.center,
@@ -203,8 +203,8 @@ namespace VRoxel.Navigation
 
             JobHandle spaceHandle = spaceJob.Schedule(_transformAccess, updateHandle);
             JobHandle avoidHandle = avoidJob.Schedule(_max, 100, spaceHandle);
-            JobHandle flowHandle = flowJob.Schedule(_max, 100, avoidHandle);
-            return moveJob.Schedule(_transformAccess, flowHandle);
+            JobHandle seekHandle = seekJob.Schedule(_max, 100, avoidHandle);
+            return moveJob.Schedule(_transformAccess, seekHandle);
         }
 
         public JobHandle UpdateFlowField(Vector3Int goal, JobHandle handle)

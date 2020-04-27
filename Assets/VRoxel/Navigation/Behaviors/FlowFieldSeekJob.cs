@@ -7,7 +7,7 @@ using Unity.Burst;
 namespace VRoxel.Navigation
 {
     [BurstCompile]
-    public struct FlowDirectionJob : IJobParallelFor
+    public struct FlowFieldSeekJob : IJobParallelFor
     {
         /// <summary>
         /// the size of the flow field
