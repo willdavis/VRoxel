@@ -26,6 +26,7 @@ namespace VRoxel.Navigation
         TransformAccessArray _transformAccess;
         NativeArray<float3> _agentDirections;
         NativeArray<float3> _agentPositions;
+        NativeArray<float3> _agentVelocity;
 
         NativeMultiHashMap<int3, float3> _agentSpatialMap;
         NativeMultiHashMap<int3, float3>.ParallelWriter _agentSpatialMapWriter;
@@ -49,6 +50,7 @@ namespace VRoxel.Navigation
             _agents = new List<NavAgent>(maxAgents);
             _agentDirections = new NativeArray<float3>(maxAgents, Allocator.Persistent);
             _agentPositions = new NativeArray<float3>(maxAgents, Allocator.Persistent);
+            _agentVelocity = new NativeArray<float3>(maxAgents, Allocator.Persistent);
 
             // initialize collision detection & avoidance data structures
             _agentSpatialMap = new NativeMultiHashMap<int3, float3>(maxAgents, Allocator.Persistent);
@@ -102,6 +104,7 @@ namespace VRoxel.Navigation
             _agentDirections.Dispose();
             _agentPositions.Dispose();
             _agentSpatialMap.Dispose();
+            _agentVelocity.Dispose();
 
 
             _openList.Dispose();
@@ -190,9 +193,10 @@ namespace VRoxel.Navigation
             MoveAgentJob moveJob = new MoveAgentJob()
             {
                 deltaTime = dt,
-                speed = agentSpeed,
+                maxSpeed = agentSpeed,
                 turnSpeed = agentTurnSpeed,
-                directions = _agentDirections
+                direction = _agentDirections,
+                velocity = _agentVelocity
             };
 
             JobHandle spaceHandle = spaceJob.Schedule(_transformAccess, updateHandle);
