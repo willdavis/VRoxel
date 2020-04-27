@@ -37,9 +37,13 @@ namespace VRoxel.Navigation
         public void Execute(int i, TransformAccess transform)
         {
             float3 position = transform.position;
-            quaternion look = quaternion.LookRotation(directions[i], new float3(0,1,0));
+            float3 desired = directions[i] * speed;
+            float3 steering = desired - velocity[i];
 
-            transform.position = position + directions[i] * speed * deltaTime;
+            velocity[i] = Clamp(velocity[i] + steering, speed);
+            transform.position = position + velocity[i] * deltaTime;
+
+            quaternion look = quaternion.LookRotation(directions[i], new float3(0,1,0));
             transform.rotation = math.slerp(transform.rotation, look, turnSpeed * deltaTime);
         }
 
