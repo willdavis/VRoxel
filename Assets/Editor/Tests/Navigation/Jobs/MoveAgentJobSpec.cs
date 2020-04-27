@@ -56,10 +56,12 @@ namespace NavigationSpecs
             float speed = 1f;
             MoveAgentJob job = new MoveAgentJob()
             {
+                mass = 1f,
+                maxForce = 10f,
                 maxSpeed = speed,
                 turnSpeed = speed,
                 deltaTime = Time.deltaTime,
-                direction = directions,
+                steering = directions,
                 velocity = velocity
             };
 

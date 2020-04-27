@@ -192,11 +192,13 @@ namespace VRoxel.Navigation
 
             MoveAgentJob moveJob = new MoveAgentJob()
             {
-                deltaTime = dt,
+                mass = 1f,
+                maxForce = 10f,
                 maxSpeed = agentSpeed,
                 turnSpeed = agentTurnSpeed,
-                direction = _agentDirections,
-                velocity = _agentVelocity
+                steering = _agentDirections,
+                velocity = _agentVelocity,
+                deltaTime = dt
             };
 
             JobHandle spaceHandle = spaceJob.Schedule(_transformAccess, updateHandle);
