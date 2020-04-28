@@ -62,19 +62,21 @@ namespace VRoxel.Navigation
 
             bool obstructed;
             if (minBucket.Equals(maxBucket))
-                obstructed = DetectCollisions(i, ahead, minBucket);
+                obstructed = DetectCollision(i, ahead, minBucket);
             else
-                obstructed = DetectCollisions(i, ahead, minBucket, maxBucket);
-
+                obstructed = DetectCollision(i, ahead, minBucket, maxBucket);
 
             if (obstructed)
-            {
-                steering[i] += -steering[i] * maxBrakeForce;
-                steering[i] += -velocity[i];
-            }
+                ApplyBrakeForce(i);
         }
 
-        public bool DetectCollisions(int i, float3 ahead, int3 min, int3 max)
+        public void ApplyBrakeForce(int i)
+        {
+            steering[i] += -steering[i] * maxBrakeForce;
+            steering[i] += -velocity[i];
+        }
+
+        public bool DetectCollision(int i, float3 ahead, int3 min, int3 max)
         {
             int3 bucket = int3.zero;
             for (int x = min.x; x < max.x; x++)
@@ -86,7 +88,7 @@ namespace VRoxel.Navigation
                     for (int z = min.z; z < max.z; z++)
                     {
                         bucket.z = z;
-                        if (DetectCollisions(i, ahead, bucket))
+                        if (DetectCollision(i, ahead, bucket))
                             return true;
                     }
                 }
@@ -95,7 +97,7 @@ namespace VRoxel.Navigation
             return false;
         }
 
-        public bool DetectCollisions(int i, float3 ahead, int3 bucket)
+        public bool DetectCollision(int i, float3 ahead, int3 bucket)
         {
             bool hasValues;
             float3 agent = float3.zero;
