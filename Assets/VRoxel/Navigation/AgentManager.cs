@@ -190,6 +190,25 @@ namespace VRoxel.Navigation
                 size = spatialBucketSize
             };
 
+            QueueBehavior queueJob = new QueueBehavior()
+            {
+                maxBrakeForce = 0.5f,
+                maxQueueAhead = 1f * _world.scale,
+                maxQueueRadius = 1f * _world.scale,
+
+                steering = _agentDirections,
+                position = _agentPositions,
+                velocity = _agentVelocity,
+
+                world_scale = _world.scale,
+                world_center = _world.data.center,
+                world_offset = _world.transform.position,
+                world_rotation = _world.transform.rotation,
+
+                size = spatialBucketSize,
+                spatialMap = _agentSpatialMap
+            };
+
             MoveAgentJob moveJob = new MoveAgentJob()
             {
                 mass = 1f,
@@ -204,7 +223,8 @@ namespace VRoxel.Navigation
             JobHandle spaceHandle = spaceJob.Schedule(_transformAccess, updateHandle);
             JobHandle avoidHandle = avoidJob.Schedule(_max, 100, spaceHandle);
             JobHandle seekHandle = seekJob.Schedule(_max, 100, avoidHandle);
-            return moveJob.Schedule(_transformAccess, seekHandle);
+            JobHandle queueHandle = queueJob.Schedule(_max, 100, seekHandle);
+            return moveJob.Schedule(_transformAccess, queueHandle);
         }
 
         public JobHandle UpdateFlowField(Vector3Int goal, JobHandle handle)
