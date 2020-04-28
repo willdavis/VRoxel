@@ -158,6 +158,8 @@ namespace VRoxel.Navigation
 
             FlowFieldSeekJob seekJob = new FlowFieldSeekJob()
             {
+                maxSpeed = agentSpeed,
+
                 world_scale = _world.scale,
                 world_center = _world.data.center,
                 world_offset = _world.transform.position,
@@ -168,7 +170,8 @@ namespace VRoxel.Navigation
                 flowFieldSize = worldSize,
 
                 positions = _agentPositions,
-                directions = _agentDirections
+                steering = _agentDirections,
+                velocity = _agentVelocity,
             };
 
             /*
@@ -195,8 +198,8 @@ namespace VRoxel.Navigation
             AvoidCollisionBehavior avoidJob = new AvoidCollisionBehavior()
             {
                 maxSpeed = agentSpeed,
-                maxAvoidForce = 2f,
-                maxAvoidRadius = 2f * _world.scale,
+                maxAvoidForce = 1f,
+                maxAvoidRadius = 0.5f,
 
                 world_scale = _world.scale,
                 world_center = _world.data.center,
@@ -213,9 +216,9 @@ namespace VRoxel.Navigation
 
             QueueBehavior queueJob = new QueueBehavior()
             {
-                maxBrakeForce = 0.5f,
-                maxQueueAhead = 1f * _world.scale,
-                maxQueueRadius = 1f * _world.scale,
+                maxBrakeForce = 0.8f,
+                maxQueueAhead = 0.25f,
+                maxQueueRadius = 0.25f,
 
                 steering = _agentDirections,
                 position = _agentPositions,
@@ -233,9 +236,9 @@ namespace VRoxel.Navigation
             MoveAgentJob moveJob = new MoveAgentJob()
             {
                 mass = 1f,
-                maxForce = 10f,
+                maxForce = 1f,
                 maxSpeed = agentSpeed,
-                turnSpeed = agentTurnSpeed,
+                turnSpeed = agentSpeed * 2f,
                 steering = _agentDirections,
                 velocity = _agentVelocity,
                 deltaTime = dt

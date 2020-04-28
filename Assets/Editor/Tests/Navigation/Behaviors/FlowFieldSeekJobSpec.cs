@@ -17,6 +17,7 @@ namespace NavigationBehaviorSpecs
         [Test]
         public void UpdatesDirections()
         {
+            NativeArray<float3> velocity = new NativeArray<float3>(1, Allocator.Persistent);
             NativeArray<float3> directions = new NativeArray<float3>(1, Allocator.Persistent);
             NativeArray<float3> positions = new NativeArray<float3>(1, Allocator.Persistent);
             positions[0] = Vector3.up;
@@ -35,6 +36,8 @@ namespace NavigationBehaviorSpecs
 
             FlowFieldSeekJob job = new FlowFieldSeekJob()
             {
+                maxSpeed = 1f,
+
                 world_scale = 1f,
                 world_offset = float3.zero,
                 world_center = new float3(0.5f, 0.5f, 0.5f),
@@ -45,7 +48,8 @@ namespace NavigationBehaviorSpecs
                 flowFieldSize = new int3(1,1,1),
 
                 positions = positions,
-                directions = directions
+                steering = directions,
+                velocity = velocity
             };
 
             JobHandle handle = job.Schedule(1,1);
@@ -57,6 +61,7 @@ namespace NavigationBehaviorSpecs
             flowField.Dispose();
             positions.Dispose();
             directions.Dispose();
+            velocity.Dispose();
         }
     }
 }

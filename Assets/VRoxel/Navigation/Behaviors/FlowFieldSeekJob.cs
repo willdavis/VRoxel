@@ -9,6 +9,8 @@ namespace VRoxel.Navigation
     [BurstCompile]
     public struct FlowFieldSeekJob : IJobParallelFor
     {
+        public float maxSpeed;
+
         /// <summary>
         /// the size of the flow field
         /// </summary>
@@ -35,15 +37,22 @@ namespace VRoxel.Navigation
         public quaternion world_rotation;
 
         /// <summary>
-        /// the desired direction for each agent
+        /// the current steering force acting on each agent
         /// </summary>
-        public NativeArray<float3> directions;
+        [WriteOnly]
+        public NativeArray<float3> steering;
 
         /// <summary>
         /// the current position of each agent
         /// </summary>
         [ReadOnly]
         public NativeArray<float3> positions;
+
+        /// <summary>
+        /// the current velocity of each agent
+        /// </summary>
+        [ReadOnly]
+        public NativeArray<float3> velocity;
 
         /// <summary>
         /// the direction indexes for each block in the world.
@@ -60,33 +69,33 @@ namespace VRoxel.Navigation
 
         public void Execute(int i)
         {
-            // exit if the agent already has a direction to move
-            //if (!directions[i].Equals(float3.zero)) { return; }
+            int3 grid = GridPosition(positions[i]);
+            grid += new int3(0, -1, 0);
 
-            int3 position = GridPosition(positions[i]);
-            position += new int3(0, -1, 0);
-
-            if (OutOfBounds(position))
+            if (OutOfBounds(grid))
             {
-                directions[i] = float3.zero;
+                steering[i] = float3.zero;
                 return;
             }
 
-            int fieldIndex = Flatten(position);
+            int fieldIndex = Flatten(grid);
             byte directionIndex = flowField[fieldIndex];
 
             if (directionIndex == 0)    // no direction
             {
-                directions[i] = float3.zero;
+                steering[i] = float3.zero;
                 return;
             }
 
-            int3 flowUnitDirection = flowDirections[directionIndex];
-            int3 desiredPosition = position + flowUnitDirection + new int3(0, 1, 0);
-            float3 desiredScenePosition = ScenePosition(desiredPosition);
-            float3 dir = desiredScenePosition - positions[i];
+            int3 flowDirection = flowDirections[directionIndex];
+            int3 nextGrid = grid + flowDirection + new int3(0, 1, 0);
+            float3 nextPosition = ScenePosition(nextGrid);
 
-            directions[i] = math.normalizesafe(dir, float3.zero);
+            float3 desired = nextPosition - positions[i];
+            desired = math.normalizesafe(desired, float3.zero);
+            desired *= maxSpeed;
+
+            steering[i] = desired - velocity[i];
         }
 
         /// <summary>
