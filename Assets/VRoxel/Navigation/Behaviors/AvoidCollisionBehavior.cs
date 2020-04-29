@@ -8,9 +8,9 @@ namespace VRoxel.Navigation
     [BurstCompile]
     public struct AvoidCollisionBehavior : IJobParallelFor
     {
-        public float maxSpeed;
         public float maxAvoidForce;
         public float maxAvoidRadius;
+        public float maxAvoidLength;
 
         /// <summary>
         /// the size of all spatial buckets
@@ -51,7 +51,7 @@ namespace VRoxel.Navigation
 
         public void Execute(int i)
         {
-            float dynamicLength = math.length(velocity[i]) / maxSpeed;
+            float dynamicLength = math.length(velocity[i]) / maxAvoidLength;
             float3 direction = math.normalizesafe(velocity[i], float3.zero);
             float3 closest = new float3(float.MaxValue, float.MaxValue, float.MaxValue);
 

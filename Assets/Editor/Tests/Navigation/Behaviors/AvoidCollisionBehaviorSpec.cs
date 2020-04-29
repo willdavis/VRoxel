@@ -168,7 +168,7 @@ namespace NavigationBehaviorSpecs
 
             AvoidCollisionBehavior job = new AvoidCollisionBehavior()
             {
-                maxSpeed = 1f,
+                maxAvoidLength = 1f,
                 maxAvoidRadius = 1f,
                 maxAvoidForce = 1f,
 

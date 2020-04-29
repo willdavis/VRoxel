@@ -176,9 +176,9 @@ namespace VRoxel.Navigation
 
             AvoidCollisionBehavior avoidJob = new AvoidCollisionBehavior()
             {
-                maxSpeed = agentSpeed,
                 maxAvoidForce = 1f,
                 maxAvoidRadius = 2f,
+                maxAvoidLength = agentSpeed,
 
                 world_scale = _world.scale,
                 world_center = _world.data.center,
