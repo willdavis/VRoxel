@@ -53,16 +53,28 @@ namespace NavigationSpecs
             directions[0] = Vector3.right;
             directions[1] = Vector3.left;
 
-            float speed = 1f;
+            NativeArray<byte> flowField = new NativeArray<byte>(1, Allocator.Persistent);
+            for (int i = 0; i < 1; i++)
+                flowField[i] = 1;
+
             MoveAgentJob job = new MoveAgentJob()
             {
                 mass = 1f,
-                maxForce = 10f,
-                maxSpeed = speed,
-                turnSpeed = speed,
-                deltaTime = Time.deltaTime,
+                maxForce = 1f,
+                maxSpeed = 1f,
+                turnSpeed = 1f,
+
                 steering = directions,
-                velocity = velocity
+                velocity = velocity,
+                deltaTime = Time.deltaTime,
+
+                world_scale = 1f,
+                world_offset = float3.zero,
+                world_center = new float3(0.5f, 0.5f, 0.5f),
+                world_rotation = quaternion.identity,
+
+                flowField = flowField,
+                flowFieldSize = new int3(1,1,1)
             };
 
             Vector3 position_0 = transforms[0].position;
@@ -71,10 +83,8 @@ namespace NavigationSpecs
             Quaternion rotation_0 = transforms[0].rotation;
             Quaternion rotation_1 = transforms[1].rotation;
 
-
             JobHandle handle = job.Schedule(asyncTransforms);
             handle.Complete();
-
 
             Assert.AreNotEqual(position_0, transforms[0].position);
             Assert.AreNotEqual(position_1, transforms[1].position);
@@ -83,6 +93,7 @@ namespace NavigationSpecs
             Assert.AreNotEqual(rotation_1, transforms[1].rotation);
 
 
+            flowField.Dispose();
             velocity.Dispose();
             directions.Dispose();
             asyncTransforms.Dispose();

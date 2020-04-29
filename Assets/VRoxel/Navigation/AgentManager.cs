@@ -13,11 +13,26 @@ namespace VRoxel.Navigation
 {
     public class AgentManager
     {
-        public int agentHeight = 0;
-        public float agentRadius = 0;
-        public float agentSpeed = 0;
-        public float agentTurnSpeed = 0;
-        public int3 spatialBucketSize = int3.zero;
+        public int3 spatialBucketSize;
+
+        // agent settings
+        public int height;
+        public float mass;
+        public float maxSpeed;
+        public float turnSpeed;
+
+        // moving
+        public float moveForce;
+
+        // queuing
+        public float brakeForce;
+        public float queueRadius;
+        public float queueDistance;
+
+        // avoidance
+        public float avoidForce;
+        public float avoidRadius;
+        public float avoidDistance;
 
         World _world;
         int _max;
@@ -158,6 +173,8 @@ namespace VRoxel.Navigation
 
             FlowFieldSeekJob seekJob = new FlowFieldSeekJob()
             {
+                maxSpeed = maxSpeed,
+
                 world_scale = _world.scale,
                 world_center = _world.data.center,
                 world_offset = _world.transform.position,
@@ -168,33 +185,34 @@ namespace VRoxel.Navigation
                 flowFieldSize = worldSize,
 
                 positions = _agentPositions,
-                directions = _agentDirections
+                steering = _agentDirections,
+                velocity = _agentVelocity,
             };
 
-            LocalAvoidanceJob avoidJob = new LocalAvoidanceJob()
+            AvoidCollisionBehavior avoidJob = new AvoidCollisionBehavior()
             {
+                avoidForce = avoidForce,
+                avoidRadius = avoidRadius,
+                avoidDistance = avoidDistance,
+
                 world_scale = _world.scale,
                 world_center = _world.data.center,
                 world_offset = _world.transform.position,
                 world_rotation = _world.transform.rotation,
 
-                positions = _agentPositions,
-                directions = _agentDirections,
+                position = _agentPositions,
+                velocity = _agentVelocity,
+                steering = _agentDirections,
+
                 spatialMap = _agentSpatialMap,
-
-                flowField = _flowField,
-                flowDirections = _directions,
-                flowFieldSize = worldSize,
-
-                radius = agentRadius * _world.scale,
                 size = spatialBucketSize
             };
 
             QueueBehavior queueJob = new QueueBehavior()
             {
-                maxBrakeForce = 0.5f,
-                maxQueueAhead = 1f * _world.scale,
-                maxQueueRadius = 1f * _world.scale,
+                maxBrakeForce = brakeForce,
+                maxQueueRadius = queueRadius,
+                maxQueueAhead = queueDistance,
 
                 steering = _agentDirections,
                 position = _agentPositions,
@@ -211,19 +229,28 @@ namespace VRoxel.Navigation
 
             MoveAgentJob moveJob = new MoveAgentJob()
             {
-                mass = 1f,
-                maxForce = 10f,
-                maxSpeed = agentSpeed,
-                turnSpeed = agentTurnSpeed,
+                mass = mass,
+                maxForce = moveForce,
+                maxSpeed = maxSpeed,
+                turnSpeed = turnSpeed,
+
                 steering = _agentDirections,
                 velocity = _agentVelocity,
-                deltaTime = dt
+                deltaTime = dt,
+
+                world_scale = _world.scale,
+                world_center = _world.data.center,
+                world_offset = _world.transform.position,
+                world_rotation = _world.transform.rotation,
+
+                flowField = _flowField,
+                flowFieldSize = worldSize,
             };
 
             JobHandle spaceHandle = spaceJob.Schedule(_transformAccess, updateHandle);
-            JobHandle avoidHandle = avoidJob.Schedule(_max, 100, spaceHandle);
-            JobHandle seekHandle = seekJob.Schedule(_max, 100, avoidHandle);
-            JobHandle queueHandle = queueJob.Schedule(_max, 100, seekHandle);
+            JobHandle seekHandle = seekJob.Schedule(_max, 100, spaceHandle);
+            JobHandle avoidHandle = avoidJob.Schedule(_max, 100, seekHandle);
+            JobHandle queueHandle = queueJob.Schedule(_max, 100, avoidHandle);
             return moveJob.Schedule(_transformAccess, queueHandle);
         }
 
@@ -241,7 +268,7 @@ namespace VRoxel.Navigation
                 costField = _costField,
                 blocks = _blockData,
                 size = worldSize,
-                height = agentHeight
+                height = height
             };
             JobHandle costHandle = costJob.Schedule(size, 1, handle);
 
