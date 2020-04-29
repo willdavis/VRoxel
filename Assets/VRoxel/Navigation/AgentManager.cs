@@ -138,20 +138,6 @@ namespace VRoxel.Navigation
 
         /// <summary>
         /// Update each agents position in the world
-        /// </summary>
-        public void MoveAgents(float dt)
-        {
-            for (int i = 0; i < _agents.Count; i++)
-            {
-                if (!_agents[i].isActiveAndEnabled)
-                    continue;
-
-                _agents[i].Move(dt);
-            }
-        }
-
-        /// <summary>
-        /// Update each agents position in the world
         /// asynchronously using Unity jobs
         /// </summary>
         public JobHandle MoveAgentsAsync(float dt)
