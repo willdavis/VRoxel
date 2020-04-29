@@ -8,9 +8,9 @@ namespace VRoxel.Navigation
     [BurstCompile]
     public struct AvoidCollisionBehavior : IJobParallelFor
     {
-        public float maxAvoidForce;
-        public float maxAvoidRadius;
-        public float maxAvoidLength;
+        public float avoidForce;
+        public float avoidRadius;
+        public float avoidDistance;
 
         /// <summary>
         /// the size of all spatial buckets
@@ -51,17 +51,17 @@ namespace VRoxel.Navigation
 
         public void Execute(int i)
         {
-            float dynamicLength = math.length(velocity[i]) / maxAvoidLength;
+            float dynamicLength = math.length(velocity[i]) / avoidDistance;
             float3 direction = math.normalizesafe(velocity[i], float3.zero);
             float3 closest = new float3(float.MaxValue, float.MaxValue, float.MaxValue);
 
             float3 ahead  = position[i] + direction * dynamicLength;
             float3 ahead2 = position[i] + direction * dynamicLength * 0.5f;
 
-            float3 min = ahead + new float3(-maxAvoidRadius, -maxAvoidRadius, -maxAvoidRadius);
-            float3 max = ahead + new float3( maxAvoidRadius,  maxAvoidRadius,  maxAvoidRadius);
-            float3 min2 = ahead2 + new float3(-maxAvoidRadius, -maxAvoidRadius, -maxAvoidRadius);
-            float3 max2 = ahead2 + new float3( maxAvoidRadius,  maxAvoidRadius,  maxAvoidRadius);
+            float3 min = ahead + new float3(-avoidRadius, -avoidRadius, -avoidRadius);
+            float3 max = ahead + new float3( avoidRadius,  avoidRadius,  avoidRadius);
+            float3 min2 = ahead2 + new float3(-avoidRadius, -avoidRadius, -avoidRadius);
+            float3 max2 = ahead2 + new float3( avoidRadius,  avoidRadius,  avoidRadius);
 
             int3 minBucket = math.min(GetSpatialBucket(min), GetSpatialBucket(min2));
             int3 maxBucket = math.max(GetSpatialBucket(max), GetSpatialBucket(max2));
@@ -90,7 +90,7 @@ namespace VRoxel.Navigation
         {
             float3 avoidance = ahead - center;
             avoidance = math.normalizesafe(avoidance, float3.zero);
-            avoidance *= maxAvoidForce;
+            avoidance *= avoidForce;
             steering[i] += avoidance;
         }
 
@@ -132,7 +132,7 @@ namespace VRoxel.Navigation
                 if (count == maxDepth) { break; }
                 count++;
 
-                if (!position[i].Equals(agent) && IntersectsCircle(ahead, ahead2, agent, maxAvoidRadius))
+                if (!position[i].Equals(agent) && IntersectsCircle(ahead, ahead2, agent, avoidRadius))
                 {
                     if (MostThreatening(i, agent, closest)) { closest = agent; }
                     obstructed = true;

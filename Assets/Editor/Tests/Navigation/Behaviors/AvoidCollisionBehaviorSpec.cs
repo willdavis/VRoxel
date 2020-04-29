@@ -73,7 +73,7 @@ namespace NavigationBehaviorSpecs
             NativeArray<float3> steering = new NativeArray<float3>(1, Allocator.Persistent);
             AvoidCollisionBehavior job = new AvoidCollisionBehavior()
             {
-                maxAvoidForce = 0.5f,
+                avoidForce = 0.5f,
                 steering = steering
             };
 
@@ -108,7 +108,7 @@ namespace NavigationBehaviorSpecs
 
             AvoidCollisionBehavior job = new AvoidCollisionBehavior()
             {
-                maxAvoidRadius = 0.5f,
+                avoidRadius = 0.5f,
                 position = positions,
                 spatialMap = spatialMap
             };
@@ -168,9 +168,9 @@ namespace NavigationBehaviorSpecs
 
             AvoidCollisionBehavior job = new AvoidCollisionBehavior()
             {
-                maxAvoidLength = 1f,
-                maxAvoidRadius = 1f,
-                maxAvoidForce = 1f,
+                avoidDistance = 1f,
+                avoidRadius = 1f,
+                avoidForce = 1f,
 
                 size = new int3(1,1,1),
                 spatialMap = spatialMap,
