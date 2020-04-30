@@ -60,8 +60,6 @@ public class Navigation : MonoBehaviour
         for (int i = 0; i < maxAgents; i++)
         {
             NavAgent agent = NavAgentPool.Instance.Get();
-            _agents.all.Add(agent);
-
             Enemy enemy = agent.GetComponent<Enemy>();
             enemy.OnDeath.AddListener(Remove);
 

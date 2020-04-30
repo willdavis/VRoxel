@@ -37,7 +37,6 @@ namespace VRoxel.Navigation
         World _world;
         int _max;
 
-        List<NavAgent> _agents;
         TransformAccessArray _transformAccess;
         NativeArray<float3> _agentDirections;
         NativeArray<float3> _agentPositions;
@@ -62,7 +61,6 @@ namespace VRoxel.Navigation
             _max = maxAgents;
 
             // initialize agent data structures
-            _agents = new List<NavAgent>(maxAgents);
             _agentDirections = new NativeArray<float3>(maxAgents, Allocator.Persistent);
             _agentPositions = new NativeArray<float3>(maxAgents, Allocator.Persistent);
             _agentVelocity = new NativeArray<float3>(maxAgents, Allocator.Persistent);
@@ -130,11 +128,6 @@ namespace VRoxel.Navigation
             _directions.Dispose();
             _directionsNESW.Dispose();
         }
-
-        /// <summary>
-        /// Returns a list of all managed agents
-        /// </summary>
-        public List<NavAgent> all { get { return _agents; } }
 
         /// <summary>
         /// Update each agents position in the world
