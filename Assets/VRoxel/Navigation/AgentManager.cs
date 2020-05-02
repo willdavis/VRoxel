@@ -34,6 +34,8 @@ namespace VRoxel.Navigation
         public float avoidRadius;
         public float avoidDistance;
 
+        public NativeArray<bool> activeAgents { get { return _agentActive; } }
+
         World _world;
         int _max;
 
@@ -41,6 +43,7 @@ namespace VRoxel.Navigation
         NativeArray<float3> _agentDirections;
         NativeArray<float3> _agentPositions;
         NativeArray<float3> _agentVelocity;
+        NativeArray<bool> _agentActive;
 
         NativeMultiHashMap<int3, float3> _agentSpatialMap;
         NativeMultiHashMap<int3, float3>.ParallelWriter _agentSpatialMapWriter;
@@ -64,6 +67,7 @@ namespace VRoxel.Navigation
             _agentDirections = new NativeArray<float3>(maxAgents, Allocator.Persistent);
             _agentPositions = new NativeArray<float3>(maxAgents, Allocator.Persistent);
             _agentVelocity = new NativeArray<float3>(maxAgents, Allocator.Persistent);
+            _agentActive = new NativeArray<bool>(maxAgents, Allocator.Persistent);
 
             // initialize collision detection & avoidance data structures
             _agentSpatialMap = new NativeMultiHashMap<int3, float3>(maxAgents, Allocator.Persistent);
@@ -118,6 +122,7 @@ namespace VRoxel.Navigation
             _agentPositions.Dispose();
             _agentSpatialMap.Dispose();
             _agentVelocity.Dispose();
+            _agentActive.Dispose();
 
 
             _openList.Dispose();
