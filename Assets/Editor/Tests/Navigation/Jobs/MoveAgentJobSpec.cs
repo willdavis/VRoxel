@@ -57,8 +57,14 @@ namespace NavigationSpecs
             for (int i = 0; i < 1; i++)
                 flowField[i] = 1;
 
+            NativeArray<bool> active = new NativeArray<bool>(2, Allocator.Persistent);
+            for (int i = 0; i < 2; i++)
+                active[i] = true;
+
             MoveAgentJob job = new MoveAgentJob()
             {
+                active = active,
+
                 mass = 1f,
                 maxForce = 1f,
                 maxSpeed = 1f,
@@ -92,7 +98,7 @@ namespace NavigationSpecs
             Assert.AreNotEqual(rotation_0, transforms[0].rotation);
             Assert.AreNotEqual(rotation_1, transforms[1].rotation);
 
-
+            active.Dispose();
             flowField.Dispose();
             velocity.Dispose();
             directions.Dispose();

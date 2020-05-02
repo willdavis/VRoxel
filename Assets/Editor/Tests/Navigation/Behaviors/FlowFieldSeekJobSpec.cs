@@ -22,6 +22,9 @@ namespace NavigationBehaviorSpecs
             NativeArray<float3> positions = new NativeArray<float3>(1, Allocator.Persistent);
             positions[0] = Vector3.up;
 
+            NativeArray<bool> active = new NativeArray<bool>(1, Allocator.Persistent);
+            active[0] = true;
+
             NativeArray<byte> flowField = new NativeArray<byte>(1, Allocator.Persistent);
             NativeArray<int3> flowDirections = new NativeArray<int3>(27, Allocator.Persistent);
 
@@ -36,6 +39,7 @@ namespace NavigationBehaviorSpecs
 
             FlowFieldSeekJob job = new FlowFieldSeekJob()
             {
+                active = active,
                 maxSpeed = 1f,
 
                 world_scale = 1f,
@@ -62,6 +66,7 @@ namespace NavigationBehaviorSpecs
             positions.Dispose();
             directions.Dispose();
             velocity.Dispose();
+            active.Dispose();
         }
     }
 }

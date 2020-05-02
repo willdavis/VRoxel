@@ -34,6 +34,8 @@ namespace VRoxel.Navigation
         public float avoidRadius;
         public float avoidDistance;
 
+        public NativeArray<bool> activeAgents { get { return _agentActive; } }
+
         World _world;
         int _max;
 
@@ -41,6 +43,7 @@ namespace VRoxel.Navigation
         NativeArray<float3> _agentDirections;
         NativeArray<float3> _agentPositions;
         NativeArray<float3> _agentVelocity;
+        NativeArray<bool> _agentActive;
 
         NativeMultiHashMap<int3, float3> _agentSpatialMap;
         NativeMultiHashMap<int3, float3>.ParallelWriter _agentSpatialMapWriter;
@@ -64,6 +67,7 @@ namespace VRoxel.Navigation
             _agentDirections = new NativeArray<float3>(maxAgents, Allocator.Persistent);
             _agentPositions = new NativeArray<float3>(maxAgents, Allocator.Persistent);
             _agentVelocity = new NativeArray<float3>(maxAgents, Allocator.Persistent);
+            _agentActive = new NativeArray<bool>(maxAgents, Allocator.Persistent);
 
             // initialize collision detection & avoidance data structures
             _agentSpatialMap = new NativeMultiHashMap<int3, float3>(maxAgents, Allocator.Persistent);
@@ -118,6 +122,7 @@ namespace VRoxel.Navigation
             _agentPositions.Dispose();
             _agentSpatialMap.Dispose();
             _agentVelocity.Dispose();
+            _agentActive.Dispose();
 
 
             _openList.Dispose();
@@ -145,10 +150,12 @@ namespace VRoxel.Navigation
                 world_offset = _world.transform.position,
                 world_rotation = _world.transform.rotation,
 
+                active = _agentActive,
                 spatialMap = _agentSpatialMapWriter,
                 positions = _agentPositions,
                 size = spatialBucketSize
             };
+            JobHandle spaceHandle = spaceJob.Schedule(_transformAccess, updateHandle);
 
             FlowFieldSeekJob seekJob = new FlowFieldSeekJob()
             {
@@ -163,10 +170,12 @@ namespace VRoxel.Navigation
                 flowDirections = _directions,
                 flowFieldSize = worldSize,
 
+                active = _agentActive,
                 positions = _agentPositions,
                 steering = _agentDirections,
                 velocity = _agentVelocity,
             };
+            JobHandle seekHandle = seekJob.Schedule(_max, 1, spaceHandle);
 
             AvoidCollisionBehavior avoidJob = new AvoidCollisionBehavior()
             {
@@ -179,6 +188,7 @@ namespace VRoxel.Navigation
                 world_offset = _world.transform.position,
                 world_rotation = _world.transform.rotation,
 
+                active = _agentActive,
                 position = _agentPositions,
                 velocity = _agentVelocity,
                 steering = _agentDirections,
@@ -186,6 +196,7 @@ namespace VRoxel.Navigation
                 spatialMap = _agentSpatialMap,
                 size = spatialBucketSize
             };
+            JobHandle avoidHandle = avoidJob.Schedule(_max, 1, seekHandle);
 
             QueueBehavior queueJob = new QueueBehavior()
             {
@@ -193,6 +204,7 @@ namespace VRoxel.Navigation
                 maxQueueRadius = queueRadius,
                 maxQueueAhead = queueDistance,
 
+                active = _agentActive,
                 steering = _agentDirections,
                 position = _agentPositions,
                 velocity = _agentVelocity,
@@ -205,6 +217,7 @@ namespace VRoxel.Navigation
                 size = spatialBucketSize,
                 spatialMap = _agentSpatialMap
             };
+            JobHandle queueHandle = queueJob.Schedule(_max, 1, avoidHandle);
 
             MoveAgentJob moveJob = new MoveAgentJob()
             {
@@ -213,6 +226,7 @@ namespace VRoxel.Navigation
                 maxSpeed = maxSpeed,
                 turnSpeed = turnSpeed,
 
+                active = _agentActive,
                 steering = _agentDirections,
                 velocity = _agentVelocity,
                 deltaTime = dt,
@@ -226,10 +240,6 @@ namespace VRoxel.Navigation
                 flowFieldSize = worldSize,
             };
 
-            JobHandle spaceHandle = spaceJob.Schedule(_transformAccess, updateHandle);
-            JobHandle seekHandle = seekJob.Schedule(_max, 100, spaceHandle);
-            JobHandle avoidHandle = avoidJob.Schedule(_max, 100, seekHandle);
-            JobHandle queueHandle = queueJob.Schedule(_max, 100, avoidHandle);
             return moveJob.Schedule(_transformAccess, queueHandle);
         }
 

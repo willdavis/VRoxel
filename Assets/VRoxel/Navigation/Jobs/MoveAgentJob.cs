@@ -68,6 +68,11 @@ namespace VRoxel.Navigation
         public NativeArray<byte> flowField;
 
 
+        /// <summary>
+        /// the current status of each agent
+        /// </summary>
+        [ReadOnly]
+        public NativeArray<bool> active;
 
         /// <summary>
         /// the current steering forces applied to each agent
@@ -82,6 +87,8 @@ namespace VRoxel.Navigation
 
         public void Execute(int i, TransformAccess transform)
         {
+            if (!active[i]) { return; }
+
             float3 up = new float3(0,1,0);
             float3 position = transform.position;
             quaternion rotation = transform.rotation;

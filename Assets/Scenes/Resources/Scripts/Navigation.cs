@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using Unity.Jobs;
+using Unity.Collections;
 
 using VRoxel.Core;
 using VRoxel.Navigation;
@@ -60,6 +61,8 @@ public class Navigation : MonoBehaviour
         for (int i = 0; i < maxAgents; i++)
         {
             NavAgent agent = NavAgentPool.Instance.Get();
+            agent.index = i;
+
             Enemy enemy = agent.GetComponent<Enemy>();
             enemy.OnDeath.AddListener(Remove);
 
@@ -172,6 +175,15 @@ public class Navigation : MonoBehaviour
         agent.transform.rotation = _world.transform.rotation;
         agent.transform.position = position;
         agent.gameObject.SetActive(true);
+
+        NativeSlice<bool> slice = _agents.activeAgents.Slice(agent.index, 1);
+        ActivateAgents activation = new ActivateAgents()
+        {
+            status = true,
+            agents = slice
+        };
+        activation.Schedule(1,1).Complete();
+
         return agent;
     }
 
@@ -214,6 +226,14 @@ public class Navigation : MonoBehaviour
             agent.transform.rotation = _world.transform.rotation;
             agent.transform.position = position;
             agent.gameObject.SetActive(true);
+
+            NativeSlice<bool> slice = _agents.activeAgents.Slice(agent.index, 1);
+            ActivateAgents activation = new ActivateAgents()
+            {
+                status = true,
+                agents = slice
+            };
+            activation.Schedule(1,1).Complete();
         }
     }
 
@@ -224,5 +244,13 @@ public class Navigation : MonoBehaviour
     {
         NavAgent agent = enemy.GetComponent<NavAgent>();
         NavAgentPool.Instance.ReturnToPool(agent);
+
+        NativeSlice<bool> slice = _agents.activeAgents.Slice(agent.index, 1);
+        ActivateAgents activation = new ActivateAgents()
+        {
+            status = false,
+            agents = slice
+        };
+        activation.Schedule(1,1).Complete();
     }
 }

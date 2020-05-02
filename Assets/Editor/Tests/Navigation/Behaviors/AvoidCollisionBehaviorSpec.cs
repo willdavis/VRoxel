@@ -160,6 +160,10 @@ namespace NavigationBehaviorSpecs
             positions[0] = position1;
             positions[1] = position2;
 
+            NativeArray<bool> active = new NativeArray<bool>(2, Allocator.Persistent);
+            for (int i = 0; i < 2; i++)
+                active[i] = true;
+
             NativeArray<float3> steering = new NativeArray<float3>(2, Allocator.Persistent);
             NativeArray<float3> velocity = new NativeArray<float3>(2, Allocator.Persistent);
             velocity[0] = new float3(0, 0, 0);
@@ -168,6 +172,7 @@ namespace NavigationBehaviorSpecs
 
             AvoidCollisionBehavior job = new AvoidCollisionBehavior()
             {
+                active = active,
                 avoidDistance = 1f,
                 avoidRadius = 1f,
                 avoidForce = 1f,
@@ -193,6 +198,7 @@ namespace NavigationBehaviorSpecs
             positions.Dispose();
             steering.Dispose();
             velocity.Dispose();
+            active.Dispose();
         }
     }
 }

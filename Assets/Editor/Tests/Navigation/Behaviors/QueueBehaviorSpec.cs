@@ -101,8 +101,13 @@ namespace NavigationBehaviorSpecs
             velocity[0] = new float3(0, 0, 0);
             velocity[1] = new float3(0, 1, 0);
 
+            NativeArray<bool> active = new NativeArray<bool>(2, Allocator.Persistent);
+            for (int i = 0; i < 2; i++)
+                active[i] = true;
+
             QueueBehavior job = new QueueBehavior()
             {
+                active = active,
                 maxBrakeForce = 0.8f,
                 maxQueueAhead = 1f,
                 maxQueueRadius = 1f,
@@ -137,6 +142,7 @@ namespace NavigationBehaviorSpecs
             positions.Dispose();
             steering.Dispose();
             velocity.Dispose();
+            active.Dispose();
         }
     }
 }
