@@ -12,7 +12,7 @@ namespace VRoxel.Navigation
     {
         public bool status;
 
-        [ReadOnly]
+        [WriteOnly]
         public NativeSlice<bool> agents;
 
         public void Execute(int i)
