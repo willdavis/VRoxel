@@ -33,6 +33,9 @@ namespace VRoxel.Navigation
         /// </summary>
         public quaternion world_rotation;
 
+        [ReadOnly]
+        public NativeArray<bool> active;
+
         [WriteOnly]
         public NativeArray<float3> positions;
 
@@ -41,6 +44,8 @@ namespace VRoxel.Navigation
 
         public void Execute(int i, TransformAccess transform)
         {
+            if (!active[i]) { return; }
+
             int3 grid = GridPosition(transform.position);
             int3 bucket = new int3(
                 grid.x / size.x,

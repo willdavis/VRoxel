@@ -150,6 +150,7 @@ namespace VRoxel.Navigation
                 world_offset = _world.transform.position,
                 world_rotation = _world.transform.rotation,
 
+                active = _agentActive,
                 spatialMap = _agentSpatialMapWriter,
                 positions = _agentPositions,
                 size = spatialBucketSize
@@ -169,6 +170,7 @@ namespace VRoxel.Navigation
                 flowDirections = _directions,
                 flowFieldSize = worldSize,
 
+                active = _agentActive,
                 positions = _agentPositions,
                 steering = _agentDirections,
                 velocity = _agentVelocity,
@@ -186,6 +188,7 @@ namespace VRoxel.Navigation
                 world_offset = _world.transform.position,
                 world_rotation = _world.transform.rotation,
 
+                active = _agentActive,
                 position = _agentPositions,
                 velocity = _agentVelocity,
                 steering = _agentDirections,
@@ -201,6 +204,7 @@ namespace VRoxel.Navigation
                 maxQueueRadius = queueRadius,
                 maxQueueAhead = queueDistance,
 
+                active = _agentActive,
                 steering = _agentDirections,
                 position = _agentPositions,
                 velocity = _agentVelocity,
@@ -222,6 +226,7 @@ namespace VRoxel.Navigation
                 maxSpeed = maxSpeed,
                 turnSpeed = turnSpeed,
 
+                active = _agentActive,
                 steering = _agentDirections,
                 velocity = _agentVelocity,
                 deltaTime = dt,

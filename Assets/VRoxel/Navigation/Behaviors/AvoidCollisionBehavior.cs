@@ -47,10 +47,15 @@ namespace VRoxel.Navigation
         public NativeArray<float3> velocity;
 
         [ReadOnly]
+        public NativeArray<bool> active;
+
+        [ReadOnly]
         public NativeMultiHashMap<int3, float3> spatialMap;
 
         public void Execute(int i)
         {
+            if (!active[i]) { return; }
+
             float dynamicLength = math.length(velocity[i]) / avoidDistance;
             float3 direction = math.normalizesafe(velocity[i], float3.zero);
             float3 closest = new float3(float.MaxValue, float.MaxValue, float.MaxValue);

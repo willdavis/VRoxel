@@ -54,6 +54,9 @@ namespace VRoxel.Navigation
         [ReadOnly]
         public NativeArray<float3> velocity;
 
+        [ReadOnly]
+        public NativeArray<bool> active;
+
         /// <summary>
         /// the direction indexes for each block in the world.
         /// Blocks with a value of 0 have no direction
@@ -69,6 +72,8 @@ namespace VRoxel.Navigation
 
         public void Execute(int i)
         {
+            if (!active[i]) { return; }
+
             int3 grid = GridPosition(positions[i]);
             grid += new int3(0, -1, 0);
 
