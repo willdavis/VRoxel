@@ -35,6 +35,7 @@ namespace VRoxel.Navigation
         public float avoidDistance;
 
         public NativeArray<bool> activeAgents { get { return _agentActive; } }
+        public TransformAccessArray transforms { get { return _transformAccess; } }
 
         World _world;
         int _max;
