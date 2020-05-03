@@ -50,11 +50,13 @@ public class Navigation : MonoBehaviour
         _agents.brakeForce = 0.8f;
         _agents.queueRadius = 1f * _world.scale;
         _agents.queueDistance = 1f * _world.scale;
+        _agents.maxQueueDepth = 200;
 
         // avoidance
         _agents.avoidForce = 6f * _world.scale;
         _agents.avoidRadius = 4f * _world.scale;
         _agents.avoidDistance = 4f * _world.scale;
+        _agents.maxAvoidDepth = 200;
 
 
         // initialize all of the agents

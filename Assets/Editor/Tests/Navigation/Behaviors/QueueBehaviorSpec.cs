@@ -65,7 +65,8 @@ namespace NavigationBehaviorSpecs
             {
                 spatialMap = spatialMap,
                 maxQueueRadius = 0.25f,
-                position = positions
+                position = positions,
+                maxDepth = 100,
             };
 
             bool collision;
@@ -111,6 +112,7 @@ namespace NavigationBehaviorSpecs
                 maxBrakeForce = 0.8f,
                 maxQueueAhead = 1f,
                 maxQueueRadius = 1f,
+                maxDepth = 100,
 
                 world_scale = 1f,
                 world_offset = float3.zero,

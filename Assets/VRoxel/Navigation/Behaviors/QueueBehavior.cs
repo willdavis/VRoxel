@@ -8,6 +8,7 @@ namespace VRoxel.Navigation
     [BurstCompile]
     public struct QueueBehavior : IJobParallelFor
     {
+        public int maxDepth;
         public float maxQueueAhead;
         public float maxQueueRadius;
         public float maxBrakeForce;
@@ -109,8 +110,6 @@ namespace VRoxel.Navigation
             NativeMultiHashMapIterator<int3> iter;
 
             int count = 0;
-            int maxDepth = 200;
-
             hasValues = spatialMap.TryGetFirstValue(bucket, out agent, out iter);
             while (hasValues)
             {

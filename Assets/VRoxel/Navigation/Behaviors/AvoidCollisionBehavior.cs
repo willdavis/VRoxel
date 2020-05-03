@@ -8,6 +8,7 @@ namespace VRoxel.Navigation
     [BurstCompile]
     public struct AvoidCollisionBehavior : IJobParallelFor
     {
+        public int maxDepth;
         public float avoidForce;
         public float avoidRadius;
         public float avoidDistance;
@@ -129,8 +130,6 @@ namespace VRoxel.Navigation
             NativeMultiHashMapIterator<int3> iter;
 
             int count = 0;
-            int maxDepth = 32;
-
             hasValues = spatialMap.TryGetFirstValue(bucket, out agent, out iter);
             while (hasValues)
             {

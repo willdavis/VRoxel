@@ -28,11 +28,13 @@ namespace VRoxel.Navigation
         public float brakeForce;
         public float queueRadius;
         public float queueDistance;
+        public int maxQueueDepth;
 
         // avoidance
         public float avoidForce;
         public float avoidRadius;
         public float avoidDistance;
+        public int maxAvoidDepth;
 
         public NativeArray<bool> activeAgents { get { return _agentActive; } }
         public TransformAccessArray transforms { get { return _transformAccess; } }
@@ -183,6 +185,7 @@ namespace VRoxel.Navigation
                 avoidForce = avoidForce,
                 avoidRadius = avoidRadius,
                 avoidDistance = avoidDistance,
+                maxDepth = maxAvoidDepth,
 
                 world_scale = _world.scale,
                 world_center = _world.data.center,
@@ -201,6 +204,7 @@ namespace VRoxel.Navigation
 
             QueueBehavior queueJob = new QueueBehavior()
             {
+                maxDepth = maxQueueDepth,
                 maxBrakeForce = brakeForce,
                 maxQueueRadius = queueRadius,
                 maxQueueAhead = queueDistance,

@@ -108,6 +108,7 @@ namespace NavigationBehaviorSpecs
 
             AvoidCollisionBehavior job = new AvoidCollisionBehavior()
             {
+                maxDepth = 100,
                 avoidRadius = 0.5f,
                 position = positions,
                 spatialMap = spatialMap
@@ -176,6 +177,7 @@ namespace NavigationBehaviorSpecs
                 avoidDistance = 1f,
                 avoidRadius = 1f,
                 avoidForce = 1f,
+                maxDepth = 100,
 
                 size = new int3(1,1,1),
                 spatialMap = spatialMap,
