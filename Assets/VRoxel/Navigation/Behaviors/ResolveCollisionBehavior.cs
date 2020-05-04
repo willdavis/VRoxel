@@ -70,15 +70,17 @@ namespace VRoxel.Navigation
 
         public bool Collision(float3 self, float3 target, float radius)
         {
+            if (self.Equals(target)) { return false; }
             return math.length(self - target) <= radius;
         }
 
-        public void ApplyCollisionForce(int i, float3 center)
+        public void ApplyCollisionForce(int i, float3 target)
         {
-            float3 collision = position[i] - center;
-            float length = math.length(position[i] - center);
-            float scale = (collisionRadius / length) * collisionForce;
+            float3 collision = position[i] - target;
+            float length = math.length(position[i] - target);
+            if (length == 0) { return; }
 
+            float scale = (collisionRadius / length) * collisionForce;
             collision = math.normalizesafe(collision, float3.zero);
 
             steering[i] += collision * scale;
@@ -116,7 +118,7 @@ namespace VRoxel.Navigation
                 if (count == maxDepth) { break; }
                 count++;
 
-                if (!position[i].Equals(agent) && Collision(position[i], agent, collisionRadius))
+                if (Collision(position[i], agent, collisionRadius))
                     ApplyCollisionForce(i, agent);
 
                 hasValue = spatialMap.TryGetNextValue(out agent, ref iter);
