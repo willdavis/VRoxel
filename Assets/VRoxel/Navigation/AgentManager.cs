@@ -36,6 +36,11 @@ namespace VRoxel.Navigation
         public float avoidDistance;
         public int maxAvoidDepth;
 
+        // collision
+        public float collisionForce;
+        public float collisionRadius;
+        public int maxCollisionDepth;
+
         public NativeArray<bool> activeAgents { get { return _agentActive; } }
         public TransformAccessArray transforms { get { return _transformAccess; } }
 
@@ -224,6 +229,27 @@ namespace VRoxel.Navigation
             };
             JobHandle queueHandle = queueJob.Schedule(_max, 1, avoidHandle);
 
+            ResolveCollisionBehavior collisionJob = new ResolveCollisionBehavior()
+            {
+                collisionForce = collisionForce,
+                collisionRadius = collisionRadius,
+                maxDepth = maxCollisionDepth,
+
+                world_scale = _world.scale,
+                world_center = _world.data.center,
+                world_offset = _world.transform.position,
+                world_rotation = _world.transform.rotation,
+
+                active = _agentActive,
+                position = _agentPositions,
+                velocity = _agentVelocity,
+                steering = _agentDirections,
+
+                spatialMap = _agentSpatialMap,
+                size = spatialBucketSize
+            };
+            JobHandle collisionHandle = collisionJob.Schedule(_max, 1, queueHandle);
+
             MoveAgentJob moveJob = new MoveAgentJob()
             {
                 mass = mass,
@@ -245,7 +271,7 @@ namespace VRoxel.Navigation
                 flowFieldSize = worldSize,
             };
 
-            return moveJob.Schedule(_transformAccess, queueHandle);
+            return moveJob.Schedule(_transformAccess, collisionHandle);
         }
 
         public JobHandle UpdateFlowField(Vector3Int goal, JobHandle handle)

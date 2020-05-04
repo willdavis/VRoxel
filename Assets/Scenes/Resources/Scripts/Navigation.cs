@@ -37,7 +37,7 @@ public class Navigation : MonoBehaviour
         _agents = new AgentManager(_world, maxAgents);
 
         // configure the agent manager
-        _agents.spatialBucketSize = new Unity.Mathematics.int3(4,4,4);
+        _agents.spatialBucketSize = new Unity.Mathematics.int3(2,2,2);
         _agents.maxSpeed = 4f * _world.scale;
         _agents.turnSpeed = 4f * _world.scale;
         _agents.height = 2;
@@ -46,16 +46,21 @@ public class Navigation : MonoBehaviour
         // movement
         _agents.moveForce = 10f * _world.scale;
 
+        // collision
+        _agents.collisionForce = 6f * _world.scale;
+        _agents.collisionRadius = 1.5f * _world.scale;
+        _agents.maxCollisionDepth = 200;
+
         // queuing
         _agents.brakeForce = 0.8f;
-        _agents.queueRadius = 1f * _world.scale;
-        _agents.queueDistance = 1f * _world.scale;
+        _agents.queueRadius = 1.5f * _world.scale;
+        _agents.queueDistance = 1.5f * _world.scale;
         _agents.maxQueueDepth = 200;
 
         // avoidance
-        _agents.avoidForce = 6f * _world.scale;
-        _agents.avoidRadius = 4f * _world.scale;
-        _agents.avoidDistance = 4f * _world.scale;
+        _agents.avoidForce = 4f * _world.scale;
+        _agents.avoidRadius = 3f * _world.scale;
+        _agents.avoidDistance = 8f * _world.scale;
         _agents.maxAvoidDepth = 200;
 
 
