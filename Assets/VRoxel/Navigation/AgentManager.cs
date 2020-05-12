@@ -44,6 +44,14 @@ namespace VRoxel.Navigation
         public NativeArray<bool> activeAgents { get { return _agentActive; } }
         public TransformAccessArray transforms { get { return _transformAccess; } }
 
+        public JobHandle moveHandle;
+        public JobHandle updateHandle;
+
+        /// <summary>
+        /// A singleton instance of the AgentManager
+        /// </summary>
+        public static AgentManager Instance { get; private set; }
+
         World _world;
         int _max;
 
@@ -64,10 +72,10 @@ namespace VRoxel.Navigation
         NativeArray<int3> _directions;
         NativeArray<int> _directionsNESW;
 
-        JobHandle updateHandle;
-
         public AgentManager(World world, int maxAgents)
         {
+            Instance = this;
+
             _world = world;
             _max = maxAgents;
 
@@ -271,7 +279,8 @@ namespace VRoxel.Navigation
                 flowFieldSize = worldSize,
             };
 
-            return moveJob.Schedule(_transformAccess, collisionHandle);
+            moveHandle = moveJob.Schedule(_transformAccess, collisionHandle);
+            return moveHandle;
         }
 
         public JobHandle UpdateFlowField(Vector3Int goal, JobHandle handle)
