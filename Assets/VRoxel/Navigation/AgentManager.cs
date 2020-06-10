@@ -22,7 +22,7 @@ namespace VRoxel.Navigation
         public float turnSpeed;
 
         // moving
-        public float moveForce;
+        public float maxForce;
 
         // queuing
         public float brakeForce;
@@ -261,7 +261,7 @@ namespace VRoxel.Navigation
             MoveAgentJob moveJob = new MoveAgentJob()
             {
                 mass = mass,
-                maxForce = moveForce,
+                maxForce = maxForce,
                 maxSpeed = maxSpeed,
                 turnSpeed = turnSpeed,
 
