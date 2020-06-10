@@ -44,7 +44,7 @@ public class Navigation : MonoBehaviour
         _agents.mass = 1f;
 
         // movement
-        _agents.moveForce = 10f * _world.scale;
+        _agents.maxForce = 10f * _world.scale;
 
         // collision
         _agents.collisionForce = 6f * _world.scale;
