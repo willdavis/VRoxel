@@ -33,6 +33,11 @@ namespace VRoxel.Terrain
         /// </summary>
         NativeArray<ushort> m_data;
 
+        /// <summary>
+        /// Handle for the background job to refresh the height map
+        /// </summary>
+        JobHandle m_refreshing;
+
         //-------------------------------------------------
         #region Monobehaviors
 
@@ -66,6 +71,15 @@ namespace VRoxel.Terrain
             m_data = new NativeArray<ushort>(
                 size.x * size.y, Allocator.Persistent
             );
+        }
+
+        /// <summary>
+        /// Schedules a background job to update the height map
+        /// </summary>
+        public JobHandle Refresh(JobHandle dependsOn = default(JobHandle))
+        {
+            if (!m_refreshing.IsCompleted) { m_refreshing.Complete(); }
+            return m_refreshing;
         }
 
         /// <summary>

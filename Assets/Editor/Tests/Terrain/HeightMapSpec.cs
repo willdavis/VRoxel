@@ -53,5 +53,18 @@ namespace TerrainSpecs
             Assert.AreEqual(7, map.Flatten(2,1));
             Assert.AreEqual(8, map.Flatten(2,2));
         }
+
+        [Test]
+        public void CanRefreshTheHeightMap()
+        {
+            GameObject obj = new GameObject();
+            HeightMap map = obj.AddComponent<HeightMap>();
+
+            map.size = Vector2Int.one;
+            Unity.Jobs.JobHandle handle = map.Refresh();
+
+            Assert.IsInstanceOf(typeof(Unity.Jobs.JobHandle), handle);
+            Assert.AreEqual(true, handle.IsCompleted);
+        }
     }
 }
