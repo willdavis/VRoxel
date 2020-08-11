@@ -70,9 +70,14 @@ namespace VRoxel.Terrain
         {
             if (!m_refreshing.IsCompleted) { m_refreshing.Complete(); }
 
-            UpdateHeightMap job = new UpdateHeightMap() {  };
-            int length = size.x * size.z;
             int batch = 1;
+            int length = size.x * size.z;
+            UpdateHeightMap job = new UpdateHeightMap()
+            {
+                size = new int3(size.x, size.y, size.z),
+                voxels = voxels,
+                data = m_data,
+            };
 
             m_refreshing = job.Schedule(length, batch, dependsOn);
             return m_refreshing;

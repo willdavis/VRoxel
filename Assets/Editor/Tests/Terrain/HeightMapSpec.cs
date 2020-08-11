@@ -1,6 +1,8 @@
 ﻿using NUnit.Framework;
 using VRoxel.Terrain;
 using UnityEngine;
+using Unity.Collections;
+using Unity.Jobs;
 
 namespace TerrainSpecs
 {
@@ -41,15 +43,20 @@ namespace TerrainSpecs
         {
             GameObject obj = new GameObject();
             HeightMap map = obj.AddComponent<HeightMap>();
+            NativeArray<byte> voxels = new NativeArray<byte>(1, Allocator.Persistent);
 
+            map.voxels = voxels;
             map.size = Vector3Int.one;
-            Unity.Jobs.JobHandle handle = map.Refresh();
+            map.Initialize();
 
-            Assert.IsInstanceOf(typeof(Unity.Jobs.JobHandle), handle);
+            JobHandle handle = map.Refresh();
             Assert.AreEqual(false, handle.IsCompleted);
 
             handle.Complete();
             Assert.AreEqual(true, handle.IsCompleted);
+
+            voxels.Dispose();
+            map.Dispose();
         }
     }
 }
