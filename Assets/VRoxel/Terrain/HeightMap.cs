@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using VRoxel.Core;
 
 using Unity.Collections;
 using Unity.Mathematics;
@@ -8,28 +7,23 @@ using Unity.Jobs;
 namespace VRoxel.Terrain
 {
     /// <summary>
-    /// Represents a 2D array of height values for voxel terrain
+    /// A 2D height map of voxel terrain
     /// </summary>
     public class HeightMap : MonoBehaviour
     {
         /// <summary>
-        /// The reference to the voxel world
+        /// The total (x,z) size of the height map
+        /// plus the maximum height (y) value
         /// </summary>
-        [Tooltip("Can be left blank if the object has a World component")]
-        public World world;
+        public Vector3Int size;
 
         /// <summary>
-        /// The maximum height value the height map can have
+        /// A reference to the 3D array of voxel terrain
         /// </summary>
-        public ushort maxHeight;
+        public NativeArray<byte> voxels;
 
         /// <summary>
-        /// The total (x,y) size of the height map
-        /// </summary>
-        public Vector2Int size;
-
-        /// <summary>
-        /// A 2D array of height values for the terrain
+        /// The cached 2D array of terrain height values
         /// </summary>
         NativeArray<ushort> m_data;
 
@@ -40,12 +34,6 @@ namespace VRoxel.Terrain
 
         //-------------------------------------------------
         #region Monobehaviors
-
-        protected virtual void Awake()
-        {
-            if (world == null)
-                world = GetComponent<World>();
-        }
 
         protected virtual void Start()
         {
@@ -69,7 +57,7 @@ namespace VRoxel.Terrain
         public void Initialize()
         {
             m_data = new NativeArray<ushort>(
-                size.x * size.y, Allocator.Persistent
+                size.x * size.z, Allocator.Persistent
             );
         }
 
@@ -83,32 +71,32 @@ namespace VRoxel.Terrain
         }
 
         /// <summary>
-        /// Returns the height of the terrain at the point (x,y)
+        /// Returns the height of the terrain at (x,z)
         /// </summary>
-        public ushort Read(int x, int y)
+        public ushort Read(int x, int z)
         {
-            if (!Contains(x,y))
+            if (!Contains(x,z))
                 return ushort.MaxValue;
 
-            return m_data[Flatten(x,y)];
+            return m_data[Flatten(x,z)];
         }
 
         /// <summary>
-        /// Converts a (x,y) position into an array index
+        /// Converts (x,z) to an index in the height map
         /// </summary>
-        public int Flatten(int x, int y)
+        public int Flatten(int x, int z)
         {
-            /// A[x,y] = A[x * height + y]
-            return x * size.y + y;
+            /// 2D[x,y] = 2D[x * height + y]
+            return x * size.z + z;
         }
 
         /// <summary>
-        /// Checks if a (x,y) position is inside the height map
+        /// Checks if (x,z) is inside the height map
         /// </summary>
-        public bool Contains(int x, int y)
+        public bool Contains(int x, int z)
         {
             if (x < 0 || x >= size.x) { return false; }
-            if (y < 0 || y >= size.y) { return false; }
+            if (z < 0 || z >= size.z) { return false; }
             return true;
         }
 

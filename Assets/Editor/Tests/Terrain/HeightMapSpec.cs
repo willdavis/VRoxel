@@ -12,7 +12,7 @@ namespace TerrainSpecs
             GameObject obj = new GameObject();
             HeightMap map = obj.AddComponent<HeightMap>();
 
-            map.size = Vector2Int.one;
+            map.size = Vector3Int.one;
             map.Initialize();
 
             ushort max = ushort.MaxValue;
@@ -28,7 +28,7 @@ namespace TerrainSpecs
             GameObject obj = new GameObject();
             HeightMap map = obj.AddComponent<HeightMap>();
 
-            map.size = Vector2Int.one * 2;
+            map.size = Vector3Int.one * 2;
             Assert.AreEqual(true, map.Contains(0,0));
             Assert.AreEqual(true, map.Contains(1,1));
 
@@ -42,7 +42,7 @@ namespace TerrainSpecs
             GameObject obj = new GameObject();
             HeightMap map = obj.AddComponent<HeightMap>();
 
-            map.size = Vector2Int.one * 3;
+            map.size = Vector3Int.one * 3;
             Assert.AreEqual(0, map.Flatten(0,0));
             Assert.AreEqual(1, map.Flatten(0,1));
             Assert.AreEqual(2, map.Flatten(0,2));
@@ -60,7 +60,7 @@ namespace TerrainSpecs
             GameObject obj = new GameObject();
             HeightMap map = obj.AddComponent<HeightMap>();
 
-            map.size = Vector2Int.one;
+            map.size = Vector3Int.one;
             Unity.Jobs.JobHandle handle = map.Refresh();
 
             Assert.IsInstanceOf(typeof(Unity.Jobs.JobHandle), handle);
