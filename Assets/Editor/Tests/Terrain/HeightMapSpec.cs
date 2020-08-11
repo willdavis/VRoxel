@@ -37,24 +37,6 @@ namespace TerrainSpecs
         }
 
         [Test]
-        public void CanFlattenToIndex()
-        {
-            GameObject obj = new GameObject();
-            HeightMap map = obj.AddComponent<HeightMap>();
-
-            map.size = Vector3Int.one * 3;
-            Assert.AreEqual(0, map.Flatten(0,0));
-            Assert.AreEqual(1, map.Flatten(0,1));
-            Assert.AreEqual(2, map.Flatten(0,2));
-            Assert.AreEqual(3, map.Flatten(1,0));
-            Assert.AreEqual(4, map.Flatten(1,1));
-            Assert.AreEqual(5, map.Flatten(1,2));
-            Assert.AreEqual(6, map.Flatten(2,0));
-            Assert.AreEqual(7, map.Flatten(2,1));
-            Assert.AreEqual(8, map.Flatten(2,2));
-        }
-
-        [Test]
         public void CanRefreshTheHeightMap()
         {
             GameObject obj = new GameObject();
@@ -64,6 +46,9 @@ namespace TerrainSpecs
             Unity.Jobs.JobHandle handle = map.Refresh();
 
             Assert.IsInstanceOf(typeof(Unity.Jobs.JobHandle), handle);
+            Assert.AreEqual(false, handle.IsCompleted);
+
+            handle.Complete();
             Assert.AreEqual(true, handle.IsCompleted);
         }
     }

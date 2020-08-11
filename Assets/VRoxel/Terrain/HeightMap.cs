@@ -4,6 +4,8 @@ using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Jobs;
 
+using VRoxel.Terrain.HeightMaps;
+
 namespace VRoxel.Terrain
 {
     /// <summary>
@@ -67,6 +69,12 @@ namespace VRoxel.Terrain
         public JobHandle Refresh(JobHandle dependsOn = default(JobHandle))
         {
             if (!m_refreshing.IsCompleted) { m_refreshing.Complete(); }
+
+            UpdateHeightMap job = new UpdateHeightMap() {  };
+            int length = size.x * size.z;
+            int batch = 1;
+
+            m_refreshing = job.Schedule(length, batch, dependsOn);
             return m_refreshing;
         }
 
@@ -78,16 +86,8 @@ namespace VRoxel.Terrain
             if (!Contains(x,z))
                 return ushort.MaxValue;
 
-            return m_data[Flatten(x,z)];
-        }
-
-        /// <summary>
-        /// Converts (x,z) to an index in the height map
-        /// </summary>
-        public int Flatten(int x, int z)
-        {
             /// 2D[x,y] = 2D[x * height + y]
-            return x * size.z + z;
+            return m_data[x * size.z + z];
         }
 
         /// <summary>
