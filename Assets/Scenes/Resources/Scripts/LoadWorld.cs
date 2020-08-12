@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
+﻿using UnityEngine;
 using VRoxel.Core;
 using VRoxel.Terrain;
 
@@ -9,6 +6,7 @@ public class LoadWorld : MonoBehaviour
 {
 
     World _world;
+    HeightMap _heightMap;
 
     [HideInInspector]
     public Generator terrain;
@@ -29,6 +27,7 @@ public class LoadWorld : MonoBehaviour
     void Awake()
     {
         _world = GetComponent<World>();
+        _heightMap = GetComponent<HeightMap>();
     }
 
     void Start()
@@ -37,6 +36,9 @@ public class LoadWorld : MonoBehaviour
         BuildBlockManager();        // 2. initialize the different blocks
         GenerateTerrainData();      // 3. populate the voxel grid with data
         _world.chunks.LoadAll();    // 4. initialize all chunks in the world
+
+        _heightMap.voxels = _world.data.voxels;
+        _heightMap.Refresh().Complete(); // 5. initialize the height map
     }
 
     void BuildBlockManager()

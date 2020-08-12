@@ -3,12 +3,14 @@ using Unity.Jobs;
 using Unity.Collections;
 
 using VRoxel.Core;
+using VRoxel.Terrain;
 using VRoxel.Navigation;
 
 public class Navigation : MonoBehaviour
 {
     World _world;
     EditWorld _editor;
+    HeightMap _heightMap;
     AgentManager _agents;
 
     JobHandle moveHandle;
@@ -25,6 +27,7 @@ public class Navigation : MonoBehaviour
     {
         _world = GetComponent<World>();
         _editor = GetComponent<EditWorld>();
+        _heightMap = GetComponent<HeightMap>();
     }
 
     void Start()
@@ -138,17 +141,9 @@ public class Navigation : MonoBehaviour
     /// </summary>
     Vector3Int GetGoalGridPosition()
     {
-        int y = _world.size.y - 1;
         int x = goalPosition.x;
         int z = goalPosition.y;
-
-        // scan bottom to top for the first air block
-        for (int i = 0; i < _world.size.y; i++)
-        {
-            bool found = _world.data.Get(x, i, z) == 0;
-            if (found) { y = i - 1; break; }
-        }
-
+        int y = _heightMap.Read(x,z) + 1;
         return new Vector3Int(x,y,z);
     }
 
@@ -194,46 +189,39 @@ public class Navigation : MonoBehaviour
         return agent;
     }
 
+    /// <summary>
+    /// Adds multiple agents randomly in the scene
+    /// </summary>
     public void SpawnAgents(int count)
     {
+        Vector3 position = Vector3.zero;
+        Vector3Int grid = Vector3Int.zero;
+        Vector2 center = new Vector2(
+            _world.size.x / 2,
+            _world.size.z / 2
+        );
+
         for (int i = 0; i < count; i++)
         {
-            // position the enemy on the board
-            Vector3 position = Vector3.zero;
-            Vector3Int point = Vector3Int.zero;
-
-            Vector2 center = new Vector2(
-                _world.size.x / 2,
-                _world.size.z / 2
-            );
+            // choose a random (x,z) position inside a circle
             Vector2 randomXZ = Random.insideUnitCircle;
             randomXZ *= _world.size.x / 2;
             randomXZ += center;
 
-            point.x = (int)randomXZ.x;
-            point.z = (int)randomXZ.y;
-            point.y = _world.size.y;
+            // update the agents grid position and
+            // convert the grid position to world space
+            grid.x = (int)randomXZ.x; grid.z = (int)randomXZ.y;
+            grid.y = _heightMap.Read(grid.x, grid.z) + 1;
+            position = WorldEditor.Get(_world, grid);
 
-            // find the terrain height
-            for (int j = 0; j < _world.size.y; j++)
-            {
-                if (_world.data.Get(point.x, j, point.z) == 0)
-                {
-                    point.y = j;
-                    break;
-                }
-            }
-
-            // convert from voxel space to scene space
-            position = WorldEditor.Get(_world, point);
-
-            // spawn the new enemy
+            // spawn the new enemy agent
             NavAgent agent = NavAgentPool.Instance.Get();
             agent.transform.localScale = Vector3.one * _world.scale;
             agent.transform.rotation = _world.transform.rotation;
             agent.transform.position = position;
             agent.gameObject.SetActive(true);
 
+            // activate the agent's navigation behaviors
             NativeSlice<bool> slice = _agents.activeAgents.Slice(agent.index, 1);
             ActivateAgents activation = new ActivateAgents()
             {

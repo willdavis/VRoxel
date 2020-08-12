@@ -5,6 +5,7 @@ using Unity.Mathematics;
 using Unity.Jobs;
 
 using VRoxel.Core;
+using VRoxel.Terrain;
 
 public class EditWorld : MonoBehaviour
 {
@@ -29,6 +30,8 @@ public class EditWorld : MonoBehaviour
     RaycastHit _hit;
     Vector3 _hitPosition;
 
+    HeightMap _heightMap;
+
     public JobHandle editHandle;
 
     [HideInInspector]
@@ -40,12 +43,11 @@ public class EditWorld : MonoBehaviour
     void Awake()
     {
         _world = GetComponent<World>();
+        _heightMap = GetComponent<HeightMap>();
     }
 
     void Update()
     {
-        editHandle.Complete();
-
         Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
         if (Physics.Raycast (ray, out _hit))
         {
@@ -68,8 +70,17 @@ public class EditWorld : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0)) // left click - up
         {
-            if (clickAndDrag) { EditRectangle(); }
-            else { WorldEditor.Set(_world, currentPosition, blockType); }
+            if (clickAndDrag)
+            {
+                EditRectangle();
+            }
+            else
+            {
+                WorldEditor.Set(_world, currentPosition, blockType);
+
+                _heightMap.Refresh();
+                _world.data.OnEdit.Invoke(editHandle);
+            }
             _isDragging = false;
         }
     }
@@ -92,7 +103,11 @@ public class EditWorld : MonoBehaviour
             block = blockType
         };
 
+        if (!editHandle.IsCompleted)
+            editHandle.Complete();
+
         editHandle = job.Schedule();
+        _heightMap.Refresh(editHandle);
         _world.data.OnEdit.Invoke(editHandle);
     }
 

@@ -88,8 +88,8 @@ namespace VRoxel.Terrain
         /// </summary>
         public ushort Read(int x, int z)
         {
-            if (!Contains(x,z))
-                return ushort.MaxValue;
+            if (!Contains(x,z)) { return ushort.MaxValue; }
+            if (!m_refreshing.IsCompleted) { m_refreshing.Complete(); }
 
             /// 2D[x,y] = 2D[x * height + y]
             return m_data[x * size.z + z];
