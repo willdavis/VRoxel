@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.Collections;
+using UnityEngine;
 
 namespace VRoxel.Core
 {
@@ -45,41 +46,65 @@ namespace VRoxel.Core
         [HideInInspector]
         public bool collidable = true;
 
-        private Mesh _mesh;
-        private MeshFilter _meshFilter;
-        private MeshCollider _meshCollider;
-        private MeshRenderer _meshRenderer;
+
+        protected Mesh m_mesh;
+        protected MeshFilter m_meshFilter;
+        protected MeshCollider m_meshCollider;
+        protected MeshRenderer m_meshRenderer;
 
         /// <summary>
-        /// Generates the render and collision mesh for the Chunk
+        /// The voxel blocks contained in this chunk
         /// </summary>
-        public void GenerateMesh()
-        {
-            meshGenerator.BuildMesh(size, offset, ref _mesh);
-            _meshFilter.sharedMesh = _mesh;
+        protected NativeArray<byte> m_voxels;
 
-            if (collidable) { _meshCollider.sharedMesh = _mesh; }
-            else { _meshCollider.sharedMesh = null; }
+
+        //-------------------------------------------------
+        #region Public API
+
+        /// <summary>
+        /// Read the voxel at a position in the Chunk
+        /// </summary>
+        public byte Read(Vector3Int point)
+        {
+            if (!Contains(point)) { return 0; }
+            return m_voxels[Flatten(point)];
         }
+
+        /// <summary>
+        /// Write voxel data at a position in the Chunk
+        /// </summary>
+        public void Write(Vector3Int point, byte block)
+        {
+            if (!Contains(point)) { return; }
+            m_voxels[Flatten(point)] = block;
+        }
+
+        #endregion
+        //-------------------------------------------------
+
 
         //-------------------------------------------------
         #region Monobehaviors
 
-        void Awake()
+        protected virtual void Awake()
         {
-            _meshFilter = GetComponent<MeshFilter>();
-            _meshCollider = GetComponent<MeshCollider>();
-            _meshRenderer = GetComponent<MeshRenderer>();
+            m_meshFilter = GetComponent<MeshFilter>();
+            m_meshCollider = GetComponent<MeshCollider>();
+            m_meshRenderer = GetComponent<MeshRenderer>();
         }
 
-        void Start()
+        protected virtual void Start()
         {
-            _mesh = new Mesh();
-            _meshRenderer.material = material;
+            int flatSize = size.x * size.y * size.z;
+
+            m_mesh = new Mesh();
+            m_meshRenderer.material = material;
+            m_voxels = new NativeArray<byte>(flatSize, Allocator.Persistent);
+
             GenerateMesh();
         }
 
-        void Update()
+        protected virtual void Update()
         {
             if (stale)
             {
@@ -88,7 +113,13 @@ namespace VRoxel.Core
             }
         }
 
-        void OnDrawGizmos()
+        protected virtual void OnDestroy()
+        {
+            if (m_voxels != null)
+                m_voxels.Dispose();
+        }
+
+        protected virtual void OnDrawGizmos()
         {
             Gizmos.color = Color.yellow;
             Gizmos.matrix = transform.localToWorldMatrix;
@@ -99,5 +130,38 @@ namespace VRoxel.Core
 
         #endregion
         //-------------------------------------------------
+
+
+        /// <summary>
+        /// Generates the render and collision mesh for the Chunk
+        /// </summary>
+        protected void GenerateMesh()
+        {
+            meshGenerator.BuildMesh(size, offset, ref m_mesh);
+            m_meshFilter.sharedMesh = m_mesh;
+
+            if (collidable) { m_meshCollider.sharedMesh = m_mesh; }
+            else { m_meshCollider.sharedMesh = null; }
+        }
+
+        /// <summary>
+        /// Test if a point is inside the voxel array
+        /// </summary>
+        protected bool Contains(Vector3Int point)
+        {
+            if (point.x < 0 || point.x >= size.x) { return false; }
+            if (point.y < 0 || point.y >= size.y) { return false; }
+            if (point.z < 0 || point.z >= size.z) { return false; }
+            return true;
+        }
+
+        /// <summary>
+        /// Calculate an array index from a Vector3Int point
+        /// </summary>
+        protected int Flatten(Vector3Int point)
+        {
+            /// A[x,y,z] = A[ x * height * depth + y * depth + z ]
+            return (point.x * size.y * size.z) + (point.y * size.z) + point.z;
+        }
     }
 }
