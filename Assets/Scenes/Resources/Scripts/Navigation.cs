@@ -98,7 +98,8 @@ public class Navigation : MonoBehaviour
         updateHandle.Complete();
         moveHandle.Complete();
 
-        _agents.Dispose();
+        if (_agents != null)
+            _agents.Dispose();
     }
 
     void Update()

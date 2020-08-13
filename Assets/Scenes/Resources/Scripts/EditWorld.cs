@@ -33,6 +33,7 @@ public class EditWorld : MonoBehaviour
     HeightMap _heightMap;
 
     public JobHandle editHandle;
+    public JobHandle heightMapHandle;
 
     [HideInInspector]
     public Vector3Int currentIndex;
@@ -55,6 +56,12 @@ public class EditWorld : MonoBehaviour
             HandlePlayerInput();
             DrawCursor();
         }
+    }
+
+    void LateUpdate()
+    {
+        editHandle.Complete();
+        heightMapHandle.Complete();
     }
 
     /// <summary>
@@ -87,6 +94,8 @@ public class EditWorld : MonoBehaviour
 
     void EditRectangle()
     {
+        if (!editHandle.IsCompleted) { editHandle.Complete(); }
+
         /// old version, still used for rendering
         WorldEditor.Set(_world, _clickStart, currentPosition, blockType);
 
@@ -103,11 +112,8 @@ public class EditWorld : MonoBehaviour
             block = blockType
         };
 
-        if (!editHandle.IsCompleted)
-            editHandle.Complete();
-
         editHandle = job.Schedule();
-        _heightMap.Refresh(editHandle);
+        heightMapHandle = _heightMap.Refresh(editHandle);
         _world.data.OnEdit.Invoke(editHandle);
     }
 
