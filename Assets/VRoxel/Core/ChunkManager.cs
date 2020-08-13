@@ -75,6 +75,13 @@ namespace VRoxel.Core
 
             chunk.collidable = collidable;
             chunk.meshGenerator = meshGenerator;
+
+            chunk.offset = new Vector3Int(
+                index.x * _world.chunkSize.x,
+                index.y * _world.chunkSize.y,
+                index.z * _world.chunkSize.z
+            );
+
             chunk.transform.parent = _world.transform;
             chunk.Initialize(_world, index);
 

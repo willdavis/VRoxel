@@ -9,9 +9,13 @@ namespace VRoxel.Core
     {
         private Mesh _mesh;
         private World _world;
-        private Vector3Int _offset;
         private MeshFilter _meshFilter;
         private MeshCollider _meshCollider;
+
+        /// <summary>
+        /// The chunks offset in the voxel space
+        /// </summary>
+        public Vector3Int offset;
 
         /// <summary>
         /// The generator used to create the voxel mesh
@@ -40,11 +44,6 @@ namespace VRoxel.Core
             GetComponent<MeshRenderer>().material = world.blocks.texture.material;
             _mesh = new Mesh();
             _world = world;
-
-            // set the chunks offset in the voxel grid
-            _offset.x = position.x * world.chunkSize.x;
-            _offset.y = position.y * world.chunkSize.y;
-            _offset.z = position.z * world.chunkSize.z;
         }
 
         /// <summary>
@@ -52,7 +51,7 @@ namespace VRoxel.Core
         /// </summary>
         public void GenerateMesh()
         {
-            meshGenerator.BuildMesh(_world.chunkSize, _offset, ref _mesh);
+            meshGenerator.BuildMesh(_world.chunkSize, offset, ref _mesh);
             _meshFilter.sharedMesh = _mesh;
 
             if (collidable) { _meshCollider.sharedMesh = _mesh; }
