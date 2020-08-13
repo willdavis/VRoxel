@@ -86,8 +86,6 @@ namespace VRoxel.Core
             );
 
             chunk.transform.parent = _world.transform;
-            chunk.Initialize(_world, index);
-
             _cache.Add(index, chunk);
             return chunk;
         }

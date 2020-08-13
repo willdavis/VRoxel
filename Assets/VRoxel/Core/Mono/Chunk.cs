@@ -1,18 +1,13 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace VRoxel.Core
 {
+    /// <summary>
+    /// A partition of the voxel space
+    /// </summary>
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
     public class Chunk : MonoBehaviour
     {
-        private Mesh _mesh;
-        private World _world;
-        private MeshFilter _meshFilter;
-        private MeshCollider _meshCollider;
-        private MeshRenderer _meshRenderer;
-
         /// <summary>
         /// The scale factor for the chunks size
         /// </summary>
@@ -29,14 +24,14 @@ namespace VRoxel.Core
         public Vector3Int offset;
 
         /// <summary>
-        /// The generator used to create the voxel mesh
-        /// </summary>
-        public MeshGenerator meshGenerator;
-
-        /// <summary>
         /// The material used by the mesh generator to texture the chunk
         /// </summary>
         public Material material;
+
+        /// <summary>
+        /// The generator used to create the voxel mesh
+        /// </summary>
+        public MeshGenerator meshGenerator;
 
         /// <summary>
         /// Flags if the Chunk needs to be updated
@@ -50,16 +45,10 @@ namespace VRoxel.Core
         [HideInInspector]
         public bool collidable = true;
 
-        /// <summary>
-        /// Initialize a Chunk in the World
-        /// </summary>
-        /// <param name="world">The parent World this Chunk belongs to</param>
-        /// <param name="position">The chunks grid position in the world</param>
-        public void Initialize(World world, Vector3Int position)
-        {
-            _mesh = new Mesh();
-            _world = world;
-        }
+        private Mesh _mesh;
+        private MeshFilter _meshFilter;
+        private MeshCollider _meshCollider;
+        private MeshRenderer _meshRenderer;
 
         /// <summary>
         /// Generates the render and collision mesh for the Chunk
@@ -73,6 +62,9 @@ namespace VRoxel.Core
             else { _meshCollider.sharedMesh = null; }
         }
 
+        //-------------------------------------------------
+        #region Monobehaviors
+
         void Awake()
         {
             _meshFilter = GetComponent<MeshFilter>();
@@ -82,6 +74,7 @@ namespace VRoxel.Core
 
         void Start()
         {
+            _mesh = new Mesh();
             _meshRenderer.material = material;
             GenerateMesh();
         }
@@ -90,22 +83,21 @@ namespace VRoxel.Core
         {
             if (stale)
             {
-                GenerateMesh();
                 stale = false;
+                GenerateMesh();
             }
         }
 
         void OnDrawGizmos()
         {
-            Vector3 bounds = new Vector3(
-                size.x * scale,
-                size.y * scale,
-                size.z * scale
-            );
-
             Gizmos.color = Color.yellow;
             Gizmos.matrix = transform.localToWorldMatrix;
-            Gizmos.DrawWireCube(Vector3.zero, bounds);
+            Gizmos.DrawWireCube(Vector3.zero, new Vector3(
+                size.x * scale, size.y * scale, size.z * scale
+            ));
         }
+
+        #endregion
+        //-------------------------------------------------
     }
 }
