@@ -38,7 +38,8 @@ public class LoadWorld : MonoBehaviour
         _world.chunks.LoadAll();    // 4. initialize all chunks in the world
 
         _heightMap.voxels = _world.data.voxels;
-        _heightMap.Refresh().Complete(); // 5. initialize the height map
+        _heightMap.Initialize();    // 5. initialize the height map
+        _heightMap.Refresh().Complete();
     }
 
     void BuildBlockManager()

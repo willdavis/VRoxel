@@ -37,11 +37,6 @@ namespace VRoxel.Terrain
         //-------------------------------------------------
         #region Monobehaviors
 
-        protected virtual void Start()
-        {
-            Initialize();
-        }
-
         protected virtual void OnDestroy()
         {
             Dispose();
