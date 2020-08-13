@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.Collections;
+using UnityEngine;
 
 namespace VRoxel.Core
 {
@@ -45,41 +46,39 @@ namespace VRoxel.Core
         [HideInInspector]
         public bool collidable = true;
 
-        private Mesh _mesh;
-        private MeshFilter _meshFilter;
-        private MeshCollider _meshCollider;
-        private MeshRenderer _meshRenderer;
+
+        protected Mesh m_mesh;
+        protected MeshFilter m_meshFilter;
+        protected MeshCollider m_meshCollider;
+        protected MeshRenderer m_meshRenderer;
 
         /// <summary>
-        /// Generates the render and collision mesh for the Chunk
+        /// The voxel blocks contained in this chunk
         /// </summary>
-        public void GenerateMesh()
-        {
-            meshGenerator.BuildMesh(size, offset, ref _mesh);
-            _meshFilter.sharedMesh = _mesh;
-
-            if (collidable) { _meshCollider.sharedMesh = _mesh; }
-            else { _meshCollider.sharedMesh = null; }
-        }
+        protected NativeArray<byte> m_voxels;
 
         //-------------------------------------------------
         #region Monobehaviors
 
-        void Awake()
+        protected virtual void Awake()
         {
-            _meshFilter = GetComponent<MeshFilter>();
-            _meshCollider = GetComponent<MeshCollider>();
-            _meshRenderer = GetComponent<MeshRenderer>();
+            m_meshFilter = GetComponent<MeshFilter>();
+            m_meshCollider = GetComponent<MeshCollider>();
+            m_meshRenderer = GetComponent<MeshRenderer>();
         }
 
-        void Start()
+        protected virtual void Start()
         {
-            _mesh = new Mesh();
-            _meshRenderer.material = material;
+            int flatSize = size.x * size.y * size.z;
+
+            m_mesh = new Mesh();
+            m_meshRenderer.material = material;
+            m_voxels = new NativeArray<byte>(flatSize, Allocator.Persistent);
+
             GenerateMesh();
         }
 
-        void Update()
+        protected virtual void Update()
         {
             if (stale)
             {
@@ -88,7 +87,13 @@ namespace VRoxel.Core
             }
         }
 
-        void OnDrawGizmos()
+        protected virtual void OnDestroy()
+        {
+            if (m_voxels != null)
+                m_voxels.Dispose();
+        }
+
+        protected virtual void OnDrawGizmos()
         {
             Gizmos.color = Color.yellow;
             Gizmos.matrix = transform.localToWorldMatrix;
@@ -99,5 +104,17 @@ namespace VRoxel.Core
 
         #endregion
         //-------------------------------------------------
+
+        /// <summary>
+        /// Generates the render and collision mesh for the Chunk
+        /// </summary>
+        protected virtual void GenerateMesh()
+        {
+            meshGenerator.BuildMesh(size, offset, ref m_mesh);
+            m_meshFilter.sharedMesh = m_mesh;
+
+            if (collidable) { m_meshCollider.sharedMesh = m_mesh; }
+            else { m_meshCollider.sharedMesh = null; }
+        }
     }
 }
