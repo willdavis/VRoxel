@@ -56,7 +56,8 @@ namespace VRoxel.Core
 
         void OnDestroy()
         {
-            _data.Dispose();
+            if (_data != null)
+                _data.Dispose();
         }
 
         public bool Contains(Vector3 position)
