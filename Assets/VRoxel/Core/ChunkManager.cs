@@ -75,6 +75,7 @@ namespace VRoxel.Core
 
             chunk.collidable = collidable;
             chunk.meshGenerator = meshGenerator;
+            chunk.material = _world.blocks.texture.material;
 
             chunk.offset = new Vector3Int(
                 index.x * _world.chunkSize.x,

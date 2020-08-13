@@ -11,6 +11,7 @@ namespace VRoxel.Core
         private World _world;
         private MeshFilter _meshFilter;
         private MeshCollider _meshCollider;
+        private MeshRenderer _meshRenderer;
 
         /// <summary>
         /// The chunks offset in the voxel space
@@ -21,6 +22,11 @@ namespace VRoxel.Core
         /// The generator used to create the voxel mesh
         /// </summary>
         public MeshGenerator meshGenerator;
+
+        /// <summary>
+        /// The material used by the mesh generator to texture the chunk
+        /// </summary>
+        public Material material;
 
         /// <summary>
         /// Flags if the Chunk needs to be updated
@@ -41,7 +47,6 @@ namespace VRoxel.Core
         /// <param name="position">The chunks grid position in the world</param>
         public void Initialize(World world, Vector3Int position)
         {
-            GetComponent<MeshRenderer>().material = world.blocks.texture.material;
             _mesh = new Mesh();
             _world = world;
         }
@@ -62,10 +67,12 @@ namespace VRoxel.Core
         {
             _meshFilter = GetComponent<MeshFilter>();
             _meshCollider = GetComponent<MeshCollider>();
+            _meshRenderer = GetComponent<MeshRenderer>();
         }
 
         void Start()
         {
+            _meshRenderer.material = material;
             GenerateMesh();
         }
 
