@@ -35,6 +35,11 @@ public class LoadWorld : MonoBehaviour
         _world.Initialize();        // 1. initialize the voxel grid
         BuildBlockManager();        // 2. initialize the different blocks
         GenerateTerrainData();      // 3. populate the voxel grid with data
+
+        MeshGenerator generator = new MeshGenerator(
+            _world.data, _world.blocks, _world.scale
+        );
+        _world.chunks.meshGenerator = generator;
         _world.chunks.LoadAll();    // 4. initialize all chunks in the world
 
         _heightMap.voxels = _world.data.voxels;

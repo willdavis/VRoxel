@@ -50,8 +50,8 @@ namespace VRoxel.Core
         /// </summary>
         public void Initialize()
         {
-            _chunks = new ChunkManager(this, chunk);
             _data = new VoxelGrid(size);
+            _chunks = new ChunkManager(this, chunk);
         }
 
         void OnDestroy()
