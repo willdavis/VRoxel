@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using VRoxel.Core.Data;
+using Unity.Collections;
 using UnityEngine;
 
 namespace VRoxel.Core
@@ -6,28 +7,16 @@ namespace VRoxel.Core
     /// <summary>
     /// A partition of the voxel space
     /// </summary>
-    [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
+    [RequireComponent(
+        typeof(MeshFilter),
+        typeof(MeshRenderer),
+        typeof(MeshCollider))]
     public class Chunk : MonoBehaviour
     {
         /// <summary>
-        /// The scale factor for the chunks size
+        /// The configuration settings for this chunk
         /// </summary>
-        public float scale;
-
-        /// <summary>
-        /// The (x,y,z) dimensions of the chunk
-        /// </summary>
-        public Vector3Int size;
-
-        /// <summary>
-        /// The chunks offset in the voxel space
-        /// </summary>
-        public Vector3Int offset;
-
-        /// <summary>
-        /// The material used by the mesh generator to texture the chunk
-        /// </summary>
-        public Material material;
+        public ChunkConfiguration configuration;
 
         /// <summary>
         /// The generator used to create the voxel mesh
@@ -35,16 +24,15 @@ namespace VRoxel.Core
         public MeshGenerator meshGenerator;
 
         /// <summary>
+        /// The chunks offset in the voxel space
+        /// </summary>
+        public Vector3Int offset;
+
+        /// <summary>
         /// Flags if the Chunk needs to be updated
         /// </summary>
         [HideInInspector]
         public bool stale;
-
-        /// <summary>
-        /// Flags if the Chunk needs a collision mesh
-        /// </summary>
-        [HideInInspector]
-        public bool collidable = true;
 
 
         protected Mesh m_mesh;
@@ -56,6 +44,32 @@ namespace VRoxel.Core
         /// The voxel blocks contained in this chunk
         /// </summary>
         protected NativeArray<byte> m_voxels;
+
+        //-------------------------------------------------
+        #region Read-Only Chunk Attributes
+
+        /// <summary>
+        /// Returns the scale factor for the chunks size
+        /// </summary>
+        public float scale { get { return configuration.scale; } }
+
+        /// <summary>
+        /// Returns the (x,y,z) dimensions of the chunk
+        /// </summary>
+        public Vector3Int size { get { return configuration.size; } }
+
+        /// <summary>
+        /// Returns the material used to texture the chunk
+        /// </summary>
+        public Material material { get { return configuration.material; } }
+
+        /// <summary>
+        /// Returns true if the chunk requires a collision mesh
+        /// </summary>
+        public bool collidable { get { return configuration.collidable; } }
+
+        #endregion
+        //-------------------------------------------------
 
 
         //-------------------------------------------------

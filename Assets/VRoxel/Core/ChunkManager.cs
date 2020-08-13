@@ -73,12 +73,16 @@ namespace VRoxel.Core
             Quaternion rotation = _world.transform.rotation;
             Chunk chunk = UnityEngine.Object.Instantiate(_prefab, Position(index), rotation) as Chunk;
 
-            chunk.scale = _world.scale;
-            chunk.size = _world.chunkSize;
-            chunk.collidable = collidable;
-            chunk.meshGenerator = meshGenerator;
-            chunk.material = _world.blocks.texture.material;
+            Data.ChunkConfiguration config = ScriptableObject
+                .CreateInstance("ChunkConfiguration") as Data.ChunkConfiguration;
 
+            config.scale = _world.scale;
+            config.size = _world.chunkSize;
+            config.collidable = collidable;
+            config.material = _world.blocks.texture.material;
+
+            chunk.configuration = config;
+            chunk.meshGenerator = meshGenerator;
             chunk.offset = new Vector3Int(
                 index.x * _world.chunkSize.x,
                 index.y * _world.chunkSize.y,
