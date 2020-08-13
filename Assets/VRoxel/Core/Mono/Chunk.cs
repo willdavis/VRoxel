@@ -58,14 +58,30 @@ namespace VRoxel.Core
         protected NativeArray<byte> m_voxels;
 
 
+        //-------------------------------------------------
+        #region Public API
+
         /// <summary>
-        /// Read a voxel from the Chunk
+        /// Read the voxel at a position in the Chunk
         /// </summary>
         public byte Read(Vector3Int point)
         {
             if (!Contains(point)) { return 0; }
             return m_voxels[Flatten(point)];
         }
+
+        /// <summary>
+        /// Write voxel data at a position in the Chunk
+        /// </summary>
+        public void Write(Vector3Int point, byte block)
+        {
+            if (!Contains(point)) { return; }
+            m_voxels[Flatten(point)] = block;
+        }
+
+        #endregion
+        //-------------------------------------------------
+
 
         //-------------------------------------------------
         #region Monobehaviors
@@ -114,6 +130,7 @@ namespace VRoxel.Core
 
         #endregion
         //-------------------------------------------------
+
 
         /// <summary>
         /// Generates the render and collision mesh for the Chunk
