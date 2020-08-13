@@ -11,6 +11,8 @@ namespace VRoxel.Core
         private Vector3Int _max;
         private Dictionary<Vector3Int, Chunk> _cache;
 
+        public MeshGenerator meshGenerator;
+
         /// <summary>
         /// Flag if all the chunks should have a collision mesh
         /// </summary>
@@ -19,6 +21,7 @@ namespace VRoxel.Core
         public ChunkManager(World world, Chunk prefab)
         {
             _cache = new Dictionary<Vector3Int, Chunk>();
+
             _max = new Vector3Int(
                 world.size.x / world.chunkSize.x,
                 world.size.y / world.chunkSize.y,
@@ -71,6 +74,7 @@ namespace VRoxel.Core
             Chunk chunk = UnityEngine.Object.Instantiate(_prefab, Position(index), rotation) as Chunk;
 
             chunk.collidable = collidable;
+            chunk.meshGenerator = meshGenerator;
             chunk.transform.parent = _world.transform;
             chunk.Initialize(_world, index);
 

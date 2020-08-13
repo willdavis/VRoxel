@@ -12,7 +12,11 @@ namespace VRoxel.Core
         private Vector3Int _offset;
         private MeshFilter _meshFilter;
         private MeshCollider _meshCollider;
-        private MeshGenerator _meshGenerator;
+
+        /// <summary>
+        /// The generator used to create the voxel mesh
+        /// </summary>
+        public MeshGenerator meshGenerator;
 
         /// <summary>
         /// Flags if the Chunk needs to be updated
@@ -34,7 +38,6 @@ namespace VRoxel.Core
         public void Initialize(World world, Vector3Int position)
         {
             GetComponent<MeshRenderer>().material = world.blocks.texture.material;
-            _meshGenerator = new MeshGenerator(world.data, world.blocks, world.scale);
             _mesh = new Mesh();
             _world = world;
 
@@ -49,7 +52,7 @@ namespace VRoxel.Core
         /// </summary>
         public void GenerateMesh()
         {
-            _meshGenerator.BuildMesh(_world.chunkSize, _offset, ref _mesh);
+            meshGenerator.BuildMesh(_world.chunkSize, _offset, ref _mesh);
             _meshFilter.sharedMesh = _mesh;
 
             if (collidable) { _meshCollider.sharedMesh = _mesh; }
