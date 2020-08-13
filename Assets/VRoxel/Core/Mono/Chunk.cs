@@ -14,6 +14,16 @@ namespace VRoxel.Core
         private MeshRenderer _meshRenderer;
 
         /// <summary>
+        /// The scale factor for the chunks size
+        /// </summary>
+        public float scale;
+
+        /// <summary>
+        /// The (x,y,z) dimensions of the chunk
+        /// </summary>
+        public Vector3Int size;
+
+        /// <summary>
         /// The chunks offset in the voxel space
         /// </summary>
         public Vector3Int offset;
@@ -56,7 +66,7 @@ namespace VRoxel.Core
         /// </summary>
         public void GenerateMesh()
         {
-            meshGenerator.BuildMesh(_world.chunkSize, offset, ref _mesh);
+            meshGenerator.BuildMesh(size, offset, ref _mesh);
             _meshFilter.sharedMesh = _mesh;
 
             if (collidable) { _meshCollider.sharedMesh = _mesh; }
@@ -88,9 +98,9 @@ namespace VRoxel.Core
         void OnDrawGizmos()
         {
             Vector3 bounds = new Vector3(
-                _world.chunkSize.x * _world.scale,
-                _world.chunkSize.y * _world.scale,
-                _world.chunkSize.z * _world.scale
+                size.x * scale,
+                size.y * scale,
+                size.z * scale
             );
 
             Gizmos.color = Color.yellow;
