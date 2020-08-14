@@ -11,6 +11,7 @@ namespace VRoxel.Core
         private Vector3Int _max;
         private Dictionary<Vector3Int, Chunk> _cache;
 
+        public Data.ChunkConfiguration configuration;
         public MeshGenerator meshGenerator;
 
         /// <summary>
@@ -73,12 +74,8 @@ namespace VRoxel.Core
             Quaternion rotation = _world.transform.rotation;
             Chunk chunk = UnityEngine.Object.Instantiate(_prefab, Position(index), rotation) as Chunk;
 
-            chunk.scale = _world.scale;
-            chunk.size = _world.chunkSize;
-            chunk.collidable = collidable;
+            chunk.configuration = configuration;
             chunk.meshGenerator = meshGenerator;
-            chunk.material = _world.blocks.texture.material;
-
             chunk.offset = new Vector3Int(
                 index.x * _world.chunkSize.x,
                 index.y * _world.chunkSize.y,
