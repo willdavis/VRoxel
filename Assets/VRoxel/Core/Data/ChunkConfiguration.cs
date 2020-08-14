@@ -11,12 +11,12 @@ namespace VRoxel.Core.Data
         /// <summary>
         /// The scale factor for the chunks size
         /// </summary>
-        public float scale;
+        public float scale = 1f;
 
         /// <summary>
         /// The (x,y,z) dimensions of the chunk
         /// </summary>
-        public Vector3Int size;
+        public Vector3Int size = Vector3Int.one;
 
         /// <summary>
         /// The material used by the mesh generator to texture the chunk

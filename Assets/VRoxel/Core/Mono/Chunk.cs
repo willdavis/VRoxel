@@ -76,11 +76,23 @@ namespace VRoxel.Core
         #region Public API
 
         /// <summary>
+        /// Initializes the Chunk's mesh and voxel data
+        /// </summary>
+        public void Initialize()
+        {
+            m_mesh = new Mesh();
+            m_meshRenderer.material = material;
+            m_voxels = new NativeArray<byte>(
+                size.x * size.y * size.z, Allocator.Persistent
+            );
+        }
+
+        /// <summary>
         /// Read the voxel at a position in the Chunk
         /// </summary>
         public byte Read(Vector3Int point)
         {
-            if (!Contains(point)) { return 0; }
+            if (!Contains(point)) { return byte.MaxValue; }
             return m_voxels[Flatten(point)];
         }
 
@@ -109,12 +121,7 @@ namespace VRoxel.Core
 
         protected virtual void Start()
         {
-            int flatSize = size.x * size.y * size.z;
-
-            m_mesh = new Mesh();
-            m_meshRenderer.material = material;
-            m_voxels = new NativeArray<byte>(flatSize, Allocator.Persistent);
-
+            Initialize();
             GenerateMesh();
         }
 
