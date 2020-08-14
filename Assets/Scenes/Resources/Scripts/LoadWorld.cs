@@ -39,6 +39,15 @@ public class LoadWorld : MonoBehaviour
         MeshGenerator generator = new MeshGenerator(
             _world.data, _world.blocks, _world.scale
         );
+        VRoxel.Core.Data.ChunkConfiguration configuration = ScriptableObject
+                .CreateInstance("ChunkConfiguration") as VRoxel.Core.Data.ChunkConfiguration;
+
+        configuration.collidable = true;
+        configuration.scale = _world.scale;
+        configuration.size = _world.chunkSize;
+        configuration.material = _world.blocks.texture.material;
+
+        _world.chunks.configuration = configuration;
         _world.chunks.meshGenerator = generator;
         _world.chunks.LoadAll();    // 4. initialize all chunks in the world
 
