@@ -29,6 +29,7 @@ namespace CoreSpecs
 
             Assert.AreEqual(0, chunk.Read(Vector3Int.zero));
             Assert.AreEqual(255, chunk.Read(Vector3Int.one));
+            chunk.Dispose();
         }
 
         [Test]
@@ -48,6 +49,7 @@ namespace CoreSpecs
 
             chunk.Write(Vector3Int.zero, 10);
             Assert.AreEqual(10, chunk.Read(Vector3Int.zero));
+            chunk.Dispose();
         }
     }
 }

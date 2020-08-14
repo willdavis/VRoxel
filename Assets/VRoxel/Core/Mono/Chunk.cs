@@ -80,8 +80,6 @@ namespace VRoxel.Core
         /// </summary>
         public void Initialize()
         {
-            m_mesh = new Mesh();
-            m_meshRenderer.material = material;
             m_voxels = new NativeArray<byte>(
                 size.x * size.y * size.z, Allocator.Persistent
             );
@@ -105,6 +103,15 @@ namespace VRoxel.Core
             m_voxels[Flatten(point)] = block;
         }
 
+        /// <summary>
+        /// Dispose all unmanaged memory from the Chunk
+        /// </summary>
+        public void Dispose()
+        {
+            if (m_voxels != null)
+                m_voxels.Dispose();
+        }
+
         #endregion
         //-------------------------------------------------
 
@@ -114,9 +121,11 @@ namespace VRoxel.Core
 
         protected virtual void Awake()
         {
+            m_mesh = new Mesh();
             m_meshFilter = GetComponent<MeshFilter>();
             m_meshCollider = GetComponent<MeshCollider>();
             m_meshRenderer = GetComponent<MeshRenderer>();
+            m_meshRenderer.material = material;
         }
 
         protected virtual void Start()
@@ -136,8 +145,7 @@ namespace VRoxel.Core
 
         protected virtual void OnDestroy()
         {
-            if (m_voxels != null)
-                m_voxels.Dispose();
+            Dispose();
         }
 
         protected virtual void OnDrawGizmos()
