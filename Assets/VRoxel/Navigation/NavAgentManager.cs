@@ -26,15 +26,24 @@ namespace VRoxel.Navigation
         /// </summary>
         public List<VRoxel.Core.Block> blockTypes;
 
+
+
         /// <summary>
         /// The current kinematic properties for each agent
         /// </summary>
         protected NativeArray<AgentKinematics> m_agentKinematics;
 
         /// <summary>
+        /// The current steering forces acting on each agent
+        /// </summary>
+        protected NativeArray<float3> m_agentSteering;
+
+        /// <summary>
         /// The async transform access to each agent's transform
         /// </summary>
         protected TransformAccessArray m_transformAccess;
+
+
 
         /// <summary>
         /// The background job to move each agent in the scene
@@ -45,6 +54,8 @@ namespace VRoxel.Navigation
         /// The background job to update each of the flow fields
         /// </summary>
         protected JobHandle m_updatingPathfinding;
+
+
 
         /// <summary>
         /// Caches the total number of agents being managed
@@ -85,6 +96,9 @@ namespace VRoxel.Navigation
             m_transformAccess = new TransformAccessArray(transforms);
             m_agentKinematics = new NativeArray<AgentKinematics>(
                 m_totalAgents, Allocator.Persistent);
+            m_agentSteering = new NativeArray<float3>(
+                m_totalAgents, Allocator.Persistent
+            );
 
             // initialize the agent spatial map
             m_spatialMap = new NativeMultiHashMap<int3, float3>(
@@ -160,6 +174,7 @@ namespace VRoxel.Navigation
         public void Dispose()
         {
             // dispose the agent data
+            if (m_agentSteering.IsCreated) { m_agentSteering.Dispose(); }
             if (m_agentKinematics.IsCreated) { m_agentKinematics.Dispose(); }
             if (m_transformAccess.isCreated) { m_transformAccess.Dispose(); }
 
@@ -193,6 +208,10 @@ namespace VRoxel.Navigation
         #endregion
         //-------------------------------------------------
 
+
+        /// <summary>
+        /// Schedules background jobs to update all flow fields to target a new destination
+        /// </summary>
         protected JobHandle SchedulePathfindingUpdate(int3 target, JobHandle dependsOn = default)
         {
             int3 size = new int3(m_world.size.x, m_world.size.y, m_world.size.z);
@@ -231,44 +250,49 @@ namespace VRoxel.Navigation
             return m_updatingPathfinding;
         }
 
+        /// <summary>
+        /// Schedules background jobs to move each agent in the scene by the given delta time
+        /// </summary>
         protected JobHandle ScheduleAgentMovement(float dt, JobHandle dependsOn = default)
         {
-            /*
+            int3 size = new int3(m_world.size.x, m_world.size.y, m_world.size.z);
+            int3 bucketSize = new int3(1,1,1);
+
             BuildSpatialMapJob spaceJob = new BuildSpatialMapJob();
             spaceJob.spatialMap = m_spatialMapWriter;
             //spaceJob.agents = m_agentKinematics;
             //spaceJob.world = m_worldProperties;
-            spaceJob.size = new int3(1,1,1); // bucket size
+            spaceJob.size = bucketSize;
             JobHandle spaceHandle = spaceJob.Schedule(m_transformAccess, dependsOn);
 
             FlowFieldSeekJob seekJob = new FlowFieldSeekJob();
-            seekJob.steering = new NativeArray<float3>(1, Allocator.Temp);
-            seekJob.flowDirections = new NativeArray<int3>(1, Allocator.Temp);
-            seekJob.flowField = new NativeArray<byte>(1, Allocator.Temp);
-            seekJob.flowFieldSize = m_worldProperties.size;
+            seekJob.steering = m_agentSteering;
+            seekJob.flowDirections = m_directions;
+            seekJob.flowField = m_flowField;
+            seekJob.flowFieldSize = size;
             //spaceJob.agents = m_agentKinematics;
             //seekJob.world = m_worldProperties;
             seekJob.maxSpeed = 1f;
             JobHandle seekHandle = seekJob.Schedule(m_totalAgents, 1, spaceHandle);
 
             AvoidCollisionBehavior avoidJob = new AvoidCollisionBehavior();
-            avoidJob.steering = new NativeArray<float3>(1, Allocator.Temp);
+            avoidJob.steering = m_agentSteering;
             avoidJob.avoidForce = 1f;
             avoidJob.avoidRadius = 1f;
             avoidJob.avoidDistance = 1f;
             avoidJob.maxDepth = 1;
             //avoidJob.agents = m_agentKinematics;
             //avoidJob.world = m_worldProperties;
-            avoidJob.size = new int3(1,1,1); // bucket size
+            avoidJob.size = bucketSize;
             avoidJob.spatialMap = m_spatialMap;
             JobHandle avoidHandle = avoidJob.Schedule(m_totalAgents, 1, seekHandle);
 
             QueueBehavior queueJob = new QueueBehavior();
-            queueJob.steering = new NativeArray<float3>(1, Allocator.Temp);
+            queueJob.spatialMap = m_spatialMap;
+            queueJob.steering = m_agentSteering;
             //queueJob.agents = m_agentKinematics;
             //queueJob.world = m_worldProperties;
-            queueJob.size = new int3(1,1,1); // bucket size
-            queueJob.spatialMap = m_spatialMap;
+            queueJob.size = bucketSize;
             queueJob.maxDepth = 1;
             queueJob.maxBrakeForce = 1f;
             queueJob.maxQueueRadius = 1f;
@@ -276,10 +300,10 @@ namespace VRoxel.Navigation
             JobHandle queueHandle = queueJob.Schedule(m_totalAgents, 1, avoidHandle);
 
             ResolveCollisionBehavior collisionJob = new ResolveCollisionBehavior();
-            collisionJob.steering = new NativeArray<float3>(1, Allocator.Temp);
+            collisionJob.steering = m_agentSteering;
             //collisionJob.agents = m_agentKinematics;
             //collisionJob.world = m_worldProperties;
-            collisionJob.size = new int3(1,1,1); // bucket size
+            collisionJob.size = bucketSize;
             collisionJob.spatialMap = m_spatialMap;
             collisionJob.maxDepth = 1;
             collisionJob.collisionForce = 1f;
@@ -287,11 +311,11 @@ namespace VRoxel.Navigation
             JobHandle collisionHandle = collisionJob.Schedule(m_totalAgents, 1, queueHandle);
 
             MoveAgentJob moveJob = new MoveAgentJob();
-            collisionJob.steering = new NativeArray<float3>(1, Allocator.Temp);
+            collisionJob.steering = m_agentSteering;
             //collisionJob.agents = m_agentKinematics;
             //collisionJob.world = m_worldProperties;
-            moveJob.flowField = new NativeArray<byte>(1, Allocator.Temp);
-            moveJob.flowFieldSize = m_worldProperties.size;
+            moveJob.flowField = m_flowField;
+            moveJob.flowFieldSize = size;
             moveJob.deltaTime = dt;
             moveJob.mass = 1f;
             moveJob.maxForce = 1f;
@@ -299,7 +323,6 @@ namespace VRoxel.Navigation
             moveJob.turnSpeed = 1f;
 
             m_movingAgents = moveJob.Schedule(m_transformAccess, collisionHandle);
-            */
             return m_movingAgents;
         }
     }
