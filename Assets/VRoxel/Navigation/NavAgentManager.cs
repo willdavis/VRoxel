@@ -21,6 +21,11 @@ namespace VRoxel.Navigation
         public List<NavAgentConfiguration> configurations;
 
         /// <summary>
+        /// The different block types used for pathfinding
+        /// </summary>
+        public List<VRoxel.Core.Block> blockTypes;
+
+        /// <summary>
         /// The current kinematic properties for each agent
         /// </summary>
         protected NativeArray<AgentKinematics> m_agentKinematics;
@@ -50,7 +55,16 @@ namespace VRoxel.Navigation
         /// </summary>
         protected int m_totalAgents;
 
+
         protected NativeQueue<int3> m_openNodes;
+        protected NativeArray<byte> m_flowField;
+        protected NativeArray<byte> m_costField;
+        protected NativeArray<ushort> m_intField;
+
+        protected NativeArray<int3> m_directions;
+        protected NativeArray<int> m_directionsNESW;
+        protected NativeArray<Block> m_blockTypes;
+
         protected NativeMultiHashMap<int3, float3> m_spatialMap;
         protected NativeMultiHashMap<int3, float3>.ParallelWriter m_spatialMapWriter;
 
@@ -75,12 +89,51 @@ namespace VRoxel.Navigation
             m_spatialMap = new NativeMultiHashMap<int3, float3>(
                 m_totalAgents, Allocator.Persistent);
             m_spatialMapWriter = m_spatialMap.AsParallelWriter();
+
+            int3 size = worldProperties.size;
+            int length = size.x * size.y * size.z;
+
+            // initialize the flow field data structures
+            m_openNodes = new NativeQueue<int3>(Allocator.Persistent);
+            m_flowField = new NativeArray<byte>(length, Allocator.Persistent);
+            m_costField = new NativeArray<byte>(length, Allocator.Persistent);
+            m_intField  = new NativeArray<ushort>(length, Allocator.Persistent);
+
+            // cache all directions
+            m_directions = new NativeArray<int3>(27, Allocator.Persistent);
+            for (int i = 0; i < 27; i++)
+            {
+                Vector3Int dir = Core.Direction3Int.Directions[i];
+                m_directions[i] = new int3(dir.x, dir.y, dir.z);
+            }
+
+            // cache directions for climbable check
+            m_directionsNESW = new NativeArray<int>(4, Allocator.Persistent);
+            m_directionsNESW[0] = 3;
+            m_directionsNESW[1] = 5;
+            m_directionsNESW[2] = 7;
+            m_directionsNESW[3] = 9;
+
+            // convert blocks to a struct and cache the data
+            int blockCount = blockTypes.Count;
+            m_blockTypes = new NativeArray<Block>(blockCount, Allocator.Persistent);
+            for (int i = 0; i < blockCount; i++)
+            {
+                Core.Block block = blockTypes[i];
+                Block navBlock = new Block();
+                navBlock.solid = block.isSolid;
+
+                if (navBlock.solid) { navBlock.cost = 1; }
+                else { navBlock.cost = 2; }
+
+                m_blockTypes[i] = navBlock;
+            }
         }
 
         /// <summary>
         /// Schedules background jobs to move all agents using the given delta time
         /// </summary>
-        public JobHandle MoveAgents(float dt, JobHandle dependsOn = default(JobHandle))
+        public JobHandle MoveAgents(float dt, JobHandle dependsOn = default)
         {
             m_spatialMap.Clear();
 
@@ -91,9 +144,9 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Schedules a background job to update all flow fields to target the given goal
+        /// Schedules background jobs to update all flow fields to target the new goal position
         /// </summary>
-        public JobHandle UpdatePathfinding(Vector3Int goal, JobHandle dependsOn = default(JobHandle))
+        public JobHandle UpdatePathfinding(Vector3Int goal, JobHandle dependsOn = default)
         {
             int3 worldSize = m_worldProperties.size;
             int3 target = new int3(goal.x, goal.y, goal.z);
@@ -110,17 +163,23 @@ namespace VRoxel.Navigation
         /// </summary>
         public void Dispose()
         {
-            if (m_agentKinematics.IsCreated)
-                m_agentKinematics.Dispose();
+            // dispose the agent data
+            if (m_agentKinematics.IsCreated) { m_agentKinematics.Dispose(); }
+            if (m_transformAccess.isCreated) { m_transformAccess.Dispose(); }
 
-            if (m_transformAccess.isCreated)
-                m_transformAccess.Dispose();
+            // dispose the spatial map data
+            if (m_spatialMap.IsCreated) { m_spatialMap.Dispose(); }
 
-            if (m_spatialMap.IsCreated)
-                m_spatialMap.Dispose();
+            // dispose the flow field data
+            if (m_openNodes.IsCreated) { m_openNodes.Dispose(); }
+            if (m_costField.IsCreated) { m_costField.Dispose(); }
+            if (m_flowField.IsCreated) { m_flowField.Dispose(); }
+            if (m_intField.IsCreated)  { m_intField.Dispose();  }
 
-            if (m_openNodes.IsCreated)
-                m_openNodes.Dispose();
+            // dispose lookup tables
+            if (m_blockTypes.IsCreated) { m_blockTypes.Dispose(); }
+            if (m_directions.IsCreated) { m_directions.Dispose(); }
+            if (m_directionsNESW.IsCreated) { m_directionsNESW.Dispose(); }
         }
 
         #endregion
@@ -130,11 +189,6 @@ namespace VRoxel.Navigation
         //-------------------------------------------------
         #region Monobehaviors
 
-        protected virtual void Awake()
-        {
-            m_openNodes = new NativeQueue<int3>(Allocator.Persistent);
-        }
-
         protected virtual void OnDestroy()
         {
             Dispose();
@@ -143,7 +197,7 @@ namespace VRoxel.Navigation
         #endregion
         //-------------------------------------------------
 
-        protected JobHandle SchedulePathfindingUpdate(int3 target, int length, JobHandle dependsOn = default(JobHandle))
+        protected JobHandle SchedulePathfindingUpdate(int3 target, int length, JobHandle dependsOn = default)
         {
             /*
             UpdateCostFieldJob costJob = new UpdateCostFieldJob();
@@ -180,7 +234,7 @@ namespace VRoxel.Navigation
             return m_updatingPathfinding;
         }
 
-        protected JobHandle ScheduleAgentMovement(float dt, JobHandle dependsOn = default(JobHandle))
+        protected JobHandle ScheduleAgentMovement(float dt, JobHandle dependsOn = default)
         {
             /*
             BuildSpatialMapJob spaceJob = new BuildSpatialMapJob();
