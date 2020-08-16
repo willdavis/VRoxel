@@ -39,15 +39,22 @@ namespace VRoxel.Navigation
         /// </summary>
         protected JobHandle m_updatingPathfinding;
 
+        /// <summary>
+        /// The reference to the voxel world's transform and center point
+        /// </summary>
+        protected AgentWorld m_worldProperties;
+
         //-------------------------------------------------
         #region Public API
 
         /// <summary>
-        /// Initializes the agent manager with an array of agent transforms
+        /// Initializes the agent manager with a world and an array of agent transforms
         /// </summary>
-        public virtual void Initialize(Transform[] transforms)
+        public virtual void Initialize(AgentWorld worldProperties, Transform[] transforms)
         {
             Dispose();  // clear any existing memory
+
+            m_worldProperties = worldProperties;
             m_transformAccess = new TransformAccessArray(transforms);
             m_agentKinematics = new NativeArray<AgentKinematics>(
                 transforms.Length, Allocator.Persistent);
