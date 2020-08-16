@@ -1,5 +1,5 @@
-﻿using System;
-using Unity.Mathematics;
+﻿using Unity.Mathematics;
+using System;
 
 namespace VRoxel.Navigation.Agents
 {

@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using System;
+﻿using VRoxel.Navigation.Agents;
+using UnityEngine;
 
 namespace VRoxel.Navigation.Data
 {
@@ -10,19 +10,8 @@ namespace VRoxel.Navigation.Data
     public class NavAgentConfiguration : ScriptableObject
     {
         /// <summary>
-        /// The properties needed to move the agent in the scene
+        /// The properties required to move the agent in the scene
         /// </summary>
-        public AgentMotion movement;
-    }
-
-    /// <summary>
-    /// Data container for NavAgent movement settings
-    /// </summary>
-    [Serializable]
-    public struct AgentMotion
-    {
-        public float mass;
-        public float topSpeed;
-        public float turnSpeed;
+        public AgentMovement movement;
     }
 }
