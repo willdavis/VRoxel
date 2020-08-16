@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using VRoxel.Navigation.Agents;
 using VRoxel.Navigation.Data;
+using VRoxel.Core;
 
 using UnityEngine;
 using UnityEngine.Jobs;
@@ -46,14 +47,14 @@ namespace VRoxel.Navigation
         protected JobHandle m_updatingPathfinding;
 
         /// <summary>
-        /// The reference to the voxel world's transform and center point
-        /// </summary>
-        protected AgentWorld m_worldProperties;
-
-        /// <summary>
         /// Caches the total number of agents being managed
         /// </summary>
         protected int m_totalAgents;
+
+        /// <summary>
+        /// A reference to the voxel world
+        /// </summary>
+        protected World m_world;
 
 
         protected NativeQueue<int3> m_openNodes;
@@ -72,13 +73,13 @@ namespace VRoxel.Navigation
         #region Public API
 
         /// <summary>
-        /// Initializes the agent manager with a world and an array of agent transforms
+        /// Initializes the agent manager with an array of agent transforms
         /// </summary>
-        public virtual void Initialize(AgentWorld worldProperties, Transform[] transforms)
+        public virtual void Initialize(World world, Transform[] transforms)
         {
             Dispose();  // clear any existing memory
             m_totalAgents = transforms.Length;
-            m_worldProperties = worldProperties;
+            m_world = world;
 
             // initialize the agent properties
             m_transformAccess = new TransformAccessArray(transforms);
@@ -90,10 +91,8 @@ namespace VRoxel.Navigation
                 m_totalAgents, Allocator.Persistent);
             m_spatialMapWriter = m_spatialMap.AsParallelWriter();
 
-            int3 size = worldProperties.size;
-            int length = size.x * size.y * size.z;
-
             // initialize the flow field data structures
+            int length = world.size.x * world.size.y * world.size.z;
             m_openNodes = new NativeQueue<int3>(Allocator.Persistent);
             m_flowField = new NativeArray<byte>(length, Allocator.Persistent);
             m_costField = new NativeArray<byte>(length, Allocator.Persistent);
@@ -148,14 +147,11 @@ namespace VRoxel.Navigation
         /// </summary>
         public JobHandle UpdatePathfinding(Vector3Int goal, JobHandle dependsOn = default)
         {
-            int3 worldSize = m_worldProperties.size;
-            int3 target = new int3(goal.x, goal.y, goal.z);
-            int length = worldSize.x * worldSize.y * worldSize.z;
-
             if (!m_updatingPathfinding.IsCompleted)
                 m_updatingPathfinding.Complete();
 
-            return SchedulePathfindingUpdate(target, length, dependsOn);
+            int3 target = new int3(goal.x, goal.y, goal.z);
+            return SchedulePathfindingUpdate(target, dependsOn);
         }
 
         /// <summary>
@@ -197,40 +193,41 @@ namespace VRoxel.Navigation
         #endregion
         //-------------------------------------------------
 
-        protected JobHandle SchedulePathfindingUpdate(int3 target, int length, JobHandle dependsOn = default)
+        protected JobHandle SchedulePathfindingUpdate(int3 target, JobHandle dependsOn = default)
         {
-            /*
+            int3 size = new int3(m_world.size.x, m_world.size.y, m_world.size.z);
+            int length = size.x * size.y * size.z;
+
             UpdateCostFieldJob costJob = new UpdateCostFieldJob();
-            costJob.size = m_worldProperties.size;
-            costJob.voxels = new NativeArray<byte>(1, Allocator.Temp);
-            costJob.directionMask = new NativeArray<int>(1, Allocator.Temp);
-            costJob.directions = new NativeArray<int3>(1, Allocator.Temp);
-            costJob.costField = new NativeArray<byte>(1, Allocator.Temp);
-            costJob.blocks = new NativeArray<Block>(1, Allocator.Temp);
-            costJob.height = 1;
+            costJob.directionMask = m_directionsNESW;
+            costJob.directions = m_directions;
+            costJob.costField = m_costField;
+            costJob.voxels = m_world.data.voxels;
+            costJob.blocks = m_blockTypes;
+            costJob.height = 1; // TODO: Fix this!
+            costJob.size = size;
             JobHandle costHandle = costJob.Schedule(length, 1, dependsOn);
 
             ClearIntFieldJob clearJob = new ClearIntFieldJob();
-            clearJob.intField = new NativeArray<ushort>(1, Allocator.Temp);
+            clearJob.intField = m_intField;
             JobHandle clearHandle = clearJob.Schedule(length, 1, costHandle);
 
             UpdateIntFieldJob intJob = new UpdateIntFieldJob();
-            intJob.directions = new NativeArray<int3>(1, Allocator.Temp);
-            intJob.costField = new NativeArray<byte>(1, Allocator.Temp);
-            intJob.intField = new NativeArray<ushort>(1, Allocator.Temp);
-            intJob.size = m_worldProperties.size;
+            intJob.directions = m_directions;
+            intJob.costField = m_costField;
+            intJob.intField = m_intField;
             intJob.open = m_openNodes;
+            intJob.size = size;
             intJob.goal = target;
             JobHandle intHandle = intJob.Schedule(clearHandle);
 
             UpdateFlowFieldJob flowJob = new UpdateFlowFieldJob();
-            flowJob.directions = new NativeArray<int3>(1, Allocator.Temp);
-            flowJob.flowField = new NativeArray<byte>(1, Allocator.Temp);
-            flowJob.intField = new NativeArray<ushort>(1, Allocator.Temp);
-            flowJob.size = m_worldProperties.size;
+            flowJob.directions = m_directions;
+            flowJob.flowField = m_flowField;
+            flowJob.intField = m_intField;
+            flowJob.size = size;
 
             m_updatingPathfinding = flowJob.Schedule(length, 1, intHandle);
-            */
             return m_updatingPathfinding;
         }
 
