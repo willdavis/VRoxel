@@ -19,7 +19,6 @@ namespace VRoxel.Navigation
         /// </summary>
         public List<NavAgentConfiguration> configurations;
 
-
         /// <summary>
         /// The current kinematic properties for each agent
         /// </summary>
@@ -44,6 +43,17 @@ namespace VRoxel.Navigation
         #region Public API
 
         /// <summary>
+        /// Initializes the agent manager with an array of agent transforms
+        /// </summary>
+        public virtual void Initialize(Transform[] transforms)
+        {
+            Dispose();  // clear any existing memory
+            m_transformAccess = new TransformAccessArray(transforms);
+            m_agentKinematics = new NativeArray<AgentKinematics>(
+                transforms.Length, Allocator.Persistent);
+        }
+
+        /// <summary>
         /// Schedules a background job to move all agents using the given delta time
         /// </summary>
         public JobHandle MoveAgents(float dt, JobHandle dependsOn = default(JobHandle))
@@ -60,16 +70,7 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Creates a new TransformAccessArray to asynchronously
-        /// access each of the given transforms
-        /// </summary>
-        public void SetTransformAccess(Transform[] transforms)
-        {
-            m_transformAccess = new TransformAccessArray(transforms);
-        }
-
-        /// <summary>
-        /// Disposes all unmanaged memory from the agent manager
+        /// Disposes any unmanaged memory from the agent manager
         /// </summary>
         public void Dispose()
         {
@@ -87,7 +88,10 @@ namespace VRoxel.Navigation
         //-------------------------------------------------
         #region Monobehaviors
 
-
+        protected virtual void OnDestroy()
+        {
+            Dispose();
+        }
 
         #endregion
         //-------------------------------------------------
