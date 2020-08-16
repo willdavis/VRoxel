@@ -10,7 +10,7 @@ using Unity.Jobs;
 namespace VRoxel.Navigation
 {
     /// <summary>
-    /// A component to help manage NavAgents in the scene
+    /// A component to help manage navigation agents in the scene
     /// </summary>
     public class NavAgentManager : MonoBehaviour
     {
@@ -44,6 +44,11 @@ namespace VRoxel.Navigation
         /// </summary>
         protected AgentWorld m_worldProperties;
 
+        /// <summary>
+        /// Caches the total number of agents being managed
+        /// </summary>
+        protected int m_totalAgents;
+
         //-------------------------------------------------
         #region Public API
 
@@ -54,10 +59,11 @@ namespace VRoxel.Navigation
         {
             Dispose();  // clear any existing memory
 
+            m_totalAgents = transforms.Length;
             m_worldProperties = worldProperties;
             m_transformAccess = new TransformAccessArray(transforms);
             m_agentKinematics = new NativeArray<AgentKinematics>(
-                transforms.Length, Allocator.Persistent);
+                m_totalAgents, Allocator.Persistent);
         }
 
         /// <summary>
