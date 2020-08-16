@@ -10,6 +10,11 @@ namespace VRoxel.Navigation.Agents
     public struct AgentWorld
     {
         /// <summary>
+        /// The (x,y,z) dimensions of the world
+        /// </summary>
+        public int3 size;
+
+        /// <summary>
         /// The scale factor for the worlds size
         /// </summary>
         public float scale;
