@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace VRoxel.Core
 {
     /// <summary>
     /// Blocks contain information about voxels in the world
     /// </summary>
+    [Serializable]
     public class Block
     {
         public byte index;

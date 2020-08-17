@@ -11,7 +11,7 @@ public class Navigation : MonoBehaviour
     World _world;
     EditWorld _editor;
     HeightMap _heightMap;
-    AgentManager _agents;
+    NavAgentManager _agents;
 
     JobHandle moveHandle;
     JobHandle updateHandle;
@@ -28,6 +28,7 @@ public class Navigation : MonoBehaviour
         _world = GetComponent<World>();
         _editor = GetComponent<EditWorld>();
         _heightMap = GetComponent<HeightMap>();
+        _agents = GetComponent<NavAgentManager>();
     }
 
     void Start()
@@ -37,7 +38,6 @@ public class Navigation : MonoBehaviour
 
         // initialize the object pool and agent manager
         NavAgentPool.Instance.AddObjects(maxAgents);
-        _agents = new AgentManager(_world, maxAgents);
 
         // configure the agent manager
         _agents.spatialBucketSize = new Unity.Mathematics.int3(2,2,2);
@@ -88,9 +88,9 @@ public class Navigation : MonoBehaviour
         goal.transform.position = GetGoalScenePosition();
 
         // configure the flow field and initialize it
-        _agents.TransformAccess(transforms);
+        _agents.Initialize(_world, transforms);
         _world.data.OnEdit.AddListener(UpdatePathfindingAsync);
-        _agents.UpdateFlowField(GetGoalGridPosition(), updateHandle).Complete();
+        _agents.UpdatePathfinding(GetGoalGridPosition(), updateHandle).Complete();
     }
 
     void OnDestroy()
@@ -110,7 +110,7 @@ public class Navigation : MonoBehaviour
         //if (Input.GetKey(spawnAgent) && CanSpawnAt(_editor.currentIndex))
         //    Spawn(_editor.currentPosition);
 
-        moveHandle = _agents.MoveAgentsAsync(Time.deltaTime);
+        moveHandle = _agents.MoveAgents(Time.deltaTime, updateHandle);
     }
 
     void LateUpdate()
@@ -122,7 +122,7 @@ public class Navigation : MonoBehaviour
     void UpdatePathfindingAsync(JobHandle handle)
     {
         Vector3Int goal = GetGoalGridPosition();
-        updateHandle = _agents.UpdateFlowField(goal, handle);
+        updateHandle = _agents.UpdatePathfinding(goal, handle);
     }
 
     void UpdateGoalPostPosition()
@@ -134,7 +134,7 @@ public class Navigation : MonoBehaviour
         goal.transform.position = goalPosition;
 
         updateHandle.Complete();
-        updateHandle = _agents.UpdateFlowField(goalGridPoint, updateHandle);
+        updateHandle = _agents.UpdatePathfinding(goalGridPoint, updateHandle);
     }
 
     /// <summary>
