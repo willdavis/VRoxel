@@ -611,6 +611,7 @@ GameObject:
   - component: {fileID: 565934173}
   - component: {fileID: 565934174}
   - component: {fileID: 565934177}
+  - component: {fileID: 1742082555065591251}
   m_Layer: 0
   m_Name: VoxelWorld
   m_TagString: Untagged
@@ -631,6 +632,52 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   size: {x: 256, y: 64, z: 256}
+--- !u!114 &1742082555065591251
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1742082555065591249}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b83767b921d068409a66056807703ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spatialBucketSize:
+    x: 2
+    y: 2
+    z: 2
+  height: 2
+  mass: 1
+  maxSpeed: 0
+  turnSpeed: 0
+  maxForce: 0
+  brakeForce: 0
+  queueRadius: 0
+  queueDistance: 0
+  maxQueueDepth: 0
+  avoidForce: 0
+  avoidRadius: 0
+  avoidDistance: 0
+  maxAvoidDepth: 0
+  collisionForce: 0
+  collisionRadius: 0
+  maxCollisionDepth: 0
+  configurations: []
+  blockTypes:
+  - index: 0
+    name: air
+    isSolid: 0
+    isStatic: 0
+  - index: 1
+    name: dirt
+    isSolid: 1
+    isStatic: 0
+  - index: 2
+    name: stone
+    isSolid: 1
+    isStatic: 0
 --- !u!114 &3876824611035231353
 MonoBehaviour:
   m_ObjectHideFlags: 0

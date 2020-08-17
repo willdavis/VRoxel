@@ -45,7 +45,7 @@ public class LoadWorld : MonoBehaviour
         configuration.collidable = true;
         configuration.scale = _world.scale;
         configuration.size = _world.chunkSize;
-        configuration.material = _world.blocks.texture.material;
+        configuration.material = material;
 
         _world.chunks.configuration = configuration;
         _world.chunks.meshGenerator = generator;
