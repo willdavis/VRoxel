@@ -78,6 +78,16 @@ namespace VRoxel.Navigation
         protected TransformAccessArray m_transformAccess;
 
         /// <summary>
+        /// Contains indexes to the movement configuration of each agent
+        /// </summary>
+        protected NativeArray<int> m_agentMovementTypes;
+
+        /// <summary>
+        /// A reference to the different agent movement configurations
+        /// </summary>
+        protected NativeArray<AgentMovement> m_movementTypes;
+
+        /// <summary>
         /// Caches the total number of agents being managed
         /// </summary>
         protected int m_totalAgents;
@@ -127,13 +137,18 @@ namespace VRoxel.Navigation
             m_agentVelocity = new NativeArray<float3>(m_totalAgents, Allocator.Persistent);
             m_agentActive = new NativeArray<bool>(m_totalAgents, Allocator.Persistent);
 
+            // initialize agent configurations
+            int configCount = configurations.Count;
+            m_movementTypes = new NativeArray<AgentMovement>(configCount, Allocator.Persistent);
+
+            for (int i = 0; i < configCount; i++)
+                m_movementTypes[i] = configurations[i].movement;
+
             // initialize the agent properties
             m_transformAccess = new TransformAccessArray(transforms);
-            m_agentKinematics = new NativeArray<AgentKinematics>(
-                m_totalAgents, Allocator.Persistent);
-            m_agentSteering = new NativeArray<float3>(
-                m_totalAgents, Allocator.Persistent
-            );
+            m_agentSteering = new NativeArray<float3>(m_totalAgents, Allocator.Persistent);
+            m_agentMovementTypes = new NativeArray<int>(m_totalAgents, Allocator.Persistent);
+            m_agentKinematics = new NativeArray<AgentKinematics>(m_totalAgents, Allocator.Persistent);
 
             // initialize the agent spatial map
             m_spatialMap = new NativeMultiHashMap<int3, float3>(
@@ -217,6 +232,9 @@ namespace VRoxel.Navigation
             if (m_agentSteering.IsCreated) { m_agentSteering.Dispose(); }
             if (m_agentKinematics.IsCreated) { m_agentKinematics.Dispose(); }
             if (m_transformAccess.isCreated) { m_transformAccess.Dispose(); }
+
+            if (m_agentMovementTypes.IsCreated) { m_agentMovementTypes.Dispose(); }
+            if (m_movementTypes.IsCreated) { m_movementTypes.Dispose(); }
 
             // dispose the spatial map data
             if (m_spatialMap.IsCreated) { m_spatialMap.Dispose(); }
