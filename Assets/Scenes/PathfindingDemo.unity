@@ -664,7 +664,8 @@ MonoBehaviour:
   collisionForce: 0
   collisionRadius: 0
   maxCollisionDepth: 0
-  configurations: []
+  configurations:
+  - {fileID: 11400000, guid: 9bc72099b6c6d444bbb1536555661177, type: 2}
   blockTypes:
   - index: 0
     name: air
