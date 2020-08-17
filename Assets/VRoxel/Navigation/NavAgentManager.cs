@@ -16,6 +16,40 @@ namespace VRoxel.Navigation
     /// </summary>
     public class NavAgentManager : MonoBehaviour
     {
+        public int3 spatialBucketSize;
+
+        // agent settings
+        public int height;
+        public float mass;
+        public float maxSpeed;
+        public float turnSpeed;
+
+        // moving
+        public float maxForce;
+
+        // queuing
+        public float brakeForce;
+        public float queueRadius;
+        public float queueDistance;
+        public int maxQueueDepth;
+
+        // avoidance
+        public float avoidForce;
+        public float avoidRadius;
+        public float avoidDistance;
+        public int maxAvoidDepth;
+
+        // collision
+        public float collisionForce;
+        public float collisionRadius;
+        public int maxCollisionDepth;
+        public NativeArray<bool> activeAgents { get { return m_agentActive; } }
+        NativeArray<float3> m_agentPositions;
+        NativeArray<float3> m_agentVelocity;
+        NativeArray<bool> m_agentActive;
+
+
+
         /// <summary>
         /// The configurations for each type of agent that will be managed
         /// </summary>
@@ -43,7 +77,15 @@ namespace VRoxel.Navigation
         /// </summary>
         protected TransformAccessArray m_transformAccess;
 
+        /// <summary>
+        /// Caches the total number of agents being managed
+        /// </summary>
+        protected int m_totalAgents;
 
+        /// <summary>
+        /// A reference to the voxel world
+        /// </summary>
+        protected World m_world;
 
         /// <summary>
         /// The background job to move each agent in the scene
@@ -54,18 +96,6 @@ namespace VRoxel.Navigation
         /// The background job to update each of the flow fields
         /// </summary>
         protected JobHandle m_updatingPathfinding;
-
-
-
-        /// <summary>
-        /// Caches the total number of agents being managed
-        /// </summary>
-        protected int m_totalAgents;
-
-        /// <summary>
-        /// A reference to the voxel world
-        /// </summary>
-        protected World m_world;
 
 
         protected NativeQueue<int3> m_openNodes;
@@ -91,6 +121,11 @@ namespace VRoxel.Navigation
             Dispose();  // clear any existing memory
             m_totalAgents = transforms.Length;
             m_world = world;
+
+            // old agent properties
+            m_agentPositions = new NativeArray<float3>(m_totalAgents, Allocator.Persistent);
+            m_agentVelocity = new NativeArray<float3>(m_totalAgents, Allocator.Persistent);
+            m_agentActive = new NativeArray<bool>(m_totalAgents, Allocator.Persistent);
 
             // initialize the agent properties
             m_transformAccess = new TransformAccessArray(transforms);
@@ -173,6 +208,11 @@ namespace VRoxel.Navigation
         /// </summary>
         public void Dispose()
         {
+            // dispose old agent data
+            if (m_agentPositions.IsCreated){ m_agentPositions.Dispose(); }
+            if (m_agentVelocity.IsCreated){ m_agentVelocity.Dispose(); }
+            if (m_agentActive.IsCreated){ m_agentActive.Dispose(); }
+
             // dispose the agent data
             if (m_agentSteering.IsCreated) { m_agentSteering.Dispose(); }
             if (m_agentKinematics.IsCreated) { m_agentKinematics.Dispose(); }
@@ -214,37 +254,48 @@ namespace VRoxel.Navigation
         /// </summary>
         protected JobHandle SchedulePathfindingUpdate(int3 target, JobHandle dependsOn = default)
         {
-            int3 size = new int3(m_world.size.x, m_world.size.y, m_world.size.z);
-            int length = size.x * size.y * size.z;
+            int length = m_world.size.x * m_world.size.y * m_world.size.z;
+            int3 worldSize = new int3(m_world.size.x, m_world.size.y, m_world.size.z);
 
-            UpdateCostFieldJob costJob = new UpdateCostFieldJob();
-            costJob.directionMask = m_directionsNESW;
-            costJob.directions = m_directions;
-            costJob.costField = m_costField;
-            costJob.voxels = m_world.data.voxels;
-            costJob.blocks = m_blockTypes;
-            costJob.height = 1; // TODO: Fix this!
-            costJob.size = size;
+            UpdateCostFieldJob costJob = new UpdateCostFieldJob()
+            {
+                voxels = m_world.data.voxels,
+                directionMask = m_directionsNESW,
+                directions = m_directions,
+                costField = m_costField,
+                blocks = m_blockTypes,
+                size = worldSize,
+                height = height
+            };
             JobHandle costHandle = costJob.Schedule(length, 1, dependsOn);
 
-            ClearIntFieldJob clearJob = new ClearIntFieldJob();
-            clearJob.intField = m_intField;
+
+            ClearIntFieldJob clearJob = new ClearIntFieldJob()
+            {
+                intField = m_intField
+            };
             JobHandle clearHandle = clearJob.Schedule(length, 1, costHandle);
 
-            UpdateIntFieldJob intJob = new UpdateIntFieldJob();
-            intJob.directions = m_directions;
-            intJob.costField = m_costField;
-            intJob.intField = m_intField;
-            intJob.open = m_openNodes;
-            intJob.size = size;
-            intJob.goal = target;
+
+            UpdateIntFieldJob intJob = new UpdateIntFieldJob()
+            {
+                directions = m_directions,
+                costField = m_costField,
+                intField = m_intField,
+                open = m_openNodes,
+                size = worldSize,
+                goal = target
+            };
             JobHandle intHandle = intJob.Schedule(clearHandle);
 
-            UpdateFlowFieldJob flowJob = new UpdateFlowFieldJob();
-            flowJob.directions = m_directions;
-            flowJob.flowField = m_flowField;
-            flowJob.intField = m_intField;
-            flowJob.size = size;
+
+            UpdateFlowFieldJob flowJob = new UpdateFlowFieldJob()
+            {
+                directions = m_directions,
+                flowField = m_flowField,
+                intField = m_intField,
+                size = worldSize,
+            };
 
             m_updatingPathfinding = flowJob.Schedule(length, 1, intHandle);
             return m_updatingPathfinding;
@@ -255,72 +306,127 @@ namespace VRoxel.Navigation
         /// </summary>
         protected JobHandle ScheduleAgentMovement(float dt, JobHandle dependsOn = default)
         {
-            int3 size = new int3(m_world.size.x, m_world.size.y, m_world.size.z);
-            int3 bucketSize = new int3(1,1,1);
+            int3 worldSize = new int3(m_world.size.x, m_world.size.y, m_world.size.z);
 
-            BuildSpatialMapJob spaceJob = new BuildSpatialMapJob();
-            spaceJob.spatialMap = m_spatialMapWriter;
-            //spaceJob.agents = m_agentKinematics;
-            //spaceJob.world = m_worldProperties;
-            spaceJob.size = bucketSize;
+            BuildSpatialMapJob spaceJob = new BuildSpatialMapJob()
+            {
+                world_scale = m_world.scale,
+                world_center = m_world.data.center,
+                world_offset = m_world.transform.position,
+                world_rotation = m_world.transform.rotation,
+
+                active = m_agentActive,
+                spatialMap = m_spatialMapWriter,
+                positions = m_agentPositions,
+                size = spatialBucketSize
+            };
             JobHandle spaceHandle = spaceJob.Schedule(m_transformAccess, dependsOn);
 
-            FlowFieldSeekJob seekJob = new FlowFieldSeekJob();
-            seekJob.steering = m_agentSteering;
-            seekJob.flowDirections = m_directions;
-            seekJob.flowField = m_flowField;
-            seekJob.flowFieldSize = size;
-            //spaceJob.agents = m_agentKinematics;
-            //seekJob.world = m_worldProperties;
-            seekJob.maxSpeed = 1f;
+            FlowFieldSeekJob seekJob = new FlowFieldSeekJob()
+            {
+                maxSpeed = maxSpeed,
+
+                world_scale = m_world.scale,
+                world_center = m_world.data.center,
+                world_offset = m_world.transform.position,
+                world_rotation = m_world.transform.rotation,
+
+                flowField = m_flowField,
+                flowDirections = m_directions,
+                flowFieldSize = worldSize,
+
+                active = m_agentActive,
+                positions = m_agentPositions,
+                steering = m_agentSteering,
+                velocity = m_agentVelocity,
+            };
             JobHandle seekHandle = seekJob.Schedule(m_totalAgents, 1, spaceHandle);
 
-            AvoidCollisionBehavior avoidJob = new AvoidCollisionBehavior();
-            avoidJob.steering = m_agentSteering;
-            avoidJob.avoidForce = 1f;
-            avoidJob.avoidRadius = 1f;
-            avoidJob.avoidDistance = 1f;
-            avoidJob.maxDepth = 1;
-            //avoidJob.agents = m_agentKinematics;
-            //avoidJob.world = m_worldProperties;
-            avoidJob.size = bucketSize;
-            avoidJob.spatialMap = m_spatialMap;
+            AvoidCollisionBehavior avoidJob = new AvoidCollisionBehavior()
+            {
+                avoidForce = avoidForce,
+                avoidRadius = avoidRadius,
+                avoidDistance = avoidDistance,
+                maxDepth = maxAvoidDepth,
+
+                world_scale = m_world.scale,
+                world_center = m_world.data.center,
+                world_offset = m_world.transform.position,
+                world_rotation = m_world.transform.rotation,
+
+                active = m_agentActive,
+                position = m_agentPositions,
+                velocity = m_agentVelocity,
+                steering = m_agentSteering,
+
+                spatialMap = m_spatialMap,
+                size = spatialBucketSize
+            };
             JobHandle avoidHandle = avoidJob.Schedule(m_totalAgents, 1, seekHandle);
 
-            QueueBehavior queueJob = new QueueBehavior();
-            queueJob.spatialMap = m_spatialMap;
-            queueJob.steering = m_agentSteering;
-            //queueJob.agents = m_agentKinematics;
-            //queueJob.world = m_worldProperties;
-            queueJob.size = bucketSize;
-            queueJob.maxDepth = 1;
-            queueJob.maxBrakeForce = 1f;
-            queueJob.maxQueueRadius = 1f;
-            queueJob.maxQueueAhead = 1f;
+            QueueBehavior queueJob = new QueueBehavior()
+            {
+                maxDepth = maxQueueDepth,
+                maxBrakeForce = brakeForce,
+                maxQueueRadius = queueRadius,
+                maxQueueAhead = queueDistance,
+
+                active = m_agentActive,
+                steering = m_agentSteering,
+                position = m_agentPositions,
+                velocity = m_agentVelocity,
+
+                world_scale = m_world.scale,
+                world_center = m_world.data.center,
+                world_offset = m_world.transform.position,
+                world_rotation = m_world.transform.rotation,
+
+                size = spatialBucketSize,
+                spatialMap = m_spatialMap
+            };
             JobHandle queueHandle = queueJob.Schedule(m_totalAgents, 1, avoidHandle);
 
-            ResolveCollisionBehavior collisionJob = new ResolveCollisionBehavior();
-            collisionJob.steering = m_agentSteering;
-            //collisionJob.agents = m_agentKinematics;
-            //collisionJob.world = m_worldProperties;
-            collisionJob.size = bucketSize;
-            collisionJob.spatialMap = m_spatialMap;
-            collisionJob.maxDepth = 1;
-            collisionJob.collisionForce = 1f;
-            collisionJob.collisionRadius = 1f;
+            ResolveCollisionBehavior collisionJob = new ResolveCollisionBehavior()
+            {
+                collisionForce = collisionForce,
+                collisionRadius = collisionRadius,
+                maxDepth = maxCollisionDepth,
+
+                world_scale = m_world.scale,
+                world_center = m_world.data.center,
+                world_offset = m_world.transform.position,
+                world_rotation = m_world.transform.rotation,
+
+                active = m_agentActive,
+                position = m_agentPositions,
+                velocity = m_agentVelocity,
+                steering = m_agentSteering,
+
+                spatialMap = m_spatialMap,
+                size = spatialBucketSize
+            };
             JobHandle collisionHandle = collisionJob.Schedule(m_totalAgents, 1, queueHandle);
 
-            MoveAgentJob moveJob = new MoveAgentJob();
-            collisionJob.steering = m_agentSteering;
-            //collisionJob.agents = m_agentKinematics;
-            //collisionJob.world = m_worldProperties;
-            moveJob.flowField = m_flowField;
-            moveJob.flowFieldSize = size;
-            moveJob.deltaTime = dt;
-            moveJob.mass = 1f;
-            moveJob.maxForce = 1f;
-            moveJob.maxSpeed = 1f;
-            moveJob.turnSpeed = 1f;
+            MoveAgentJob moveJob = new MoveAgentJob()
+            {
+                mass = mass,
+                maxForce = maxForce,
+                maxSpeed = maxSpeed,
+                turnSpeed = turnSpeed,
+
+                active = m_agentActive,
+                steering = m_agentSteering,
+                velocity = m_agentVelocity,
+                deltaTime = dt,
+
+                world_scale = m_world.scale,
+                world_center = m_world.data.center,
+                world_offset = m_world.transform.position,
+                world_rotation = m_world.transform.rotation,
+
+                flowField = m_flowField,
+                flowFieldSize = worldSize,
+            };
 
             m_movingAgents = moveJob.Schedule(m_transformAccess, collisionHandle);
             return m_movingAgents;
