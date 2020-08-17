@@ -80,6 +80,7 @@ namespace VRoxel.Core
         /// </summary>
         public void Initialize()
         {
+            m_meshRenderer.material = material;
             m_voxels = new NativeArray<byte>(
                 size.x * size.y * size.z, Allocator.Persistent
             );
@@ -125,7 +126,6 @@ namespace VRoxel.Core
             m_meshFilter = GetComponent<MeshFilter>();
             m_meshCollider = GetComponent<MeshCollider>();
             m_meshRenderer = GetComponent<MeshRenderer>();
-            m_meshRenderer.material = material;
         }
 
         protected virtual void Start()
