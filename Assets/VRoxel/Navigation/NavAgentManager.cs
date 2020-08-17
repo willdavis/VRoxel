@@ -137,7 +137,7 @@ namespace VRoxel.Navigation
             m_agentVelocity = new NativeArray<float3>(m_totalAgents, Allocator.Persistent);
             m_agentActive = new NativeArray<bool>(m_totalAgents, Allocator.Persistent);
 
-            // initialize agent configurations
+            // initialize agent movement configurations
             int configCount = configurations.Count;
             m_movementTypes = new NativeArray<AgentMovement>(configCount, Allocator.Persistent);
 
@@ -190,6 +190,14 @@ namespace VRoxel.Navigation
                 else { navBlock.cost = 2; }
 
                 m_blockTypes[i] = navBlock;
+            }
+
+            // configure each agents movement type
+            for (int i = 0; i < m_totalAgents; i++)
+            {
+                NavAgent agent = transforms[i].GetComponent<NavAgent>();
+                int index = configurations.IndexOf(agent.configuration);
+                m_agentMovementTypes[i] = index;
             }
         }
 
