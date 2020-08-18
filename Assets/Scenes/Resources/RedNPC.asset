@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   movement:
     mass: 1
-    topSpeed: 10
-    turnSpeed: 10
+    topSpeed: 1
+    turnSpeed: 1
