@@ -15,49 +15,35 @@ namespace VRoxel.Navigation
         public int3 flowFieldSize;
 
         /// <summary>
-        /// the scale of the voxel world
+        /// the reference to the voxel world
         /// </summary>
-        public float world_scale;
+        public AgentWorld world;
 
         /// <summary>
-        /// the scene offset of the world
+        /// the current steering forces acting on each agent
         /// </summary>
-        public float3 world_offset;
+        [WriteOnly] public NativeArray<float3> steering;
 
         /// <summary>
-        /// the center point of the world
+        /// the active agents in the scene
         /// </summary>
-        public float3 world_center;
+        [ReadOnly] public NativeArray<bool> active;
 
         /// <summary>
-        /// the orientation of the world
+        /// the position and velocity of each agent in the scene
         /// </summary>
-        public quaternion world_rotation;
-
-        /// <summary>
-        /// the current steering force acting on each agent
-        /// </summary>
-        [WriteOnly]
-        public NativeArray<float3> steering;
-
-        [ReadOnly]
-        public NativeArray<AgentKinematics> agents;
-
-        [ReadOnly]
-        public NativeArray<bool> active;
+        [ReadOnly] public NativeArray<AgentKinematics> agents;
 
         /// <summary>
         /// the direction indexes for each block in the world.
         /// Blocks with a value of 0 have no direction
         /// </summary>
-        [ReadOnly]
-        public NativeArray<byte> flowField;
+        [ReadOnly] public NativeArray<byte> flowField;
 
         /// <summary>
         /// a reference to all 27 directions
         /// </summary>
-        [ReadOnly]
-        public NativeArray<int3> flowDirections;
+        [ReadOnly] public NativeArray<int3> flowDirections;
 
         [ReadOnly] public NativeArray<AgentMovement> movementTypes;
         [ReadOnly] public NativeArray<int> agentMovement;
@@ -105,12 +91,12 @@ namespace VRoxel.Navigation
         {
             float3 adjusted = position;
             int3 gridPosition = int3.zero;
-            quaternion rotation = math.inverse(world_rotation);
+            quaternion rotation = math.inverse(world.rotation);
 
-            adjusted += world_offset * -1f;     // adjust for the worlds offset
-            adjusted *= 1 / world_scale;        // adjust for the worlds scale
+            adjusted += world.offset * -1f;     // adjust for the worlds offset
+            adjusted *= 1 / world.scale;        // adjust for the worlds scale
             adjusted = math.rotate(rotation, adjusted);     // adjust for the worlds rotation
-            adjusted += world_center;           // adjust for the worlds center
+            adjusted += world.center;           // adjust for the worlds center
 
             gridPosition.x = (int)math.floor(adjusted.x);
             gridPosition.y = (int)math.floor(adjusted.y);
@@ -128,10 +114,10 @@ namespace VRoxel.Navigation
         {
             float3 position = gridPosition;
             position += new float3(1,1,1) * 0.5f;   // adjust for the chunks center
-            position += world_center * -1f;         // adjust for the worlds center
-            position = math.rotate(world_rotation, position);   // adjust for the worlds rotation
-            position *= world_scale;                // adjust for the worlds scale
-            position += world_offset;               // adjust for the worlds offset
+            position += world.center * -1f;         // adjust for the worlds center
+            position = math.rotate(world.rotation, position);   // adjust for the worlds rotation
+            position *= world.scale;                // adjust for the worlds scale
+            position += world.offset;               // adjust for the worlds offset
             return position;
         }
 

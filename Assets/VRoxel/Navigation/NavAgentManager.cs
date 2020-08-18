@@ -321,13 +321,15 @@ namespace VRoxel.Navigation
         {
             int3 worldSize = new int3(m_world.size.x, m_world.size.y, m_world.size.z);
 
+            AgentWorld world = new AgentWorld();
+            world.offset = m_world.transform.position;
+            world.rotation = m_world.transform.rotation;
+            world.center = m_world.data.center;
+            world.scale = m_world.scale;
+
             BuildSpatialMapJob spaceJob = new BuildSpatialMapJob()
             {
-                world_scale = m_world.scale,
-                world_center = m_world.data.center,
-                world_offset = m_world.transform.position,
-                world_rotation = m_world.transform.rotation,
-
+                world = world,
                 active = m_agentActive,
                 agents = m_agentKinematics,
 
@@ -338,13 +340,9 @@ namespace VRoxel.Navigation
 
             FlowFieldSeekJob seekJob = new FlowFieldSeekJob()
             {
+                world = world,
                 movementTypes = m_movementTypes,
                 agentMovement = m_agentMovementTypes,
-
-                world_scale = m_world.scale,
-                world_center = m_world.data.center,
-                world_offset = m_world.transform.position,
-                world_rotation = m_world.transform.rotation,
 
                 flowField = m_flowField,
                 flowDirections = m_directions,
@@ -363,11 +361,7 @@ namespace VRoxel.Navigation
                 avoidDistance = avoidDistance,
                 maxDepth = maxAvoidDepth,
 
-                world_scale = m_world.scale,
-                world_center = m_world.data.center,
-                world_offset = m_world.transform.position,
-                world_rotation = m_world.transform.rotation,
-
+                world = world,
                 active = m_agentActive,
                 agents = m_agentKinematics,
                 steering = m_agentSteering,
@@ -384,14 +378,10 @@ namespace VRoxel.Navigation
                 maxQueueRadius = queueRadius,
                 maxQueueAhead = queueDistance,
 
+                world = world,
                 active = m_agentActive,
                 agents = m_agentKinematics,
                 steering = m_agentSteering,
-
-                world_scale = m_world.scale,
-                world_center = m_world.data.center,
-                world_offset = m_world.transform.position,
-                world_rotation = m_world.transform.rotation,
 
                 size = spatialBucketSize,
                 spatialMap = m_spatialMap
@@ -404,11 +394,7 @@ namespace VRoxel.Navigation
                 collisionRadius = collisionRadius,
                 maxDepth = maxCollisionDepth,
 
-                world_scale = m_world.scale,
-                world_center = m_world.data.center,
-                world_offset = m_world.transform.position,
-                world_rotation = m_world.transform.rotation,
-
+                world = world,
                 active = m_agentActive,
                 agents = m_agentKinematics,
                 steering = m_agentSteering,
@@ -425,15 +411,11 @@ namespace VRoxel.Navigation
                 movementTypes = m_movementTypes,
                 agentMovement = m_agentMovementTypes,
 
+                world = world,
                 active = m_agentActive,
                 agents = m_agentKinematics,
                 steering = m_agentSteering,
                 deltaTime = dt,
-
-                world_scale = m_world.scale,
-                world_center = m_world.data.center,
-                world_offset = m_world.transform.position,
-                world_rotation = m_world.transform.rotation,
 
                 flowField = m_flowField,
                 flowFieldSize = worldSize,
