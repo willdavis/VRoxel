@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿using VRoxel.Navigation.Agents;
 using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Jobs;
@@ -9,8 +9,6 @@ namespace VRoxel.Navigation
     [BurstCompile]
     public struct FlowFieldSeekJob : IJobParallelFor
     {
-        public float maxSpeed;
-
         /// <summary>
         /// the size of the flow field
         /// </summary>
@@ -70,6 +68,9 @@ namespace VRoxel.Navigation
         [ReadOnly]
         public NativeArray<int3> flowDirections;
 
+        [ReadOnly] public NativeArray<AgentMovement> movementTypes;
+        [ReadOnly] public NativeArray<int> agentMovement;
+
         public void Execute(int i)
         {
             if (!active[i]) { return; }
@@ -98,7 +99,7 @@ namespace VRoxel.Navigation
 
             float3 desired = nextPosition - positions[i];
             desired = math.normalizesafe(desired, float3.zero);
-            desired *= maxSpeed;
+            desired *= movementTypes[agentMovement[i]].topSpeed;
 
             steering[i] = desired - velocity[i];
         }

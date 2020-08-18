@@ -6,6 +6,7 @@ using Unity.Mathematics;
 
 using VRoxel.Core;
 using VRoxel.Navigation;
+using VRoxel.Navigation.Agents;
 
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -37,10 +38,14 @@ namespace NavigationBehaviorSpecs
                 flowDirections[i] = new int3(dir.x, dir.y, dir.z);
             }
 
+            NativeArray<int> agentMovementTypes = new NativeArray<int>(1, Allocator.Persistent);
+            NativeArray<AgentMovement> movementTypes = new NativeArray<AgentMovement>(1, Allocator.Persistent);
+            movementTypes[0] = new AgentMovement() { mass = 1f, topSpeed = 1f, turnSpeed = 1f };
+
             FlowFieldSeekJob job = new FlowFieldSeekJob()
             {
-                active = active,
-                maxSpeed = 1f,
+                movementTypes = movementTypes,
+                agentMovement = agentMovementTypes,
 
                 world_scale = 1f,
                 world_offset = float3.zero,
@@ -51,6 +56,7 @@ namespace NavigationBehaviorSpecs
                 flowDirections = flowDirections,
                 flowFieldSize = new int3(1,1,1),
 
+                active = active,
                 positions = positions,
                 steering = directions,
                 velocity = velocity
@@ -67,6 +73,8 @@ namespace NavigationBehaviorSpecs
             directions.Dispose();
             velocity.Dispose();
             active.Dispose();
+            movementTypes.Dispose();
+            agentMovementTypes.Dispose();
         }
     }
 }

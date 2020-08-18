@@ -350,7 +350,8 @@ namespace VRoxel.Navigation
 
             FlowFieldSeekJob seekJob = new FlowFieldSeekJob()
             {
-                maxSpeed = maxSpeed,
+                movementTypes = m_movementTypes,
+                agentMovement = m_agentMovementTypes,
 
                 world_scale = m_world.scale,
                 world_center = m_world.data.center,
