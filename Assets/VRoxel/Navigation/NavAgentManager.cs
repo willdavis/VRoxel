@@ -20,9 +20,6 @@ namespace VRoxel.Navigation
 
         // agent settings
         public int height;
-        public float mass;
-        public float maxSpeed;
-        public float turnSpeed;
 
         // moving
         public float maxForce;
