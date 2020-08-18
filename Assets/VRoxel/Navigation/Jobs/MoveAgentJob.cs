@@ -1,9 +1,8 @@
-﻿using Unity.Collections;
+﻿using VRoxel.Navigation.Agents;
+using Unity.Collections;
 using UnityEngine.Jobs;
 using Unity.Mathematics;
 using Unity.Burst;
-
-using VRoxel.Navigation.Agents;
 
 namespace VRoxel.Navigation
 {

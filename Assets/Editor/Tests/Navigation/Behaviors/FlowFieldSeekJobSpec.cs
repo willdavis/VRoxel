@@ -41,16 +41,20 @@ namespace NavigationBehaviorSpecs
             NativeArray<AgentMovement> movementTypes = new NativeArray<AgentMovement>(1, Allocator.Persistent);
             movementTypes[0] = new AgentMovement() { mass = 1f, topSpeed = 1f, turnSpeed = 1f };
 
+            AgentWorld world = new AgentWorld()
+            {
+                scale = 1f,
+                offset = float3.zero,
+                center = new float3(0.5f, 0.5f, 0.5f),
+                rotation = quaternion.identity,
+            };
+
             FlowFieldSeekJob job = new FlowFieldSeekJob()
             {
                 movementTypes = movementTypes,
                 agentMovement = agentMovementTypes,
 
-                world_scale = 1f,
-                world_offset = float3.zero,
-                world_center = new float3(0.5f, 0.5f, 0.5f),
-                world_rotation = quaternion.identity,
-
+                world = world,
                 flowField = flowField,
                 flowDirections = flowDirections,
                 flowFieldSize = new int3(1,1,1),
