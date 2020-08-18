@@ -36,8 +36,7 @@ namespace VRoxel.Navigation
         [ReadOnly]
         public NativeArray<bool> active;
 
-        [WriteOnly]
-        public NativeArray<float3> positions;
+        public NativeArray<Agents.AgentKinematics> agents;
 
         [WriteOnly]
         public NativeMultiHashMap<int3, float3>.ParallelWriter spatialMap;
@@ -53,7 +52,10 @@ namespace VRoxel.Navigation
                 grid.z / size.z
             );
 
-            positions[i] = transform.position;
+            Agents.AgentKinematics agent = agents[i];
+            agent.position = transform.position;
+            agents[i] = agent;
+
             spatialMap.Add(bucket, transform.position);
         }
 

@@ -40,9 +40,8 @@ namespace VRoxel.Navigation
         public float collisionForce;
         public float collisionRadius;
         public int maxCollisionDepth;
+
         public NativeArray<bool> activeAgents { get { return m_agentActive; } }
-        NativeArray<float3> m_agentPositions;
-        NativeArray<float3> m_agentVelocity;
         NativeArray<bool> m_agentActive;
 
 
@@ -129,11 +128,6 @@ namespace VRoxel.Navigation
             m_totalAgents = transforms.Length;
             m_world = world;
 
-            // old agent properties
-            m_agentPositions = new NativeArray<float3>(m_totalAgents, Allocator.Persistent);
-            m_agentVelocity = new NativeArray<float3>(m_totalAgents, Allocator.Persistent);
-            m_agentActive = new NativeArray<bool>(m_totalAgents, Allocator.Persistent);
-
             // initialize agent movement configurations
             int configCount = configurations.Count;
             m_movementTypes = new NativeArray<AgentMovement>(configCount, Allocator.Persistent);
@@ -143,6 +137,7 @@ namespace VRoxel.Navigation
 
             // initialize the agent properties
             m_transformAccess = new TransformAccessArray(transforms);
+            m_agentActive = new NativeArray<bool>(m_totalAgents, Allocator.Persistent);
             m_agentSteering = new NativeArray<float3>(m_totalAgents, Allocator.Persistent);
             m_agentMovementTypes = new NativeArray<int>(m_totalAgents, Allocator.Persistent);
             m_agentKinematics = new NativeArray<AgentKinematics>(m_totalAgents, Allocator.Persistent);
@@ -228,18 +223,12 @@ namespace VRoxel.Navigation
         /// </summary>
         public void Dispose()
         {
-            // dispose old agent data
-            if (m_agentPositions.IsCreated){ m_agentPositions.Dispose(); }
-            if (m_agentVelocity.IsCreated){ m_agentVelocity.Dispose(); }
-            if (m_agentActive.IsCreated){ m_agentActive.Dispose(); }
-
             // dispose the agent data
+            if (m_agentActive.IsCreated){ m_agentActive.Dispose(); }
             if (m_agentSteering.IsCreated) { m_agentSteering.Dispose(); }
             if (m_agentKinematics.IsCreated) { m_agentKinematics.Dispose(); }
             if (m_transformAccess.isCreated) { m_transformAccess.Dispose(); }
-
             if (m_agentMovementTypes.IsCreated) { m_agentMovementTypes.Dispose(); }
-            if (m_movementTypes.IsCreated) { m_movementTypes.Dispose(); }
 
             // dispose the spatial map data
             if (m_spatialMap.IsCreated) { m_spatialMap.Dispose(); }
@@ -254,6 +243,7 @@ namespace VRoxel.Navigation
             if (m_blockTypes.IsCreated) { m_blockTypes.Dispose(); }
             if (m_directions.IsCreated) { m_directions.Dispose(); }
             if (m_directionsNESW.IsCreated) { m_directionsNESW.Dispose(); }
+            if (m_movementTypes.IsCreated) { m_movementTypes.Dispose(); }
         }
 
         #endregion
@@ -339,8 +329,9 @@ namespace VRoxel.Navigation
                 world_rotation = m_world.transform.rotation,
 
                 active = m_agentActive,
+                agents = m_agentKinematics,
+
                 spatialMap = m_spatialMapWriter,
-                positions = m_agentPositions,
                 size = spatialBucketSize
             };
             JobHandle spaceHandle = spaceJob.Schedule(m_transformAccess, dependsOn);
@@ -360,9 +351,8 @@ namespace VRoxel.Navigation
                 flowFieldSize = worldSize,
 
                 active = m_agentActive,
-                positions = m_agentPositions,
+                agents = m_agentKinematics,
                 steering = m_agentSteering,
-                velocity = m_agentVelocity,
             };
             JobHandle seekHandle = seekJob.Schedule(m_totalAgents, 1, spaceHandle);
 
@@ -379,8 +369,7 @@ namespace VRoxel.Navigation
                 world_rotation = m_world.transform.rotation,
 
                 active = m_agentActive,
-                position = m_agentPositions,
-                velocity = m_agentVelocity,
+                agents = m_agentKinematics,
                 steering = m_agentSteering,
 
                 spatialMap = m_spatialMap,
@@ -396,9 +385,8 @@ namespace VRoxel.Navigation
                 maxQueueAhead = queueDistance,
 
                 active = m_agentActive,
+                agents = m_agentKinematics,
                 steering = m_agentSteering,
-                position = m_agentPositions,
-                velocity = m_agentVelocity,
 
                 world_scale = m_world.scale,
                 world_center = m_world.data.center,
@@ -422,8 +410,7 @@ namespace VRoxel.Navigation
                 world_rotation = m_world.transform.rotation,
 
                 active = m_agentActive,
-                position = m_agentPositions,
-                velocity = m_agentVelocity,
+                agents = m_agentKinematics,
                 steering = m_agentSteering,
 
                 spatialMap = m_spatialMap,
@@ -439,8 +426,8 @@ namespace VRoxel.Navigation
                 agentMovement = m_agentMovementTypes,
 
                 active = m_agentActive,
+                agents = m_agentKinematics,
                 steering = m_agentSteering,
-                velocity = m_agentVelocity,
                 deltaTime = dt,
 
                 world_scale = m_world.scale,

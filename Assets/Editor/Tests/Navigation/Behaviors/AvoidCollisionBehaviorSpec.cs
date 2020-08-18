@@ -10,6 +10,7 @@ using Unity.Collections;
 using Unity.Mathematics;
 
 using VRoxel.Navigation;
+using VRoxel.Navigation.Agents;
 
 namespace NavigationBehaviorSpecs
 {
@@ -45,13 +46,10 @@ namespace NavigationBehaviorSpecs
         [Test]
         public void CanCheckForMostThreateningAgent()
         {
-            bool result;
+            NativeArray<AgentKinematics> agents = new NativeArray<AgentKinematics>(1, Allocator.Persistent);
+            AvoidCollisionBehavior job = new AvoidCollisionBehavior() { agents = agents };
             float3 target, best;
-            NativeArray<float3> positions = new NativeArray<float3>(1, Allocator.Persistent);
-            AvoidCollisionBehavior job = new AvoidCollisionBehavior()
-            {
-                position = positions
-            };
+            bool result;
 
             best = new float3(0, 1f, 0);
             target  = new float3(0, 0.5f, 0);
@@ -63,7 +61,7 @@ namespace NavigationBehaviorSpecs
             result = job.MostThreatening(0, target, best);
             Assert.AreEqual(false, result);     // less threatening
 
-            positions.Dispose();
+            agents.Dispose();
         }
 
         [Test]
@@ -102,16 +100,16 @@ namespace NavigationBehaviorSpecs
             spatialMap.Add(int3.zero, position1);
             spatialMap.Add(int3.zero, position2);
 
-            NativeArray<float3> positions = new NativeArray<float3>(2, Allocator.Persistent);
-            positions[0] = position1;
-            positions[1] = position2;
+            NativeArray<AgentKinematics> agents = new NativeArray<AgentKinematics>(2, Allocator.Persistent);
+            agents[0] = new AgentKinematics(){ position = position1 };
+            agents[1] = new AgentKinematics(){ position = position2 };
 
             AvoidCollisionBehavior job = new AvoidCollisionBehavior()
             {
                 maxDepth = 100,
                 avoidRadius = 0.5f,
-                position = positions,
-                spatialMap = spatialMap
+                spatialMap = spatialMap,
+                agents = agents,
             };
 
             // when ahead vector is in range
@@ -142,8 +140,8 @@ namespace NavigationBehaviorSpecs
             Assert.AreEqual(false, obstructed);
             Assert.AreEqual(max, closest);
 
+            agents.Dispose();
             spatialMap.Dispose();
-            positions.Dispose();
         }
 
         [Test]
@@ -157,19 +155,14 @@ namespace NavigationBehaviorSpecs
             spatialMap.Add(int3.zero, position1);
             spatialMap.Add(int3.zero, position2);
 
-            NativeArray<float3> positions = new NativeArray<float3>(2, Allocator.Persistent);
-            positions[0] = position1;
-            positions[1] = position2;
+            NativeArray<AgentKinematics> agents = new NativeArray<AgentKinematics>(2, Allocator.Persistent);
+            agents[0] = new AgentKinematics(){ position = position1, velocity = new float3(0, 0, 0) };
+            agents[1] = new AgentKinematics(){ position = position2, velocity = new float3(0, 1, 0) };
 
+            NativeArray<float3> steering = new NativeArray<float3>(2, Allocator.Persistent);
             NativeArray<bool> active = new NativeArray<bool>(2, Allocator.Persistent);
             for (int i = 0; i < 2; i++)
                 active[i] = true;
-
-            NativeArray<float3> steering = new NativeArray<float3>(2, Allocator.Persistent);
-            NativeArray<float3> velocity = new NativeArray<float3>(2, Allocator.Persistent);
-            velocity[0] = new float3(0, 0, 0);
-            velocity[1] = new float3(0, 1, 0);
-
 
             AvoidCollisionBehavior job = new AvoidCollisionBehavior()
             {
@@ -182,8 +175,7 @@ namespace NavigationBehaviorSpecs
                 size = new int3(1,1,1),
                 spatialMap = spatialMap,
                 steering = steering,
-                position = positions,
-                velocity = velocity,
+                agents = agents,
 
                 world_scale = 1f,
                 world_offset = float3.zero,
@@ -197,9 +189,8 @@ namespace NavigationBehaviorSpecs
             Assert.AreEqual(new float3(0,  0, 0), steering[1]);
 
             spatialMap.Dispose();
-            positions.Dispose();
             steering.Dispose();
-            velocity.Dispose();
+            agents.Dispose();
             active.Dispose();
         }
     }

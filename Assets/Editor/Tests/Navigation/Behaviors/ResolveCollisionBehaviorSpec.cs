@@ -10,6 +10,7 @@ using Unity.Collections;
 using Unity.Mathematics;
 
 using VRoxel.Navigation;
+using VRoxel.Navigation.Agents;
 
 namespace NavigationBehaviorSpecs
 {
@@ -43,16 +44,14 @@ namespace NavigationBehaviorSpecs
         [Test]
         public void CanApplyCollisionForce()
         {
-            NativeArray<float3> velocity = new NativeArray<float3>(1, Allocator.Persistent);
-            NativeArray<float3> position = new NativeArray<float3>(1, Allocator.Persistent);
+            NativeArray<AgentKinematics> agents = new NativeArray<AgentKinematics>(1, Allocator.Persistent);
             NativeArray<float3> steering = new NativeArray<float3>(1, Allocator.Persistent);
             ResolveCollisionBehavior job = new ResolveCollisionBehavior()
             {
                 collisionRadius = 1f,
                 collisionForce = 0.5f,
                 steering = steering,
-                position = position,
-                velocity = velocity
+                agents = agents,
             };
 
             float3 self = float3.zero;
@@ -66,9 +65,8 @@ namespace NavigationBehaviorSpecs
             job.ApplyCollisionForce(0, target);
             Assert.AreEqual(new float3(0, -0.5f, 0), steering[0]);
 
+            agents.Dispose();
             steering.Dispose();
-            position.Dispose();
-            velocity.Dispose();
         }
     }
 }

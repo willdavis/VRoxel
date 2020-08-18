@@ -18,10 +18,9 @@ namespace NavigationBehaviorSpecs
         [Test]
         public void UpdatesDirections()
         {
-            NativeArray<float3> velocity = new NativeArray<float3>(1, Allocator.Persistent);
             NativeArray<float3> directions = new NativeArray<float3>(1, Allocator.Persistent);
-            NativeArray<float3> positions = new NativeArray<float3>(1, Allocator.Persistent);
-            positions[0] = Vector3.up;
+            NativeArray<AgentKinematics> agents = new NativeArray<AgentKinematics>(1, Allocator.Persistent);
+            agents[0] = new AgentKinematics(){ position = Vector3.up };
 
             NativeArray<bool> active = new NativeArray<bool>(1, Allocator.Persistent);
             active[0] = true;
@@ -57,9 +56,8 @@ namespace NavigationBehaviorSpecs
                 flowFieldSize = new int3(1,1,1),
 
                 active = active,
-                positions = positions,
+                agents = agents,
                 steering = directions,
-                velocity = velocity
             };
 
             JobHandle handle = job.Schedule(1,1);
@@ -69,9 +67,8 @@ namespace NavigationBehaviorSpecs
 
             flowDirections.Dispose();
             flowField.Dispose();
-            positions.Dispose();
             directions.Dispose();
-            velocity.Dispose();
+            agents.Dispose();
             active.Dispose();
             movementTypes.Dispose();
             agentMovementTypes.Dispose();

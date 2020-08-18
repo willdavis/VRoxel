@@ -41,10 +41,7 @@ namespace VRoxel.Navigation
         public NativeArray<float3> steering;
 
         [ReadOnly]
-        public NativeArray<float3> position;
-
-        [ReadOnly]
-        public NativeArray<float3> velocity;
+        public NativeArray<Agents.AgentKinematics> agents;
 
         [ReadOnly]
         public NativeArray<bool> active;
@@ -56,8 +53,9 @@ namespace VRoxel.Navigation
         {
             if (!active[i]) { return; }
 
-            float3 min = position[i] + new float3(-collisionRadius, -collisionRadius, -collisionRadius);
-            float3 max = position[i] + new float3( collisionRadius,  collisionRadius,  collisionRadius);
+            Agents.AgentKinematics agent = agents[i];
+            float3 min = agent.position + new float3(-collisionRadius, -collisionRadius, -collisionRadius);
+            float3 max = agent.position + new float3( collisionRadius,  collisionRadius,  collisionRadius);
 
             int3 minBucket = GetSpatialBucket(min);
             int3 maxBucket = GetSpatialBucket(max);
@@ -76,15 +74,15 @@ namespace VRoxel.Navigation
 
         public void ApplyCollisionForce(int i, float3 target)
         {
-            float3 collision = position[i] - target;
-            float length = math.length(position[i] - target);
+            float3 collision = agents[i].position - target;
+            float length = math.length(agents[i].position - target);
             if (length == 0) { return; }
 
             float scale = (collisionRadius / length) * collisionForce;
             collision = math.normalizesafe(collision, float3.zero);
 
             steering[i] += collision * scale;
-            steering[i] += -velocity[i] * scale;
+            steering[i] += -agents[i].velocity * scale;
         }
 
         public void ResolveCollisions(int i, int3 min, int3 max)
@@ -118,7 +116,7 @@ namespace VRoxel.Navigation
                 if (count == maxDepth) { break; }
                 count++;
 
-                if (Collision(position[i], agent, collisionRadius))
+                if (Collision(agents[i].position, agent, collisionRadius))
                     ApplyCollisionForce(i, agent);
 
                 hasValue = spatialMap.TryGetNextValue(out agent, ref iter);

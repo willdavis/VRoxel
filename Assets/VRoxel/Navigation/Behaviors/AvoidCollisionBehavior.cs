@@ -42,10 +42,7 @@ namespace VRoxel.Navigation
         public NativeArray<float3> steering;
 
         [ReadOnly]
-        public NativeArray<float3> position;
-
-        [ReadOnly]
-        public NativeArray<float3> velocity;
+        public NativeArray<Agents.AgentKinematics> agents;
 
         [ReadOnly]
         public NativeArray<bool> active;
@@ -57,12 +54,13 @@ namespace VRoxel.Navigation
         {
             if (!active[i]) { return; }
 
-            float dynamicLength = math.length(velocity[i]) / avoidDistance;
-            float3 direction = math.normalizesafe(velocity[i], float3.zero);
+            Agents.AgentKinematics agent = agents[i];
+            float dynamicLength = math.length(agent.velocity) / avoidDistance;
+            float3 direction = math.normalizesafe(agent.velocity, float3.zero);
             float3 closest = new float3(float.MaxValue, float.MaxValue, float.MaxValue);
 
-            float3 ahead  = position[i] + direction * dynamicLength;
-            float3 ahead2 = position[i] + direction * dynamicLength * 0.5f;
+            float3 ahead  = agent.position + direction * dynamicLength;
+            float3 ahead2 = agent.position + direction * dynamicLength * 0.5f;
 
             float3 min = ahead + new float3(-avoidRadius, -avoidRadius, -avoidRadius);
             float3 max = ahead + new float3( avoidRadius,  avoidRadius,  avoidRadius);
@@ -89,7 +87,7 @@ namespace VRoxel.Navigation
 
         public bool MostThreatening(int i, float3 target, float3 mostThreatening)
         {
-            return math.length(target - position[i]) < math.length(mostThreatening - position[i]);
+            return math.length(target - agents[i].position) < math.length(mostThreatening - agents[i].position);
         }
 
         public void ApplyAvoidanceForce(int i, float3 ahead, float3 center)
@@ -136,7 +134,7 @@ namespace VRoxel.Navigation
                 if (count == maxDepth) { break; }
                 count++;
 
-                if (!position[i].Equals(agent) && IntersectsCircle(ahead, ahead2, agent, avoidRadius))
+                if (!agents[i].position.Equals(agent) && IntersectsCircle(ahead, ahead2, agent, avoidRadius))
                 {
                     if (MostThreatening(i, agent, closest)) { closest = agent; }
                     obstructed = true;

@@ -49,7 +49,8 @@ namespace NavigationSpecs
             transforms[1] = GameObject.CreatePrimitive(PrimitiveType.Cube).transform;
             TransformAccessArray asyncTransforms = new TransformAccessArray(transforms);
 
-            NativeArray<float3> velocity = new NativeArray<float3>(2, Allocator.Persistent);
+            NativeArray<AgentKinematics> agents = new NativeArray<AgentKinematics>(2, Allocator.Persistent);
+
             NativeArray<float3> directions = new NativeArray<float3>(2, Allocator.Persistent);
             directions[0] = Vector3.right;
             directions[1] = Vector3.left;
@@ -74,8 +75,8 @@ namespace NavigationSpecs
                 movementTypes = movementTypes,
                 agentMovement = agentMovementTypes,
 
+                agents = agents,
                 steering = directions,
-                velocity = velocity,
                 deltaTime = Time.deltaTime,
 
                 world_scale = 1f,
@@ -102,9 +103,9 @@ namespace NavigationSpecs
             Assert.AreNotEqual(rotation_0, transforms[0].rotation);
             Assert.AreNotEqual(rotation_1, transforms[1].rotation);
 
+            agents.Dispose();
             active.Dispose();
             flowField.Dispose();
-            velocity.Dispose();
             directions.Dispose();
             asyncTransforms.Dispose();
 

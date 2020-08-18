@@ -40,17 +40,8 @@ namespace VRoxel.Navigation
         [WriteOnly]
         public NativeArray<float3> steering;
 
-        /// <summary>
-        /// the current position of each agent
-        /// </summary>
         [ReadOnly]
-        public NativeArray<float3> positions;
-
-        /// <summary>
-        /// the current velocity of each agent
-        /// </summary>
-        [ReadOnly]
-        public NativeArray<float3> velocity;
+        public NativeArray<AgentKinematics> agents;
 
         [ReadOnly]
         public NativeArray<bool> active;
@@ -75,7 +66,8 @@ namespace VRoxel.Navigation
         {
             if (!active[i]) { return; }
 
-            int3 grid = GridPosition(positions[i]);
+            AgentKinematics agent = agents[i];
+            int3 grid = GridPosition(agent.position);
             grid += new int3(0, -1, 0);
 
             if (OutOfBounds(grid))
@@ -97,11 +89,11 @@ namespace VRoxel.Navigation
             int3 nextGrid = grid + flowDirection + new int3(0, 1, 0);
             float3 nextPosition = ScenePosition(nextGrid);
 
-            float3 desired = nextPosition - positions[i];
+            float3 desired = nextPosition - agent.position;
             desired = math.normalizesafe(desired, float3.zero);
             desired *= movementTypes[agentMovement[i]].topSpeed;
 
-            steering[i] = desired - velocity[i];
+            steering[i] = desired - agent.velocity;
         }
 
         /// <summary>

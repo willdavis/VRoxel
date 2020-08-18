@@ -42,10 +42,7 @@ namespace VRoxel.Navigation
         public NativeArray<float3> steering;
 
         [ReadOnly]
-        public NativeArray<float3> position;
-
-        [ReadOnly]
-        public NativeArray<float3> velocity;
+        public NativeArray<Agents.AgentKinematics> agents;
 
         [ReadOnly]
         public NativeArray<bool> active;
@@ -57,8 +54,9 @@ namespace VRoxel.Navigation
         {
             if (!active[i]) { return; }
 
-            float3 direction = math.normalizesafe(velocity[i], float3.zero);
-            float3 ahead = position[i] + direction * maxQueueAhead;
+            Agents.AgentKinematics agent = agents[i];
+            float3 direction = math.normalizesafe(agent.velocity, float3.zero);
+            float3 ahead = agent.position + direction * maxQueueAhead;
 
             float3 min = ahead + new float3(-maxQueueRadius, -maxQueueRadius, -maxQueueRadius);
             float3 max = ahead + new float3( maxQueueRadius,  maxQueueRadius,  maxQueueRadius);
@@ -79,7 +77,7 @@ namespace VRoxel.Navigation
         public void ApplyBrakeForce(int i)
         {
             steering[i] += -steering[i] * maxBrakeForce;
-            steering[i] += -velocity[i];
+            steering[i] += -agents[i].velocity;
         }
 
         public bool DetectCollision(int i, float3 ahead, int3 min, int3 max)
@@ -116,7 +114,7 @@ namespace VRoxel.Navigation
                 if (count == maxDepth) { break; }
                 count++;
 
-                if (!position[i].Equals(agent) && math.length(agent - ahead) <= maxQueueRadius)
+                if (!agents[i].position.Equals(agent) && math.length(agent - ahead) <= maxQueueRadius)
                     return true;
 
                 hasValues = spatialMap.TryGetNextValue(out agent, ref iter);

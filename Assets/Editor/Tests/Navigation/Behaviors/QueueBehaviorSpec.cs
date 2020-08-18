@@ -10,6 +10,7 @@ using Unity.Collections;
 using Unity.Mathematics;
 
 using VRoxel.Navigation;
+using VRoxel.Navigation.Agents;
 
 namespace NavigationBehaviorSpecs
 {
@@ -18,33 +19,33 @@ namespace NavigationBehaviorSpecs
         [Test]
         public void ApplyBrakeForceToAgents()
         {
+            NativeArray<AgentKinematics> agents = new NativeArray<AgentKinematics>(1, Allocator.Persistent);
+            agents[0] = new AgentKinematics(){ velocity = new float3(0,1,0) };
+
             NativeArray<float3> steering = new NativeArray<float3>(1, Allocator.Persistent);
-            NativeArray<float3> velocity = new NativeArray<float3>(1, Allocator.Persistent);
-            float maxBrakeForce = 0.8f;
-
             steering[0] = new float3(1,0,0);
-            velocity[0] = new float3(0,1,0);
 
+            float maxBrakeForce = 0.8f;
             QueueBehavior job = new QueueBehavior()
             {
                 maxBrakeForce = maxBrakeForce,
                 steering = steering,
-                velocity = velocity
+                agents = agents
             };
 
-            float3 expectedVelocity = velocity[0];
+            float3 expectedVelocity = agents[0].velocity;
             float3 expectedSteering = steering[0];
 
             expectedSteering += -expectedSteering * maxBrakeForce;
-            expectedSteering += - velocity[0];
+            expectedSteering += -agents[0].velocity;
 
             job.ApplyBrakeForce(0);
 
-            Assert.AreEqual(expectedVelocity, velocity[0]);     // velocity should not have changed
+            Assert.AreEqual(expectedVelocity, agents[0].velocity);  // velocity should not have changed
             Assert.AreEqual(expectedSteering, steering[0]);     // steering should have changed
 
             steering.Dispose();
-            velocity.Dispose();
+            agents.Dispose();
         }
 
         [Test]
@@ -57,15 +58,15 @@ namespace NavigationBehaviorSpecs
             spatialMap.Add(int3.zero, position1);
             spatialMap.Add(int3.zero, position2);
 
-            NativeArray<float3> positions = new NativeArray<float3>(2, Allocator.Persistent);
-            positions[0] = position1;
-            positions[1] = position2;
+            NativeArray<AgentKinematics> agents = new NativeArray<AgentKinematics>(2, Allocator.Persistent);
+            agents[0] = new AgentKinematics(){ position = position1 };
+            agents[1] = new AgentKinematics(){ position = position2 };
 
             QueueBehavior job = new QueueBehavior()
             {
                 spatialMap = spatialMap,
                 maxQueueRadius = 0.25f,
-                position = positions,
+                agents = agents,
                 maxDepth = 100,
             };
 
@@ -77,7 +78,7 @@ namespace NavigationBehaviorSpecs
             Assert.AreEqual(true, collision);
 
             spatialMap.Dispose();
-            positions.Dispose();
+            agents.Dispose();
         }
 
         [Test]
@@ -90,17 +91,13 @@ namespace NavigationBehaviorSpecs
             spatialMap.Add(int3.zero, position1);
             spatialMap.Add(int3.zero, position2);
 
-            NativeArray<float3> positions = new NativeArray<float3>(2, Allocator.Persistent);
-            positions[0] = position1;
-            positions[1] = position2;
+            NativeArray<AgentKinematics> agents = new NativeArray<AgentKinematics>(2, Allocator.Persistent);
+            agents[0] = new AgentKinematics(){ position = position1, velocity = new float3(0, 0, 0) };
+            agents[1] = new AgentKinematics(){ position = position2, velocity = new float3(0, 1, 0) };
 
             NativeArray<float3> steering = new NativeArray<float3>(2, Allocator.Persistent);
             steering[0] = new float3(0, 1, 0);
             steering[1] = new float3(1, 0, 1);
-
-            NativeArray<float3> velocity = new NativeArray<float3>(2, Allocator.Persistent);
-            velocity[0] = new float3(0, 0, 0);
-            velocity[1] = new float3(0, 1, 0);
 
             NativeArray<bool> active = new NativeArray<bool>(2, Allocator.Persistent);
             for (int i = 0; i < 2; i++)
@@ -121,9 +118,8 @@ namespace NavigationBehaviorSpecs
 
                 size = new int3(1,1,1),
                 spatialMap = spatialMap,
-                position = positions,
                 steering = steering,
-                velocity = velocity
+                agents = agents
             };
 
             job.Schedule(2,1).Complete();
@@ -141,9 +137,8 @@ namespace NavigationBehaviorSpecs
             Assert.AreEqual(true, Mathf.Approximately(expected.z, steering[1].z));
 
             spatialMap.Dispose();
-            positions.Dispose();
             steering.Dispose();
-            velocity.Dispose();
+            agents.Dispose();
             active.Dispose();
         }
     }

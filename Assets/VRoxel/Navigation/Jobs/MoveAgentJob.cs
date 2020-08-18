@@ -67,10 +67,7 @@ namespace VRoxel.Navigation
         /// </summary>
         public NativeArray<float3> steering;
 
-        /// <summary>
-        /// the current velocity of each agent
-        /// </summary>
-        public NativeArray<float3> velocity;
+        public NativeArray<Agents.AgentKinematics> agents;
 
 
         public void Execute(int i, TransformAccess transform)
@@ -80,22 +77,25 @@ namespace VRoxel.Navigation
             float3 up = new float3(0,1,0);
             float3 position = transform.position;
             quaternion rotation = transform.rotation;
+
             AgentMovement movement = movementTypes[agentMovement[i]];
+            AgentKinematics agent  = agents[i];
 
             steering[i] = Clamp(steering[i], maxForce);
             steering[i] = steering[i] / movement.mass;
 
-            velocity[i] = Clamp(velocity[i] + steering[i], movement.topSpeed);
-            float3 nextPosition = position + velocity[i] * deltaTime;
+            agent.velocity = Clamp(agent.velocity + steering[i], movement.topSpeed);
+            steering[i] = float3.zero;  // reset steering forces for next frame
+            agents[i] = agent;  // update the kinematics for the next frame
+
+            float3 nextPosition = agent.position + agent.velocity * deltaTime;
             int3 nextGrid = GridPosition(nextPosition);
 
             if (!OutOfBounds(nextGrid) && !Obstructed(nextGrid))
                 transform.position = nextPosition;
 
-            steering[i] = float3.zero;
-
-            if (velocity[i].Equals(float3.zero)) { return; }
-            quaternion look = quaternion.LookRotation(velocity[i], up);
+            if (agent.velocity.Equals(float3.zero)) { return; }
+            quaternion look = quaternion.LookRotation(agent.velocity, up);
             transform.rotation = math.slerp(rotation, look, movement.turnSpeed * deltaTime);
         }
 
