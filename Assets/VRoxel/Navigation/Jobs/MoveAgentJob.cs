@@ -3,6 +3,8 @@ using UnityEngine.Jobs;
 using Unity.Mathematics;
 using Unity.Burst;
 
+using VRoxel.Navigation.Agents;
+
 namespace VRoxel.Navigation
 {
     [BurstCompile]
@@ -17,22 +19,6 @@ namespace VRoxel.Navigation
         /// the maximum steering force that can be applied to an agent
         /// </summary>
         public float maxForce;
-
-        /// <summary>
-        /// the max speed of all agents
-        /// </summary>
-        public float maxSpeed;
-
-        /// <summary>
-        /// the turning speed of all agents
-        /// </summary>
-        public float turnSpeed;
-
-        /// <summary>
-        /// the mass of all agents
-        /// </summary>
-        public float mass;
-
 
         /// <summary>
         /// the scale of the voxel world
@@ -54,11 +40,13 @@ namespace VRoxel.Navigation
         /// </summary>
         public quaternion world_rotation;
 
-
         /// <summary>
         /// the size of the flow field
         /// </summary>
         public int3 flowFieldSize;
+
+        [ReadOnly] public NativeArray<AgentMovement> movementTypes;
+        [ReadOnly] public NativeArray<int> agentMovement;
 
         /// <summary>
         /// the direction indexes for each block in the world.
@@ -92,11 +80,12 @@ namespace VRoxel.Navigation
             float3 up = new float3(0,1,0);
             float3 position = transform.position;
             quaternion rotation = transform.rotation;
+            AgentMovement movement = movementTypes[agentMovement[i]];
 
             steering[i] = Clamp(steering[i], maxForce);
-            steering[i] = steering[i] / mass;
+            steering[i] = steering[i] / movement.mass;
 
-            velocity[i] = Clamp(velocity[i] + steering[i], maxSpeed);
+            velocity[i] = Clamp(velocity[i] + steering[i], movement.topSpeed);
             float3 nextPosition = position + velocity[i] * deltaTime;
             int3 nextGrid = GridPosition(nextPosition);
 
@@ -107,7 +96,7 @@ namespace VRoxel.Navigation
 
             if (velocity[i].Equals(float3.zero)) { return; }
             quaternion look = quaternion.LookRotation(velocity[i], up);
-            transform.rotation = math.slerp(rotation, look, turnSpeed * deltaTime);
+            transform.rotation = math.slerp(rotation, look, movement.turnSpeed * deltaTime);
         }
 
         /// <summary>

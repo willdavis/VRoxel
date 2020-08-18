@@ -8,6 +8,7 @@ using Unity.Collections;
 using Unity.Mathematics;
 
 using VRoxel.Navigation;
+using VRoxel.Navigation.Agents;
 
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -61,14 +62,17 @@ namespace NavigationSpecs
             for (int i = 0; i < 2; i++)
                 active[i] = true;
 
+            NativeArray<int> agentMovementTypes = new NativeArray<int>(2, Allocator.Persistent);
+            NativeArray<AgentMovement> movementTypes = new NativeArray<AgentMovement>(1, Allocator.Persistent);
+            movementTypes[0] = new AgentMovement() { mass = 1f, topSpeed = 1f, turnSpeed = 1f };
+
             MoveAgentJob job = new MoveAgentJob()
             {
                 active = active,
-
-                mass = 1f,
                 maxForce = 1f,
-                maxSpeed = 1f,
-                turnSpeed = 1f,
+
+                movementTypes = movementTypes,
+                agentMovement = agentMovementTypes,
 
                 steering = directions,
                 velocity = velocity,
@@ -103,6 +107,10 @@ namespace NavigationSpecs
             velocity.Dispose();
             directions.Dispose();
             asyncTransforms.Dispose();
+
+            agentMovementTypes.Dispose();
+            movementTypes.Dispose();
+
             foreach (var t in transforms)
                 GameObject.DestroyImmediate(t.gameObject);
         }

@@ -435,10 +435,10 @@ namespace VRoxel.Navigation
 
             MoveAgentJob moveJob = new MoveAgentJob()
             {
-                mass = mass,
+
                 maxForce = maxForce,
-                maxSpeed = maxSpeed,
-                turnSpeed = turnSpeed,
+                movementTypes = m_movementTypes,
+                agentMovement = m_agentMovementTypes,
 
                 active = m_agentActive,
                 steering = m_agentSteering,
