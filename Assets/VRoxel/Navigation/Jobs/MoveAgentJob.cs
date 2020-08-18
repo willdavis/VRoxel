@@ -1,9 +1,8 @@
-﻿using Unity.Collections;
+﻿using VRoxel.Navigation.Agents;
+using Unity.Collections;
 using UnityEngine.Jobs;
 using Unity.Mathematics;
 using Unity.Burst;
-
-using VRoxel.Navigation.Agents;
 
 namespace VRoxel.Navigation
 {
@@ -21,54 +20,38 @@ namespace VRoxel.Navigation
         public float maxForce;
 
         /// <summary>
-        /// the scale of the voxel world
+        /// the reference to the voxel world
         /// </summary>
-        public float world_scale;
-
-        /// <summary>
-        /// the scene offset of the world
-        /// </summary>
-        public float3 world_offset;
-
-        /// <summary>
-        /// the center point of the world
-        /// </summary>
-        public float3 world_center;
-
-        /// <summary>
-        /// the orientation of the world
-        /// </summary>
-        public quaternion world_rotation;
+        public AgentWorld world;
 
         /// <summary>
         /// the size of the flow field
         /// </summary>
         public int3 flowFieldSize;
 
-        [ReadOnly] public NativeArray<AgentMovement> movementTypes;
-        [ReadOnly] public NativeArray<int> agentMovement;
-
         /// <summary>
         /// the direction indexes for each block in the world.
         /// Blocks with a value of 0 have no direction
         /// </summary>
-        [ReadOnly]
-        public NativeArray<byte> flowField;
-
+        [ReadOnly] public NativeArray<byte> flowField;
 
         /// <summary>
-        /// the current status of each agent
+        /// the active agents in the scene
         /// </summary>
-        [ReadOnly]
-        public NativeArray<bool> active;
+        [ReadOnly] public NativeArray<bool> active;
 
         /// <summary>
-        /// the current steering forces applied to each agent
+        /// the position and velocity of each agent in the scene
+        /// </summary>
+        public NativeArray<AgentKinematics> agents;
+
+        /// <summary>
+        /// the current steering forces acting on each agent
         /// </summary>
         public NativeArray<float3> steering;
 
-        public NativeArray<Agents.AgentKinematics> agents;
-
+        [ReadOnly] public NativeArray<AgentMovement> movementTypes;
+        [ReadOnly] public NativeArray<int> agentMovement;
 
         public void Execute(int i, TransformAccess transform)
         {
@@ -118,12 +101,12 @@ namespace VRoxel.Navigation
         {
             float3 adjusted = position;
             int3 gridPosition = int3.zero;
-            quaternion rotation = math.inverse(world_rotation);
+            quaternion rotation = math.inverse(world.rotation);
 
-            adjusted += world_offset * -1f;     // adjust for the worlds offset
-            adjusted *= 1 / world_scale;        // adjust for the worlds scale
+            adjusted += world.offset * -1f;     // adjust for the worlds offset
+            adjusted *= 1 / world.scale;        // adjust for the worlds scale
             adjusted = math.rotate(rotation, adjusted);     // adjust for the worlds rotation
-            adjusted += world_center;           // adjust for the worlds center
+            adjusted += world.center;           // adjust for the worlds center
 
             gridPosition.x = (int)math.floor(adjusted.x);
             gridPosition.y = (int)math.floor(adjusted.y);

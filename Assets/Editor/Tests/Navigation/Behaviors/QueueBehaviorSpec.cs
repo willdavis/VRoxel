@@ -103,6 +103,14 @@ namespace NavigationBehaviorSpecs
             for (int i = 0; i < 2; i++)
                 active[i] = true;
 
+            AgentWorld world = new AgentWorld()
+            {
+                scale = 1f,
+                offset = float3.zero,
+                center = new float3(0.5f, 0.5f, 0.5f),
+                rotation = quaternion.identity,
+            };
+
             QueueBehavior job = new QueueBehavior()
             {
                 active = active,
@@ -111,11 +119,7 @@ namespace NavigationBehaviorSpecs
                 maxQueueRadius = 1f,
                 maxDepth = 100,
 
-                world_scale = 1f,
-                world_offset = float3.zero,
-                world_center = new float3(0.5f, 0.5f, 0.5f),
-                world_rotation = quaternion.identity,
-
+                world = world,
                 size = new int3(1,1,1),
                 spatialMap = spatialMap,
                 steering = steering,

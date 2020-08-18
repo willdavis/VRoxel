@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using VRoxel.Navigation.Agents;
+using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Jobs;
 using Unity.Burst;
@@ -18,42 +19,35 @@ namespace VRoxel.Navigation
         public int3 size;
 
         /// <summary>
-        /// the scale of the voxel world
+        /// the reference to the voxel world
         /// </summary>
-        public float world_scale;
+        public AgentWorld world;
 
         /// <summary>
-        /// the scene offset of the world
+        /// the current steering forces acting on each agent
         /// </summary>
-        public float3 world_offset;
-
-        /// <summary>
-        /// the center point of the world
-        /// </summary>
-        public float3 world_center;
-
-        /// <summary>
-        /// the orientation of the world
-        /// </summary>
-        public quaternion world_rotation;
-
-
         public NativeArray<float3> steering;
 
-        [ReadOnly]
-        public NativeArray<Agents.AgentKinematics> agents;
+        /// <summary>
+        /// the active agents in the scene
+        /// </summary>
+        [ReadOnly] public NativeArray<bool> active;
 
-        [ReadOnly]
-        public NativeArray<bool> active;
+        /// <summary>
+        /// the position and velocity of each agent in the scene
+        /// </summary>
+        [ReadOnly] public NativeArray<AgentKinematics> agents;
 
-        [ReadOnly]
-        public NativeMultiHashMap<int3, float3> spatialMap;
+        /// <summary>
+        /// the spatial map of all agent positions in the scene
+        /// </summary>
+        [ReadOnly] public NativeMultiHashMap<int3, float3> spatialMap;
 
         public void Execute(int i)
         {
             if (!active[i]) { return; }
 
-            Agents.AgentKinematics agent = agents[i];
+            AgentKinematics agent = agents[i];
             float3 min = agent.position + new float3(-collisionRadius, -collisionRadius, -collisionRadius);
             float3 max = agent.position + new float3( collisionRadius,  collisionRadius,  collisionRadius);
 
@@ -143,12 +137,12 @@ namespace VRoxel.Navigation
         {
             float3 adjusted = position;
             int3 gridPosition = int3.zero;
-            quaternion rotation = math.inverse(world_rotation);
+            quaternion rotation = math.inverse(world.rotation);
 
-            adjusted += world_offset * -1f;     // adjust for the worlds offset
-            adjusted *= 1 / world_scale;        // adjust for the worlds scale
+            adjusted += world.offset * -1f;     // adjust for the worlds offset
+            adjusted *= 1 / world.scale;        // adjust for the worlds scale
             adjusted = math.rotate(rotation, adjusted);     // adjust for the worlds rotation
-            adjusted += world_center;           // adjust for the worlds center
+            adjusted += world.center;           // adjust for the worlds center
 
             gridPosition.x = (int)math.floor(adjusted.x);
             gridPosition.y = (int)math.floor(adjusted.y);

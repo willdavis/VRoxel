@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using VRoxel.Navigation.Agents;
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine.Jobs;
 using Unity.Burst;
@@ -14,32 +15,24 @@ namespace VRoxel.Navigation
         public int3 size;
 
         /// <summary>
-        /// the scale of the voxel world
+        /// the reference to the voxel world
         /// </summary>
-        public float world_scale;
+        public AgentWorld world;
 
         /// <summary>
-        /// the scene offset of the world
+        /// the active agents in the scene
         /// </summary>
-        public float3 world_offset;
+        [ReadOnly] public NativeArray<bool> active;
 
         /// <summary>
-        /// the center point of the world
+        /// the position and velocity of each agent in the scene
         /// </summary>
-        public float3 world_center;
+        public NativeArray<AgentKinematics> agents;
 
         /// <summary>
-        /// the orientation of the world
+        /// the spatial map of all agent positions in the scene
         /// </summary>
-        public quaternion world_rotation;
-
-        [ReadOnly]
-        public NativeArray<bool> active;
-
-        public NativeArray<Agents.AgentKinematics> agents;
-
-        [WriteOnly]
-        public NativeMultiHashMap<int3, float3>.ParallelWriter spatialMap;
+        [WriteOnly] public NativeMultiHashMap<int3, float3>.ParallelWriter spatialMap;
 
         public void Execute(int i, TransformAccess transform)
         {
@@ -68,12 +61,12 @@ namespace VRoxel.Navigation
         {
             float3 adjusted = position;
             int3 gridPosition = int3.zero;
-            quaternion rotation = math.inverse(world_rotation);
+            quaternion rotation = math.inverse(world.rotation);
 
-            adjusted += world_offset * -1f;     // adjust for the worlds offset
-            adjusted *= 1 / world_scale;        // adjust for the worlds scale
+            adjusted += world.offset * -1f;     // adjust for the worlds offset
+            adjusted *= 1 / world.scale;        // adjust for the worlds scale
             adjusted = math.rotate(rotation, adjusted);     // adjust for the worlds rotation
-            adjusted += world_center;           // adjust for the worlds center
+            adjusted += world.center;           // adjust for the worlds center
 
             gridPosition.x = (int)math.floor(adjusted.x);
             gridPosition.y = (int)math.floor(adjusted.y);
