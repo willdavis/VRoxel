@@ -15,12 +15,15 @@ namespace CoreSpecs
         public void CanBuildMesh()
         {
             Mesh mesh = new Mesh();
-            BlockManager manager = new BlockManager();
             VoxelGrid data = new VoxelGrid(Vector3Int.one);
+
+            GameObject managerGO = new GameObject();
+            BlockManager manager = managerGO.AddComponent<BlockManager>();
             MeshGenerator generator = new MeshGenerator(data, manager, 1f);
 
-            BlockConfiguration air = new BlockConfiguration();
-            BlockConfiguration block = new BlockConfiguration();
+            manager.blocks = new List<BlockConfiguration>();
+            BlockConfiguration air = ScriptableObject.CreateInstance("BlockConfiguration") as BlockConfiguration;
+            BlockConfiguration block = ScriptableObject.CreateInstance("BlockConfiguration") as BlockConfiguration;
 
             // setup a block to be rendered
             manager.blocks.Add(air);
