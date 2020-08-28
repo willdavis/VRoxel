@@ -1,16 +1,18 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using Unity.Mathematics;
 using Unity.Jobs;
 
 using VRoxel.Core;
+using VRoxel.Core.Data;
 using VRoxel.Terrain;
 
+[RequireComponent(typeof(World), typeof(BlockManager), typeof(HeightMap))]
 public class EditWorld : MonoBehaviour
 {
-    [Header("Block Settings")]
-    public byte blockType = 0;
+    /// <summary>
+    /// The current type of block used to edit the world
+    /// </summary>
+    public BlockConfiguration block;
 
 
     [Header("Cursor Settings")]
@@ -27,6 +29,8 @@ public class EditWorld : MonoBehaviour
     public BlockCursor cursor;
 
     World _world;
+    BlockManager _blockManager;
+
     RaycastHit _hit;
     Vector3 _hitPosition;
 
@@ -45,6 +49,7 @@ public class EditWorld : MonoBehaviour
     {
         _world = GetComponent<World>();
         _heightMap = GetComponent<HeightMap>();
+        _blockManager = GetComponent<BlockManager>();
     }
 
     void Update()
@@ -77,27 +82,31 @@ public class EditWorld : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0)) // left click - up
         {
-            if (clickAndDrag)
-            {
-                EditRectangle();
-            }
-            else
-            {
-                WorldEditor.Set(_world, currentPosition, blockType);
-
-                _heightMap.Refresh();
-                _world.data.OnEdit.Invoke(editHandle);
-            }
             _isDragging = false;
+            if (clickAndDrag) { EditRectangle(); }
+            else { EditBlock(); }
         }
+    }
+
+    void EditBlock()
+    {
+        if (block == null) { return; }
+
+        byte index = (byte)_blockManager.blocks.IndexOf(block);
+        WorldEditor.Set(_world, currentPosition, index);
+
+        _heightMap.Refresh();
+        _world.data.OnEdit.Invoke(editHandle);
     }
 
     void EditRectangle()
     {
+        if (block == null) { return; }
         if (!editHandle.IsCompleted) { editHandle.Complete(); }
 
         /// old version, still used for rendering
-        WorldEditor.Set(_world, _clickStart, currentPosition, blockType);
+        byte index = (byte)_blockManager.blocks.IndexOf(block);
+        WorldEditor.Set(_world, _clickStart, currentPosition, index);
 
         /// new version, for async pathfinding
         Vector3Int start = WorldEditor.Get(_world, _clickStart);
@@ -109,7 +118,7 @@ public class EditWorld : MonoBehaviour
             start = new int3(start.x, start.y, start.z),
             end = new int3(end.x, end.y, end.z),
             voxels = _world.data.voxels,
-            block = blockType
+            block = index
         };
 
         editHandle = job.Schedule();

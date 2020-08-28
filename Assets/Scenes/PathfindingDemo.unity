@@ -229,8 +229,6 @@ MonoBehaviour:
   noise: 0.25
   scale: 25
   offset: 20
-  material: {fileID: 2100000, guid: 7c8819ba9885214409d65f8fdb2753b0, type: 2}
-  textureSize: 0.0625
 --- !u!114 &565934174
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -243,7 +241,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01927055a4516364faeaea2f477d6d8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blockType: 2
+  block: {fileID: 11400000, guid: e2cacd518c46bae4bb669899d2840688, type: 2}
   size: 1
   snapToGrid: 1
   clickAndDrag: 1
@@ -607,6 +605,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8125868129874964624}
   - component: {fileID: 3876824611035231353}
+  - component: {fileID: 1742082555065591252}
   - component: {fileID: 1742082555065591250}
   - component: {fileID: 565934173}
   - component: {fileID: 565934174}
@@ -644,14 +643,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b83767b921d068409a66056807703ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  configurations:
+  - {fileID: 11400000, guid: 9bc72099b6c6d444bbb1536555661177, type: 2}
   spatialBucketSize:
     x: 2
     y: 2
     z: 2
   height: 2
-  mass: 1
-  maxSpeed: 0
-  turnSpeed: 0
   maxForce: 0
   brakeForce: 0
   queueRadius: 0
@@ -664,21 +662,26 @@ MonoBehaviour:
   collisionForce: 0
   collisionRadius: 0
   maxCollisionDepth: 0
-  configurations:
-  - {fileID: 11400000, guid: 9bc72099b6c6d444bbb1536555661177, type: 2}
-  blockTypes:
-  - index: 0
-    name: air
-    isSolid: 0
-    isStatic: 0
-  - index: 1
-    name: dirt
-    isSolid: 1
-    isStatic: 0
-  - index: 2
-    name: stone
-    isSolid: 1
-    isStatic: 0
+--- !u!114 &1742082555065591252
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1742082555065591249}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29934f7af43d42c439a0ac857dd021c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  textureAtlas:
+    material: {fileID: 2100000, guid: 7c8819ba9885214409d65f8fdb2753b0, type: 2}
+    scale: 0.0625
+  blocks:
+  - {fileID: 11400000, guid: cea5cd229a5856c4ea4047d285c45e0e, type: 2}
+  - {fileID: 11400000, guid: 646216400bf1b904797852370499a1f2, type: 2}
+  - {fileID: 11400000, guid: 11db7bb50c0b009449c8539246ed936b, type: 2}
+  - {fileID: 11400000, guid: e2cacd518c46bae4bb669899d2840688, type: 2}
 --- !u!114 &3876824611035231353
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using VRoxel.Navigation.Agents;
 using VRoxel.Navigation.Data;
+
 using VRoxel.Core;
+using VRoxel.Core.Data;
 
 using UnityEngine;
 using UnityEngine.Jobs;
@@ -16,6 +18,11 @@ namespace VRoxel.Navigation
     /// </summary>
     public class NavAgentManager : MonoBehaviour
     {
+        /// <summary>
+        /// The configurations for each type of agent in the scene
+        /// </summary>
+        public List<NavAgentConfiguration> configurations;
+
         public int3 spatialBucketSize;
 
         // agent settings
@@ -43,19 +50,6 @@ namespace VRoxel.Navigation
 
         public NativeArray<bool> activeAgents { get { return m_agentActive; } }
         NativeArray<bool> m_agentActive;
-
-
-
-        /// <summary>
-        /// The configurations for each type of agent that will be managed
-        /// </summary>
-        public List<NavAgentConfiguration> configurations;
-
-        /// <summary>
-        /// The different block types used for pathfinding
-        /// </summary>
-        public List<VRoxel.Core.Block> blockTypes;
-
 
 
         /// <summary>
@@ -92,6 +86,11 @@ namespace VRoxel.Navigation
         /// A reference to the voxel world
         /// </summary>
         protected World m_world;
+
+        /// <summary>
+        /// A reference to the voxel blocks
+        /// </summary>
+        protected BlockManager m_blockManager;
 
         /// <summary>
         /// The background job to move each agent in the scene
@@ -170,13 +169,13 @@ namespace VRoxel.Navigation
             m_directionsNESW[3] = 9;
 
             // convert blocks to a struct and cache the data
-            int blockCount = blockTypes.Count;
+            int blockCount = m_blockManager.blocks.Count;
             m_blockTypes = new NativeArray<Block>(blockCount, Allocator.Persistent);
             for (int i = 0; i < blockCount; i++)
             {
-                Core.Block block = blockTypes[i];
                 Block navBlock = new Block();
-                navBlock.solid = block.isSolid;
+                BlockConfiguration block = m_blockManager.blocks[i];
+                navBlock.solid = block.collidable;
 
                 if (navBlock.solid) { navBlock.cost = 1; }
                 else { navBlock.cost = 2; }
@@ -252,6 +251,11 @@ namespace VRoxel.Navigation
 
         //-------------------------------------------------
         #region Monobehaviors
+
+        protected virtual void Awake()
+        {
+            m_blockManager = GetComponent<BlockManager>();
+        }
 
         protected virtual void OnDestroy()
         {

@@ -1,5 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using VRoxel.Core.Data;
 using UnityEngine;
 
 namespace VRoxel.Core
@@ -7,7 +7,7 @@ namespace VRoxel.Core
     public class MeshGenerator
     {
         private VoxelGrid _data;
-        private BlockManager _blocks;
+        private BlockManager _manager;
         private float _scale;
         private float _halfScale;
 
@@ -21,7 +21,8 @@ namespace VRoxel.Core
         public MeshGenerator(VoxelGrid data, BlockManager blocks, float scale)
         {
             _data = data;
-            _blocks = blocks;
+            _manager = blocks;
+
             _scale = scale;
             _halfScale = scale * 0.5f;
         }
@@ -36,11 +37,12 @@ namespace VRoxel.Core
         {
             Vector3Int voxel = Vector3Int.zero;
             Vector3 position = Vector3.zero;
-            bool hasBlock;
-            Block block;
+            BlockConfiguration block;
+            int blockCount;
             byte index;
 
             mesh.Clear();
+            blockCount = _manager.blocks.Count;
 
             // generate faces (adjacent to air) for all solid blocks
             for (int x = 0; x < size.x; x++)
@@ -66,14 +68,14 @@ namespace VRoxel.Core
                         position.z -= 0.5f * ((float)size.z - 1f) * _scale;
 
                         // if no block data is present, exit and do not render the mesh
-                        hasBlock = _blocks.library.TryGetValue(index, out block);
-                        if(!hasBlock)
+                        if(index >= blockCount)
                         {
                             Debug.LogAssertion("Chunk failed to render: no block found with index:" + index);
                             ClearCache();
                             return;
                         }
 
+                        block = _manager.blocks[index];
                         if (_data.Get(voxel + Direction3Int.Up) == 0)    { AddFace(position, block, Cube.Direction.Top);    }
                         if (_data.Get(voxel + Direction3Int.Down) == 0)  { AddFace(position, block, Cube.Direction.Bottom); }
                         if (_data.Get(voxel + Direction3Int.North) == 0) { AddFace(position, block, Cube.Direction.North);  }
@@ -105,24 +107,24 @@ namespace VRoxel.Core
         /// <param name="position">The position of the cube</param>
         /// <param name="block">The block data for the cube</param>
         /// <param name="dir">The direction of the cube to render</param>
-        private void AddFace(Vector3 position, Block block, Cube.Direction dir)
+        private void AddFace(Vector3 position, BlockConfiguration block, Cube.Direction dir)
         {
-            float size = _blocks.texture.size;
-            Vector2 texture = block.textures[dir];
+            float tScale = _manager.textureAtlas.scale;
+            Vector2 texture = block.texture;
 
             // add vertices for the face
             Cube.Face((int)dir, position, _halfScale, ref _face);
             _meshVert.AddRange(_face);
 
             // add uv coordinates for the face
-            _faceUV[0].x = size * texture.x + size;
-            _faceUV[0].y = size * texture.y;
-            _faceUV[1].x = size * texture.x + size;
-            _faceUV[1].y = size * texture.y + size;
-            _faceUV[2].x = size * texture.x;
-            _faceUV[2].y = size * texture.y + size;
-            _faceUV[3].x = size * texture.x;
-            _faceUV[3].y = size * texture.y;
+            _faceUV[0].x = tScale * texture.x + tScale;
+            _faceUV[0].y = tScale * texture.y;
+            _faceUV[1].x = tScale * texture.x + tScale;
+            _faceUV[1].y = tScale * texture.y + tScale;
+            _faceUV[2].x = tScale * texture.x;
+            _faceUV[2].y = tScale * texture.y + tScale;
+            _faceUV[3].x = tScale * texture.x;
+            _faceUV[3].y = tScale * texture.y;
             _meshUV.AddRange(_faceUV);
 
             // add triangles for the face

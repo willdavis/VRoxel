@@ -238,8 +238,6 @@ MonoBehaviour:
   noise: 0.25
   scale: 25
   offset: 10
-  material: {fileID: 2100000, guid: 7c8819ba9885214409d65f8fdb2753b0, type: 2}
-  textureSize: 0.0625
 --- !u!114 &1691075118
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -252,7 +250,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01927055a4516364faeaea2f477d6d8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blockType: 0
+  block: {fileID: 11400000, guid: cea5cd229a5856c4ea4047d285c45e0e, type: 2}
   size: 1
   snapToGrid: 1
   clickAndDrag: 1
@@ -460,6 +458,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8125868128747768544}
   - component: {fileID: 3876824612026158601}
+  - component: {fileID: 1742082556228427683}
   - component: {fileID: 1742082556228427682}
   - component: {fileID: 1691075117}
   - component: {fileID: 1691075118}
@@ -483,6 +482,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   size: {x: 256, y: 32, z: 256}
+--- !u!114 &1742082556228427683
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1742082556228427681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29934f7af43d42c439a0ac857dd021c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  textureAtlas:
+    material: {fileID: 2100000, guid: 7c8819ba9885214409d65f8fdb2753b0, type: 2}
+    scale: 0.0625
+  blocks:
+  - {fileID: 11400000, guid: cea5cd229a5856c4ea4047d285c45e0e, type: 2}
+  - {fileID: 11400000, guid: 646216400bf1b904797852370499a1f2, type: 2}
+  - {fileID: 11400000, guid: 11db7bb50c0b009449c8539246ed936b, type: 2}
+  - {fileID: 11400000, guid: e2cacd518c46bae4bb669899d2840688, type: 2}
 --- !u!114 &3876824612026158601
 MonoBehaviour:
   m_ObjectHideFlags: 0
