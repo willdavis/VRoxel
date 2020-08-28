@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 
 using VRoxel.Core;
+using VRoxel.Core.Data;
 
 namespace CoreSpecs
 {
@@ -14,21 +15,21 @@ namespace CoreSpecs
         public void CanBuildMesh()
         {
             Mesh mesh = new Mesh();
-            Block block = new Block();
-            BlockManager manager = new BlockManager();
             VoxelGrid data = new VoxelGrid(Vector3Int.one);
+
+            GameObject managerGO = new GameObject();
+            BlockManager manager = managerGO.AddComponent<BlockManager>();
             MeshGenerator generator = new MeshGenerator(data, manager, 1f);
 
-            // setup a block to be rendered
-            data.Set(Vector3Int.zero, 1);
-            manager.library.Add(1, block);
+            manager.blocks = new List<BlockConfiguration>();
+            BlockConfiguration air = ScriptableObject.CreateInstance("BlockConfiguration") as BlockConfiguration;
+            BlockConfiguration block = ScriptableObject.CreateInstance("BlockConfiguration") as BlockConfiguration;
 
-            block.textures.Add(Cube.Direction.Top, Vector2.zero);
-            block.textures.Add(Cube.Direction.Bottom, Vector2.zero);
-            block.textures.Add(Cube.Direction.North, Vector2.zero);
-            block.textures.Add(Cube.Direction.East, Vector2.zero);
-            block.textures.Add(Cube.Direction.South, Vector2.zero);
-            block.textures.Add(Cube.Direction.West, Vector2.zero);
+            // setup a block to be rendered
+            manager.blocks.Add(air);
+            manager.blocks.Add(block);
+            block.texture = Vector2.one;
+            data.Set(Vector3Int.zero, 1);
 
             // generate 1 cube
             generator.BuildMesh(Vector3Int.one, Vector3Int.zero, ref mesh);

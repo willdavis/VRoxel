@@ -1,51 +1,52 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
+
+using VRoxel.Core.Data;
 using UnityEngine;
 
 namespace VRoxel.Core
 {
     /// <summary>
-    /// Manages and configures all blocks in a world
+    /// Texture data common to all blocks in a world
     /// </summary>
-    public class BlockManager
+    [Serializable]
+    public struct TextureAtlas
     {
         /// <summary>
-        /// The texture data common to all blocks
+        /// The source material for the texture atlas
         /// </summary>
-        public class TextureAtlas
-        {
-            /// <summary>
-            /// The spacing between block textures in the atlas
-            /// </summary>
-            public float size;
-
-            /// <summary>
-            /// The source material for the texture atlas
-            /// </summary>
-            public Material material;
-        }
+        public Material material;
 
         /// <summary>
-        /// The texture data common to all blocks
+        /// The spacing between block textures in the atlas
         /// </summary>
-        public TextureAtlas texture;
+        public float scale;
+    }
+
+
+    /// <summary>
+    /// A component to manage and configure the blocks in a world
+    /// </summary>
+    public class BlockManager : MonoBehaviour
+    {
+        /// <summary>
+        /// The texture data common to all blocks in a world
+        /// </summary>
+        public TextureAtlas textureAtlas;
         
         /// <summary>
-        /// Connects each block to a byte index used in the VoxelGrid
+        /// The list of all block configurations in the world
         /// </summary>
-        public Dictionary<byte, Block> library;
+        public List<BlockConfiguration> blocks;
 
-        public bool IsSolid(byte key)
+        /// <summary>
+        /// Returns the index of a block configuration with the given name
+        /// </summary>
+        public byte IndexOf(string name)
         {
-            if (!library.ContainsKey(key)) { return false; }
-            if (!library[key].isSolid) { return false; }
-            return true;
-        }
-
-        public BlockManager()
-        {
-            library = new Dictionary<byte, Block>();
-            texture = new TextureAtlas();
+            return (byte)blocks.FindIndex(
+                x => x.name.ToLower() == name.ToLower()
+            );
         }
     }
 }

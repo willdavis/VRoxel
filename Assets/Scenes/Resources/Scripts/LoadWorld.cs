@@ -2,10 +2,11 @@
 using VRoxel.Core;
 using VRoxel.Terrain;
 
+[RequireComponent(typeof(World), typeof(BlockManager), typeof(HeightMap))]
 public class LoadWorld : MonoBehaviour
 {
-
     World _world;
+    BlockManager _blocks;
     HeightMap _heightMap;
 
     [HideInInspector]
@@ -19,33 +20,29 @@ public class LoadWorld : MonoBehaviour
     public float offset = 10f;
 
 
-    [Header("Texture Settings")]
-    public Material material;
-    public float textureSize = 0.25f;
-
-
     void Awake()
     {
         _world = GetComponent<World>();
+        _blocks = GetComponent<BlockManager>();
         _heightMap = GetComponent<HeightMap>();
     }
 
     void Start()
     {
-        _world.Initialize();        // 1. initialize the voxel grid
-        BuildBlockManager();        // 2. initialize the different blocks
-        GenerateTerrainData();      // 3. populate the voxel grid with data
+        _world.Initialize();
+        GenerateTerrainData();
 
         MeshGenerator generator = new MeshGenerator(
-            _world.data, _world.blocks, _world.scale
+            _world.data, _blocks, _world.scale
         );
+
         VRoxel.Core.Data.ChunkConfiguration configuration = ScriptableObject
                 .CreateInstance("ChunkConfiguration") as VRoxel.Core.Data.ChunkConfiguration;
 
         configuration.collidable = true;
         configuration.scale = _world.scale;
         configuration.size = _world.chunkSize;
-        configuration.material = material;
+        configuration.material = _blocks.textureAtlas.material;
 
         _world.chunks.configuration = configuration;
         _world.chunks.meshGenerator = generator;
@@ -56,59 +53,15 @@ public class LoadWorld : MonoBehaviour
         _heightMap.Refresh().Complete();
     }
 
-    void BuildBlockManager()
-    {
-        BlockManager blocks = new BlockManager();
-        _world.blocks = blocks;
-
-        // Assign Texture Settings to the BlockManager
-        blocks.texture.material = material;
-        blocks.texture.size = textureSize;
-
-        // Create blocks and add textures
-        Block air = new Block();
-        air.index = 0;
-        air.isSolid = false;
-
-        Block grass = new Block();
-        grass.index = 1;
-        grass.isSolid = true;
-
-        Block stone = new Block();
-        stone.index = 2;
-        stone.isSolid = true;
-
-        Vector2 grassTop = new Vector2(0,15);
-        Vector2 grassSide = new Vector2(2,15);
-        Vector2 grassBottom = new Vector2(2,15);
-
-        grass.textures.Add(Cube.Direction.Top, grassTop);
-        grass.textures.Add(Cube.Direction.Bottom, grassBottom);
-        grass.textures.Add(Cube.Direction.North, grassSide);
-        grass.textures.Add(Cube.Direction.East, grassSide);
-        grass.textures.Add(Cube.Direction.South, grassSide);
-        grass.textures.Add(Cube.Direction.West, grassSide);
-
-        Vector2 stoneTexture = new Vector2(1,15);
-
-        stone.textures.Add(Cube.Direction.Top, stoneTexture);
-        stone.textures.Add(Cube.Direction.Bottom, stoneTexture);
-        stone.textures.Add(Cube.Direction.North, stoneTexture);
-        stone.textures.Add(Cube.Direction.East, stoneTexture);
-        stone.textures.Add(Cube.Direction.South, stoneTexture);
-        stone.textures.Add(Cube.Direction.West, stoneTexture);
-
-        // Add Blocks to the library
-        blocks.library.Add(air.index, air);
-        blocks.library.Add(grass.index, grass);
-        blocks.library.Add(stone.index, stone);
-    }
-
     void GenerateTerrainData()
     {
         int height;
         Vector3Int point = Vector3Int.zero;
         terrain = new Generator(seed, noise, scale, offset);
+
+        byte dirt  = _blocks.IndexOf("dirt");
+        byte grass = _blocks.IndexOf("grass");
+        byte stone = _blocks.IndexOf("stone");
 
         for (int x = 0; x < _world.size.x; x++)
         {
@@ -116,12 +69,16 @@ public class LoadWorld : MonoBehaviour
             for (int z = 0; z < _world.size.z; z++)
             {
                 point.z = z;
-                height = terrain.GetHeight(point.x, point.z);              // get the terrain height at (x,z)
+                height = terrain.GetHeight(point.x, point.z);
                 for (int y = 0; y < _world.size.y; y++)
                 {
                     point.y = y;
-                    if (point.y == 0) { _world.data.Set(point, 1); }        // create a bottom layer
-                    if (point.y <= height) { _world.data.Set(point, 1); }   // fill in the terrain
+                    if (point.y == height)
+                        _world.data.Set(point, grass);
+                    else if (point.y >= height-3 && point.y <  height)
+                        _world.data.Set(point, dirt);
+                    else if (point.y <  height-3)
+                        _world.data.Set(point, stone);
                 }
             }
         }

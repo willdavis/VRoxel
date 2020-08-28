@@ -80,7 +80,6 @@ namespace VRoxel.Core
         /// </summary>
         public void Initialize()
         {
-            m_meshRenderer.material = material;
             m_voxels = new NativeArray<byte>(
                 size.x * size.y * size.z, Allocator.Persistent
             );
@@ -130,6 +129,8 @@ namespace VRoxel.Core
 
         protected virtual void Start()
         {
+            m_meshRenderer.material = material;
+
             Initialize();
             GenerateMesh();
         }

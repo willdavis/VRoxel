@@ -158,7 +158,6 @@ namespace VRoxel.Core
         public static void Set(World world, Vector3Int point, byte block)
         {
             if (!world.data.Contains(point)) { return; }
-            if (world.GetBlock(point).isStatic) { return; }
             if (world.data.Get(point.x, point.y, point.z) == block) { return; }
 
             world.data.Set(point.x, point.y, point.z, block);

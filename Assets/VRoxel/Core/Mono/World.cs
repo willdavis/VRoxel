@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using VRoxel.Core.Data;
 using UnityEngine;
 
 namespace VRoxel.Core
@@ -14,11 +13,6 @@ namespace VRoxel.Core
         /// Unity prefab for a Chunk
         /// </summary>
         public Chunk chunk;
-
-        /// <summary>
-        /// Contains the block definitions for this world
-        /// </summary>
-        public BlockManager blocks = new BlockManager();
 
         /// <summary>
         /// The scale factor for the world
@@ -64,16 +58,6 @@ namespace VRoxel.Core
         {
             Vector3Int point = WorldEditor.Get(this, position);
             return _data.Contains(point);
-        }
-
-        public Block GetBlock(Vector3Int index)
-        {
-            if (!_data.Contains(index)) { return null; }
-
-            byte id = _data.Get(index.x, index.y, index.z);
-            if (!blocks.library.ContainsKey(id)) { return null; }
-
-            return blocks.library[id];
         }
 
         void OnDrawGizmos()
