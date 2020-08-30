@@ -9,10 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4ac10723d54dd8b4a8ac6f16a7c148f3, type: 3}
-  m_Name: RedNPC
+  m_Script: {fileID: 11500000, guid: 61ea91feb0567fe49b44e814f24ec833, type: 3}
+  m_Name: Humanoid
   m_EditorClassIdentifier: 
-  movement:
-    mass: 1
-    topSpeed: 1
-    turnSpeed: 1
+  name: Humanoid
+  description: Human sized navigation agents
+  collision:
+    height: 2
+    radius: 0.5

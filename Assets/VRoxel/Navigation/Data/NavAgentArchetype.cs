@@ -20,8 +20,8 @@ namespace VRoxel.Navigation.Data
         [Multiline] public string description;
 
         /// <summary>
-        /// The properties common to all agents of this archetype
+        /// The collision properties of this archetype
         /// </summary>
-        public AgentArchetype configuration;
+        public AgentCollision collision;
     }
 }
