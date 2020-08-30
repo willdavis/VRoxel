@@ -643,6 +643,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b83767b921d068409a66056807703ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  archetypes:
+  - {fileID: 11400000, guid: b483c28a62480df4d8363e6dddaf36b8, type: 2}
   configurations:
   - {fileID: 11400000, guid: 9bc72099b6c6d444bbb1536555661177, type: 2}
   spatialBucketSize:

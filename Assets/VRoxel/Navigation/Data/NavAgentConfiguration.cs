@@ -6,7 +6,10 @@ namespace VRoxel.Navigation.Data
     /// <summary>
     /// Data container for navigation agent settings
     /// </summary>
-    [CreateAssetMenu(fileName = "NavAgentConfiguration.asset", menuName = "VRoxel/Navigation/NavAgent Configuration", order = 1)]
+    [CreateAssetMenu(
+        fileName = "NavAgentConfiguration.asset",
+        menuName = "VRoxel/Navigation/NavAgent Configuration",
+        order = 1)]
     public class NavAgentConfiguration : ScriptableObject
     {
         /// <summary>

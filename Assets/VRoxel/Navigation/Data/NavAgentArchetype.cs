@@ -4,9 +4,12 @@ using UnityEngine;
 namespace VRoxel.Navigation.Data
 {
     /// <summary>
-    /// Data container for NavAgent settings
+    /// Data container for agent archetype settings
     /// </summary>
-    [CreateAssetMenu(fileName = "NavAgentArchetype.asset", menuName = "VRoxel/Navigation/NavAgent Archetype", order = 1)]
+    [CreateAssetMenu(
+        fileName = "NavAgentArchetype.asset",
+        menuName = "VRoxel/Navigation/NavAgent Archetype",
+        order = 1)]
     public class NavAgentArchetype : ScriptableObject
     {
         /// <summary>

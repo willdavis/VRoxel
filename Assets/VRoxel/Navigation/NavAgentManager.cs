@@ -19,6 +19,11 @@ namespace VRoxel.Navigation
     public class NavAgentManager : MonoBehaviour
     {
         /// <summary>
+        /// The different archetypes used in the agent configurations
+        /// </summary>
+        public List<NavAgentArchetype> archetypes;
+
+        /// <summary>
         /// The configurations for each type of agent in the scene
         /// </summary>
         public List<NavAgentConfiguration> configurations;
