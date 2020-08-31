@@ -1,4 +1,9 @@
-﻿using VRoxel.Navigation.Agents;
+﻿using System.Collections.Generic;
+using System;
+
+using VRoxel.Navigation.Agents;
+using VRoxel.Core.Data;
+
 using UnityEngine;
 
 namespace VRoxel.Navigation.Data
@@ -26,5 +31,21 @@ namespace VRoxel.Navigation.Data
         /// The collision properties of this archetype
         /// </summary>
         public AgentCollision collision;
+
+        /// <summary>
+        /// The movement costs for the different block configurations
+        /// </summary>
+        [Tooltip("Add blocks to change their movement cost for this archetype")]
+        public List<MovementCost> movementCosts;
+    }
+
+    /// <summary>
+    /// The movement costs for the different block configurations
+    /// </summary>
+    [Serializable]
+    public struct MovementCost
+    {
+        public BlockConfiguration block;
+        public byte cost;
     }
 }

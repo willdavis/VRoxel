@@ -118,7 +118,7 @@ namespace VRoxel.Navigation
 
         protected NativeArray<int3> m_directions;
         protected NativeArray<int> m_directionsNESW;
-        protected NativeArray<Block> m_blockTypes;
+        protected List<NativeArray<Block>> m_blockTypes;
 
         protected NativeMultiHashMap<int3, float3> m_spatialMap;
         protected NativeMultiHashMap<int3, float3>.ParallelWriter m_spatialMapWriter;
@@ -179,18 +179,32 @@ namespace VRoxel.Navigation
             m_directionsNESW[3] = 9;
 
             // convert blocks to a struct and cache the data
+            byte defaultCost = 1;
             int blockCount = m_blockManager.blocks.Count;
-            m_blockTypes = new NativeArray<Block>(blockCount, Allocator.Persistent);
-            for (int i = 0; i < blockCount; i++)
+            m_blockTypes = new List<NativeArray<Block>>();
+            for (int a = 0; a < archetypes.Count; a++)
             {
-                Block navBlock = new Block();
-                BlockConfiguration block = m_blockManager.blocks[i];
-                navBlock.solid = block.collidable;
+                NativeArray<Block> blocks = new NativeArray<Block>(
+                    blockCount, Allocator.Persistent);
 
-                if (navBlock.solid) { navBlock.cost = 1; }
-                else { navBlock.cost = 2; }
+                for (int i = 0; i < blockCount; i++)
+                {
+                    BlockConfiguration block = m_blockManager.blocks[i];
+                    int index = archetypes[a].movementCosts
+                        .FindIndex(x=>x.block == block);
+                    Block navBlock = new Block();
 
-                m_blockTypes[i] = navBlock;
+                    if (index == -1)
+                        navBlock.cost = defaultCost;
+                    else
+                        navBlock.cost = archetypes[a]
+                            .movementCosts[index].cost;
+
+                    navBlock.solid = block.collidable;
+                    blocks[i] = navBlock;
+                }
+
+                m_blockTypes.Add(blocks);
             }
 
             // configure each agents movement type
@@ -256,10 +270,13 @@ namespace VRoxel.Navigation
             if (m_updatingHandles.IsCreated) { m_updatingHandles.Dispose(); }
 
             // dispose lookup tables
-            if (m_blockTypes.IsCreated) { m_blockTypes.Dispose(); }
             if (m_directions.IsCreated) { m_directions.Dispose(); }
             if (m_directionsNESW.IsCreated) { m_directionsNESW.Dispose(); }
             if (m_movementTypes.IsCreated) { m_movementTypes.Dispose(); }
+
+            if (m_blockTypes != null)
+                foreach (var type in m_blockTypes)
+                    if (type.IsCreated) { type.Dispose(); }
         }
 
         #endregion
@@ -297,7 +314,7 @@ namespace VRoxel.Navigation
                 directionMask = m_directionsNESW,
                 directions = m_directions,
                 costField = m_costField,
-                blocks = m_blockTypes,
+                blocks = m_blockTypes[index],
                 size = worldSize,
                 height = height
             };
