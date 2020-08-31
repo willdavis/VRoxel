@@ -111,14 +111,16 @@ namespace VRoxel.Navigation
         protected NativeArray<JobHandle> m_updatingHandles;
 
 
-        protected NativeQueue<int3> m_openNodes;
-        protected NativeArray<byte> m_flowField;
-        protected NativeArray<byte> m_costField;
-        protected NativeArray<ushort> m_intField;
-
         protected NativeArray<int3> m_directions;
         protected NativeArray<int> m_directionsNESW;
+
+
         protected List<NativeArray<Block>> m_blockTypes;
+        protected List<NativeQueue<int3>> m_openNodes;
+        protected List<NativeArray<byte>> m_costFields;
+        protected List<NativeArray<byte>> m_flowFields;
+        protected List<NativeArray<ushort>> m_intFields;
+
 
         protected NativeMultiHashMap<int3, float3> m_spatialMap;
         protected NativeMultiHashMap<int3, float3>.ParallelWriter m_spatialMapWriter;
@@ -156,10 +158,19 @@ namespace VRoxel.Navigation
 
             // initialize the flow field data structures
             int length = world.size.x * world.size.y * world.size.z;
-            m_openNodes = new NativeQueue<int3>(Allocator.Persistent);
-            m_flowField = new NativeArray<byte>(length, Allocator.Persistent);
-            m_costField = new NativeArray<byte>(length, Allocator.Persistent);
-            m_intField  = new NativeArray<ushort>(length, Allocator.Persistent);
+            m_flowFields = new List<NativeArray<byte>>(archetypes.Count);
+            m_costFields = new List<NativeArray<byte>>(archetypes.Count);
+            m_intFields = new List<NativeArray<ushort>>(archetypes.Count);
+            m_openNodes = new List<NativeQueue<int3>>(archetypes.Count);
+
+            // initialize flow fields for each archetype
+            for (int i = 0; i < archetypes.Count; i++)
+            {
+                m_openNodes.Add(new NativeQueue<int3>(Allocator.Persistent));
+                m_flowFields.Add(new NativeArray<byte>(length, Allocator.Persistent));
+                m_costFields.Add(new NativeArray<byte>(length, Allocator.Persistent));
+                m_intFields.Add(new NativeArray<ushort>(length, Allocator.Persistent));
+            }
 
             m_updatingHandles = new NativeArray<JobHandle>(archetypes.Count, Allocator.Persistent);
 
@@ -240,7 +251,7 @@ namespace VRoxel.Navigation
                 m_updatingFlowFields.Complete();
 
             for (int i = 0; i < archetypes.Count; i++)
-                m_updatingHandles[i] = ScheduleFlowFieldUpdate(i, target, dependsOn);
+                m_updatingHandles[i] = UpdateFlowField(i, target, dependsOn);
 
             m_updatingFlowFields = JobHandle.CombineDependencies(m_updatingHandles);
             return m_updatingFlowFields;
@@ -261,22 +272,33 @@ namespace VRoxel.Navigation
             // dispose the spatial map data
             if (m_spatialMap.IsCreated) { m_spatialMap.Dispose(); }
 
-            // dispose the flow field data
-            if (m_openNodes.IsCreated) { m_openNodes.Dispose(); }
-            if (m_costField.IsCreated) { m_costField.Dispose(); }
-            if (m_flowField.IsCreated) { m_flowField.Dispose(); }
-            if (m_intField.IsCreated)  { m_intField.Dispose();  }
-
-            if (m_updatingHandles.IsCreated) { m_updatingHandles.Dispose(); }
-
             // dispose lookup tables
             if (m_directions.IsCreated) { m_directions.Dispose(); }
             if (m_directionsNESW.IsCreated) { m_directionsNESW.Dispose(); }
             if (m_movementTypes.IsCreated) { m_movementTypes.Dispose(); }
 
+            // dispose the flow field data
+            if (m_updatingHandles.IsCreated) { m_updatingHandles.Dispose(); }
+
             if (m_blockTypes != null)
-                foreach (var type in m_blockTypes)
-                    if (type.IsCreated) { type.Dispose(); }
+                foreach (var item in m_blockTypes)
+                    if (item.IsCreated) { item.Dispose(); }
+
+            if (m_flowFields != null)
+                foreach (var item in m_flowFields)
+                    if (item.IsCreated) { item.Dispose(); }
+
+            if (m_costFields != null)
+                foreach (var item in m_costFields)
+                    if (item.IsCreated) { item.Dispose(); }
+
+            if (m_intFields != null)
+                foreach (var item in m_intFields)
+                    if (item.IsCreated) { item.Dispose(); }
+
+            if (m_openNodes != null)
+                foreach (var item in m_openNodes)
+                    if (item.IsCreated) { item.Dispose(); }
         }
 
         #endregion
@@ -302,7 +324,7 @@ namespace VRoxel.Navigation
         /// <summary>
         /// Schedules background jobs to update a flow field to target a new goal position
         /// </summary>
-        protected JobHandle ScheduleFlowFieldUpdate(int index, int3 target, JobHandle dependsOn = default)
+        protected JobHandle UpdateFlowField(int index, int3 target, JobHandle dependsOn = default)
         {
             int height = archetypes[index].collision.height;
             int length = m_world.size.x * m_world.size.y * m_world.size.z;
@@ -313,7 +335,7 @@ namespace VRoxel.Navigation
                 voxels = m_world.data.voxels,
                 directionMask = m_directionsNESW,
                 directions = m_directions,
-                costField = m_costField,
+                costField = m_costFields[index],
                 blocks = m_blockTypes[index],
                 size = worldSize,
                 height = height
@@ -323,7 +345,7 @@ namespace VRoxel.Navigation
 
             ClearIntFieldJob clearJob = new ClearIntFieldJob()
             {
-                intField = m_intField
+                intField = m_intFields[index]
             };
             JobHandle clearHandle = clearJob.Schedule(length, 1, costHandle);
 
@@ -331,9 +353,9 @@ namespace VRoxel.Navigation
             UpdateIntFieldJob intJob = new UpdateIntFieldJob()
             {
                 directions = m_directions,
-                costField = m_costField,
-                intField = m_intField,
-                open = m_openNodes,
+                costField = m_costFields[index],
+                intField = m_intFields[index],
+                open = m_openNodes[index],
                 size = worldSize,
                 goal = target
             };
@@ -343,8 +365,8 @@ namespace VRoxel.Navigation
             UpdateFlowFieldJob flowJob = new UpdateFlowFieldJob()
             {
                 directions = m_directions,
-                flowField = m_flowField,
-                intField = m_intField,
+                flowField = m_flowFields[index],
+                intField = m_intFields[index],
                 size = worldSize,
             };
 
@@ -381,7 +403,7 @@ namespace VRoxel.Navigation
                 movementTypes = m_movementTypes,
                 agentMovement = m_agentMovementTypes,
 
-                flowField = m_flowField,
+                flowField = m_flowFields[0],
                 flowDirections = m_directions,
                 flowFieldSize = worldSize,
 
@@ -454,7 +476,7 @@ namespace VRoxel.Navigation
                 steering = m_agentSteering,
                 deltaTime = dt,
 
-                flowField = m_flowField,
+                flowField = m_flowFields[0],
                 flowFieldSize = worldSize,
             };
 
