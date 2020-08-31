@@ -95,10 +95,14 @@ namespace VRoxel.Navigation
         protected BlockManager m_blockManager;
 
         /// <summary>
-        /// The background job to move each agent in the scene
+        /// The background job to move all agents in the scene
         /// </summary>
-        protected JobHandle m_movingAgents;
+        protected JobHandle m_movingAllAgents;
 
+        /// <summary>
+        /// The handles for moving the agents of each archetype
+        /// </summary>
+        protected NativeArray<JobHandle> m_movingByArchetype;
 
         /// <summary>
         /// The combined handle for updating all flow fields
@@ -172,7 +176,9 @@ namespace VRoxel.Navigation
                 m_intFields.Add(new NativeArray<ushort>(length, Allocator.Persistent));
             }
 
+            // initialize job handle arrays
             m_updatingHandles = new NativeArray<JobHandle>(archetypes.Count, Allocator.Persistent);
+            m_movingByArchetype = new NativeArray<JobHandle>(archetypes.Count, Allocator.Persistent);
 
             // cache all directions
             m_directions = new NativeArray<int3>(27, Allocator.Persistent);
@@ -234,10 +240,14 @@ namespace VRoxel.Navigation
         {
             m_spatialMap.Clear();
 
-            if (!m_movingAgents.IsCompleted)
-                m_movingAgents.Complete();
+            if (!m_movingAllAgents.IsCompleted)
+                m_movingAllAgents.Complete();
 
-            return ScheduleAgentMovement(dt, dependsOn);
+            for (int i = 0; i < archetypes.Count; i++)
+                m_movingByArchetype[i] = MoveByArchetype(i, dt, dependsOn);
+
+            m_movingAllAgents = JobHandle.CombineDependencies(m_movingByArchetype);
+            return m_movingAllAgents;
         }
 
         /// <summary>
@@ -279,6 +289,7 @@ namespace VRoxel.Navigation
 
             // dispose the flow field data
             if (m_updatingHandles.IsCreated) { m_updatingHandles.Dispose(); }
+            if (m_movingByArchetype.IsCreated) { m_movingByArchetype.Dispose(); }
 
             if (m_blockTypes != null)
                 foreach (var item in m_blockTypes)
@@ -376,7 +387,7 @@ namespace VRoxel.Navigation
         /// <summary>
         /// Schedules background jobs to move each agent in the scene by the given delta time
         /// </summary>
-        protected JobHandle ScheduleAgentMovement(float dt, JobHandle dependsOn = default)
+        protected JobHandle MoveByArchetype(int index, float dt, JobHandle dependsOn = default)
         {
             int3 worldSize = new int3(m_world.size.x, m_world.size.y, m_world.size.z);
 
@@ -480,8 +491,7 @@ namespace VRoxel.Navigation
                 flowFieldSize = worldSize,
             };
 
-            m_movingAgents = moveJob.Schedule(m_transformAccess, collisionHandle);
-            return m_movingAgents;
+            return moveJob.Schedule(m_transformAccess, collisionHandle);
         }
     }
 }
