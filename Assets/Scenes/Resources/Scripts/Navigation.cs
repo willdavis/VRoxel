@@ -41,7 +41,6 @@ public class Navigation : MonoBehaviour
 
         // configure the agent manager
         _agents.spatialBucketSize = new Unity.Mathematics.int3(2,2,2);
-        _agents.height = 2;
 
         // movement
         _agents.maxForce = 10f * _world.scale;

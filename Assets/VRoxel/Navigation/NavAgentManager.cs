@@ -30,9 +30,6 @@ namespace VRoxel.Navigation
 
         public int3 spatialBucketSize;
 
-        // agent settings
-        public int height;
-
         // moving
         public float maxForce;
 
@@ -276,6 +273,7 @@ namespace VRoxel.Navigation
         /// </summary>
         protected JobHandle SchedulePathfindingUpdate(int3 target, JobHandle dependsOn = default)
         {
+            int height = archetypes[0].collision.height;
             int length = m_world.size.x * m_world.size.y * m_world.size.z;
             int3 worldSize = new int3(m_world.size.x, m_world.size.y, m_world.size.z);
 
