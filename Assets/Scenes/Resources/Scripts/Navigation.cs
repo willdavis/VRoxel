@@ -86,7 +86,7 @@ public class Navigation : MonoBehaviour
         // configure the flow field and initialize it
         _agents.Initialize(_world, transforms);
         _world.data.OnEdit.AddListener(UpdatePathfindingAsync);
-        _agents.UpdatePathfinding(GetGoalGridPosition(), updateHandle).Complete();
+        _agents.UpdateFlowFields(GetGoalGridPosition(), updateHandle).Complete();
     }
 
     void OnDestroy()
@@ -118,7 +118,7 @@ public class Navigation : MonoBehaviour
     void UpdatePathfindingAsync(JobHandle handle)
     {
         Vector3Int goal = GetGoalGridPosition();
-        updateHandle = _agents.UpdatePathfinding(goal, handle);
+        updateHandle = _agents.UpdateFlowFields(goal, handle);
     }
 
     void UpdateGoalPostPosition()
@@ -130,7 +130,7 @@ public class Navigation : MonoBehaviour
         goal.transform.position = goalPosition;
 
         updateHandle.Complete();
-        updateHandle = _agents.UpdatePathfinding(goalGridPoint, updateHandle);
+        updateHandle = _agents.UpdateFlowFields(goalGridPoint, updateHandle);
     }
 
     /// <summary>

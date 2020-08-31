@@ -99,10 +99,16 @@ namespace VRoxel.Navigation
         /// </summary>
         protected JobHandle m_movingAgents;
 
+
         /// <summary>
-        /// The background job to update each of the flow fields
+        /// The combined handle for updating all flow fields
         /// </summary>
-        protected JobHandle m_updatingPathfinding;
+        protected JobHandle m_updatingFlowFields;
+
+        /// <summary>
+        /// The handles for updating each archetypes flow field
+        /// </summary>
+        protected NativeArray<JobHandle> m_updatingHandles;
 
 
         protected NativeQueue<int3> m_openNodes;
@@ -154,6 +160,8 @@ namespace VRoxel.Navigation
             m_flowField = new NativeArray<byte>(length, Allocator.Persistent);
             m_costField = new NativeArray<byte>(length, Allocator.Persistent);
             m_intField  = new NativeArray<ushort>(length, Allocator.Persistent);
+
+            m_updatingHandles = new NativeArray<JobHandle>(archetypes.Count, Allocator.Persistent);
 
             // cache all directions
             m_directions = new NativeArray<int3>(27, Allocator.Persistent);
@@ -208,15 +216,20 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Schedules background jobs to update all flow fields to target the new goal position
+        /// Updates the flow fields for each agent archetype to target the new goal position
         /// </summary>
-        public JobHandle UpdatePathfinding(Vector3Int goal, JobHandle dependsOn = default)
+        public JobHandle UpdateFlowFields(Vector3Int goal, JobHandle dependsOn = default)
         {
-            if (!m_updatingPathfinding.IsCompleted)
-                m_updatingPathfinding.Complete();
-
             int3 target = new int3(goal.x, goal.y, goal.z);
-            return SchedulePathfindingUpdate(target, dependsOn);
+
+            if (!m_updatingFlowFields.IsCompleted)
+                m_updatingFlowFields.Complete();
+
+            for (int i = 0; i < archetypes.Count; i++)
+                m_updatingHandles[i] = ScheduleFlowFieldUpdate(i, target, dependsOn);
+
+            m_updatingFlowFields = JobHandle.CombineDependencies(m_updatingHandles);
+            return m_updatingFlowFields;
         }
 
         /// <summary>
@@ -239,6 +252,8 @@ namespace VRoxel.Navigation
             if (m_costField.IsCreated) { m_costField.Dispose(); }
             if (m_flowField.IsCreated) { m_flowField.Dispose(); }
             if (m_intField.IsCreated)  { m_intField.Dispose();  }
+
+            if (m_updatingHandles.IsCreated) { m_updatingHandles.Dispose(); }
 
             // dispose lookup tables
             if (m_blockTypes.IsCreated) { m_blockTypes.Dispose(); }
@@ -267,13 +282,12 @@ namespace VRoxel.Navigation
         #endregion
         //-------------------------------------------------
 
-
         /// <summary>
-        /// Schedules background jobs to update all flow fields to target a new destination
+        /// Schedules background jobs to update a flow field to target a new goal position
         /// </summary>
-        protected JobHandle SchedulePathfindingUpdate(int3 target, JobHandle dependsOn = default)
+        protected JobHandle ScheduleFlowFieldUpdate(int index, int3 target, JobHandle dependsOn = default)
         {
-            int height = archetypes[0].collision.height;
+            int height = archetypes[index].collision.height;
             int length = m_world.size.x * m_world.size.y * m_world.size.z;
             int3 worldSize = new int3(m_world.size.x, m_world.size.y, m_world.size.z);
 
@@ -317,8 +331,7 @@ namespace VRoxel.Navigation
                 size = worldSize,
             };
 
-            m_updatingPathfinding = flowJob.Schedule(length, 1, intHandle);
-            return m_updatingPathfinding;
+            return flowJob.Schedule(length, 1, intHandle);
         }
 
         /// <summary>
