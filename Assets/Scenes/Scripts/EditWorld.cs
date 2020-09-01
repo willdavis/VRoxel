@@ -123,7 +123,7 @@ public class EditWorld : MonoBehaviour
 
         editHandle = job.Schedule();
         heightMapHandle = _heightMap.Refresh(editHandle);
-        _world.data.OnEdit.Invoke(editHandle);
+        _world.data.OnEdit.Invoke(heightMapHandle);
     }
 
     /// <summary>

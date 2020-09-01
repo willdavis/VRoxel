@@ -30,6 +30,19 @@ namespace VRoxel.Navigation
         /// </summary>
         public List<NavAgentConfiguration> configurations;
 
+        /// <summary>
+        /// A reference to the voxel world
+        /// </summary>
+        public World world;
+
+        /// <summary>
+        /// A reference to the voxel blocks
+        /// </summary>
+        public BlockManager blockManager;
+
+        /// <summary>
+        /// The size of the spatial buckets used to parition the map
+        /// </summary>
         public int3 spatialBucketSize;
 
         // moving
@@ -90,16 +103,6 @@ namespace VRoxel.Navigation
         protected List<int> m_totalAgents;
 
         /// <summary>
-        /// A reference to the voxel world
-        /// </summary>
-        protected World m_world;
-
-        /// <summary>
-        /// A reference to the voxel blocks
-        /// </summary>
-        protected BlockManager m_blockManager;
-
-        /// <summary>
         /// The background job to move all agents in the scene
         /// </summary>
         protected JobHandle m_movingAllAgents;
@@ -140,12 +143,11 @@ namespace VRoxel.Navigation
         /// <summary>
         /// Initializes the agent manager with an array of agent transforms
         /// </summary>
-        public virtual void Initialize(World world, Dictionary<NavAgentArchetype, List<Transform>> agents)
+        public virtual void Initialize(Dictionary<NavAgentArchetype, List<Transform>> agents)
         {
             Dispose();  // clear any existing memory
             int configCount = configurations.Count;
             int archetypeCount = archetypes.Count;
-            m_world = world;
 
             // initialize agent movement configurations
             m_movementTypes = new NativeArray<AgentMovement>(configCount, Allocator.Persistent);
@@ -226,7 +228,7 @@ namespace VRoxel.Navigation
 
             // convert blocks to a struct and cache the data
             byte defaultCost = 1;
-            int blockCount = m_blockManager.blocks.Count;
+            int blockCount = blockManager.blocks.Count;
             m_blockTypes = new List<NativeArray<Block>>();
             for (int a = 0; a < archetypeCount; a++)
             {
@@ -235,7 +237,7 @@ namespace VRoxel.Navigation
 
                 for (int i = 0; i < blockCount; i++)
                 {
-                    BlockConfiguration block = m_blockManager.blocks[i];
+                    BlockConfiguration block = blockManager.blocks[i];
                     int index = archetypes[a].movementCosts
                         .FindIndex(x=>x.block == block);
                     Block navBlock = new Block();
@@ -356,7 +358,11 @@ namespace VRoxel.Navigation
 
         protected virtual void Awake()
         {
-            m_blockManager = GetComponent<BlockManager>();
+            if (blockManager == null)
+                blockManager = GetComponent<BlockManager>();
+
+            if (world == null)
+                world = GetComponent<World>();
         }
 
         protected virtual void OnDestroy()
@@ -373,12 +379,12 @@ namespace VRoxel.Navigation
         protected JobHandle UpdateFlowField(int index, int3 target, JobHandle dependsOn = default)
         {
             int height = archetypes[index].collision.height;
-            int length = m_world.size.x * m_world.size.y * m_world.size.z;
-            int3 worldSize = new int3(m_world.size.x, m_world.size.y, m_world.size.z);
+            int length = world.size.x * world.size.y * world.size.z;
+            int3 worldSize = new int3(world.size.x, world.size.y, world.size.z);
 
             UpdateCostFieldJob costJob = new UpdateCostFieldJob()
             {
-                voxels = m_world.data.voxels,
+                voxels = world.data.voxels,
                 directionMask = m_directionsNESW,
                 directions = m_directions,
                 costField = m_costFields[index],
@@ -424,17 +430,17 @@ namespace VRoxel.Navigation
         /// </summary>
         protected JobHandle MoveByArchetype(int index, float dt, JobHandle dependsOn = default)
         {
-            int3 worldSize = new int3(m_world.size.x, m_world.size.y, m_world.size.z);
+            int3 worldSize = new int3(world.size.x, world.size.y, world.size.z);
 
-            AgentWorld world = new AgentWorld();
-            world.offset = m_world.transform.position;
-            world.rotation = m_world.transform.rotation;
-            world.center = m_world.data.center;
-            world.scale = m_world.scale;
+            AgentWorld agentWorld = new AgentWorld();
+            agentWorld.offset = world.transform.position;
+            agentWorld.rotation = world.transform.rotation;
+            agentWorld.center = world.data.center;
+            agentWorld.scale = world.scale;
 
             BuildSpatialMapJob spaceJob = new BuildSpatialMapJob()
             {
-                world = world,
+                world = agentWorld,
                 active = m_agentActive[index],
                 agents = m_agentKinematics[index],
 
@@ -445,7 +451,7 @@ namespace VRoxel.Navigation
 
             FlowFieldSeekJob seekJob = new FlowFieldSeekJob()
             {
-                world = world,
+                world = agentWorld,
                 movementTypes = m_movementTypes,
                 agentMovement = m_agentMovementTypes[index],
 
@@ -466,7 +472,7 @@ namespace VRoxel.Navigation
                 avoidDistance = avoidDistance,
                 maxDepth = maxAvoidDepth,
 
-                world = world,
+                world = agentWorld,
                 active = m_agentActive[index],
                 agents = m_agentKinematics[index],
                 steering = m_agentSteering[index],
@@ -483,7 +489,7 @@ namespace VRoxel.Navigation
                 maxQueueRadius = queueRadius,
                 maxQueueAhead = queueDistance,
 
-                world = world,
+                world = agentWorld,
                 active = m_agentActive[index],
                 agents = m_agentKinematics[index],
                 steering = m_agentSteering[index],
@@ -499,7 +505,7 @@ namespace VRoxel.Navigation
                 collisionRadius = collisionRadius,
                 maxDepth = maxCollisionDepth,
 
-                world = world,
+                world = agentWorld,
                 active = m_agentActive[index],
                 agents = m_agentKinematics[index],
                 steering = m_agentSteering[index],
@@ -516,7 +522,7 @@ namespace VRoxel.Navigation
                 movementTypes = m_movementTypes,
                 agentMovement = m_agentMovementTypes[index],
 
-                world = world,
+                world = agentWorld,
                 active = m_agentActive[index],
                 agents = m_agentKinematics[index],
                 steering = m_agentSteering[index],
