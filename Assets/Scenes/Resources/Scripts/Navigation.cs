@@ -1,10 +1,13 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+
+using UnityEngine;
 using Unity.Jobs;
 using Unity.Collections;
 
 using VRoxel.Core;
 using VRoxel.Terrain;
 using VRoxel.Navigation;
+using VRoxel.Navigation.Data;
 
 public class Navigation : MonoBehaviour
 {
@@ -33,9 +36,6 @@ public class Navigation : MonoBehaviour
 
     void Start()
     {
-        NavAgent[] agents = new NavAgent[maxAgents];
-        Transform[] transforms = new Transform[maxAgents];
-
         // initialize the object pool and agent manager
         NavAgentPool.Instance.AddObjects(maxAgents);
 
@@ -62,6 +62,8 @@ public class Navigation : MonoBehaviour
         _agents.avoidDistance = 8f * _world.scale;
         _agents.maxAvoidDepth = 200;
 
+        NavAgent[] agents = new NavAgent[maxAgents];
+        Dictionary<NavAgentArchetype, List<Transform>> transforms = new Dictionary<NavAgentArchetype, List<Transform>>();
 
         // initialize all of the agents
         for (int i = 0; i < maxAgents; i++)
@@ -72,8 +74,12 @@ public class Navigation : MonoBehaviour
             Enemy enemy = agent.GetComponent<Enemy>();
             enemy.OnDeath.AddListener(Remove);
 
+            NavAgentArchetype archetype = agent.configuration.archetype;
+            if (!transforms.ContainsKey(archetype))
+                transforms[archetype] = new List<Transform>();
+            transforms[archetype].Add(agent.transform);
+
             agents[i] = agent;
-            transforms[i] = agent.transform;
         }
         foreach (var agent in agents)
         {

@@ -2,6 +2,8 @@
 using VRoxel.Navigation.Agents;
 using VRoxel.Navigation.Data;
 
+using System.Linq;
+
 using VRoxel.Core;
 using VRoxel.Core.Data;
 
@@ -50,29 +52,32 @@ namespace VRoxel.Navigation
         public float collisionRadius;
         public int maxCollisionDepth;
 
-        public NativeArray<bool> activeAgents { get { return m_agentActive; } }
-        NativeArray<bool> m_agentActive;
+        public NativeArray<bool> activeAgents { get { return m_agentActive[0]; } }
 
+        /// <summary>
+        /// The current active agents of each archetype
+        /// </summary>
+        protected List<NativeArray<bool>> m_agentActive;
 
         /// <summary>
         /// The current kinematic properties for each agent
         /// </summary>
-        protected NativeArray<AgentKinematics> m_agentKinematics;
+        protected List<NativeArray<AgentKinematics>> m_agentKinematics;
 
         /// <summary>
         /// The current steering forces acting on each agent
         /// </summary>
-        protected NativeArray<float3> m_agentSteering;
+        protected List<NativeArray<float3>> m_agentSteering;
 
         /// <summary>
         /// The async transform access to each agent's transform
         /// </summary>
-        protected TransformAccessArray m_transformAccess;
+        protected List<TransformAccessArray> m_transformAccess;
 
         /// <summary>
         /// Contains indexes to the movement configuration of each agent
         /// </summary>
-        protected NativeArray<int> m_agentMovementTypes;
+        protected List<NativeArray<int>> m_agentMovementTypes;
 
         /// <summary>
         /// A reference to the different agent movement configurations
@@ -80,9 +85,9 @@ namespace VRoxel.Navigation
         protected NativeArray<AgentMovement> m_movementTypes;
 
         /// <summary>
-        /// Caches the total number of agents being managed
+        /// Caches the total number of agents per archetype
         /// </summary>
-        protected int m_totalAgents;
+        protected List<int> m_totalAgents;
 
         /// <summary>
         /// A reference to the voxel world
@@ -135,50 +140,74 @@ namespace VRoxel.Navigation
         /// <summary>
         /// Initializes the agent manager with an array of agent transforms
         /// </summary>
-        public virtual void Initialize(World world, Transform[] transforms)
+        public virtual void Initialize(World world, Dictionary<NavAgentArchetype, List<Transform>> agents)
         {
             Dispose();  // clear any existing memory
-            m_totalAgents = transforms.Length;
+            int configCount = configurations.Count;
+            int archetypeCount = archetypes.Count;
             m_world = world;
 
             // initialize agent movement configurations
-            int configCount = configurations.Count;
             m_movementTypes = new NativeArray<AgentMovement>(configCount, Allocator.Persistent);
+            for (int i = 0; i < configCount; i++) { m_movementTypes[i] = configurations[i].movement; }
 
-            for (int i = 0; i < configCount; i++)
-                m_movementTypes[i] = configurations[i].movement;
+            // initialize job handle arrays
+            m_updatingHandles = new NativeArray<JobHandle>(archetypeCount, Allocator.Persistent);
+            m_movingByArchetype = new NativeArray<JobHandle>(archetypeCount, Allocator.Persistent);
 
             // initialize the agent properties
-            m_transformAccess = new TransformAccessArray(transforms);
-            m_agentActive = new NativeArray<bool>(m_totalAgents, Allocator.Persistent);
-            m_agentSteering = new NativeArray<float3>(m_totalAgents, Allocator.Persistent);
-            m_agentMovementTypes = new NativeArray<int>(m_totalAgents, Allocator.Persistent);
-            m_agentKinematics = new NativeArray<AgentKinematics>(m_totalAgents, Allocator.Persistent);
-
-            // initialize the agent spatial map
-            m_spatialMap = new NativeMultiHashMap<int3, float3>(
-                m_totalAgents, Allocator.Persistent);
-            m_spatialMapWriter = m_spatialMap.AsParallelWriter();
+            m_agentMovementTypes = new List<NativeArray<int>>(archetypeCount);
+            m_agentKinematics = new List<NativeArray<AgentKinematics>>(archetypeCount);
+            m_transformAccess = new List<TransformAccessArray>(archetypeCount);
+            m_agentSteering = new List<NativeArray<float3>>(archetypeCount);
+            m_agentActive = new List<NativeArray<bool>>(archetypeCount);
+            m_totalAgents = new List<int>(archetypeCount);
 
             // initialize the flow field data structures
             int length = world.size.x * world.size.y * world.size.z;
-            m_flowFields = new List<NativeArray<byte>>(archetypes.Count);
-            m_costFields = new List<NativeArray<byte>>(archetypes.Count);
-            m_intFields = new List<NativeArray<ushort>>(archetypes.Count);
-            m_openNodes = new List<NativeQueue<int3>>(archetypes.Count);
+            m_flowFields = new List<NativeArray<byte>>(archetypeCount);
+            m_costFields = new List<NativeArray<byte>>(archetypeCount);
+            m_intFields = new List<NativeArray<ushort>>(archetypeCount);
+            m_openNodes = new List<NativeQueue<int3>>(archetypeCount);
 
-            // initialize flow fields for each archetype
-            for (int i = 0; i < archetypes.Count; i++)
+            // initialize each archetype
+            for (int i = 0; i < archetypeCount; i++)
             {
+                // initialize flow field data for each archetype
                 m_openNodes.Add(new NativeQueue<int3>(Allocator.Persistent));
                 m_flowFields.Add(new NativeArray<byte>(length, Allocator.Persistent));
                 m_costFields.Add(new NativeArray<byte>(length, Allocator.Persistent));
                 m_intFields.Add(new NativeArray<ushort>(length, Allocator.Persistent));
+
+                // initialize agent data for each archetype
+                Transform[] transforms = agents[archetypes[i]].ToArray();
+                int count = transforms.Length;
+
+                TransformAccessArray transformAccess = new TransformAccessArray(transforms);
+                NativeArray<int> movementTypes = new NativeArray<int>(count, Allocator.Persistent);
+                NativeArray<float3> steering = new NativeArray<float3>(count, Allocator.Persistent);
+                NativeArray<AgentKinematics> kinematics = new NativeArray<AgentKinematics>(count, Allocator.Persistent);
+                NativeArray<bool> active = new NativeArray<bool>(count, Allocator.Persistent);
+
+                // read agent configuration
+                for (int a = 0; a < count; a++)
+                {
+                    NavAgent agent = transforms[a].GetComponent<NavAgent>();
+                    int index = configurations.IndexOf(agent.configuration);
+                    movementTypes[a] = index;
+                }
+
+                m_agentMovementTypes.Add(movementTypes);
+                m_transformAccess.Add(transformAccess);
+                m_agentKinematics.Add(kinematics);
+                m_agentSteering.Add(steering);
+                m_agentActive.Add(active);
+                m_totalAgents.Add(count);
             }
 
-            // initialize job handle arrays
-            m_updatingHandles = new NativeArray<JobHandle>(archetypes.Count, Allocator.Persistent);
-            m_movingByArchetype = new NativeArray<JobHandle>(archetypes.Count, Allocator.Persistent);
+            // initialize the agent spatial map
+            m_spatialMap = new NativeMultiHashMap<int3, float3>(m_totalAgents.Sum(), Allocator.Persistent);
+            m_spatialMapWriter = m_spatialMap.AsParallelWriter();
 
             // cache all directions
             m_directions = new NativeArray<int3>(27, Allocator.Persistent);
@@ -199,7 +228,7 @@ namespace VRoxel.Navigation
             byte defaultCost = 1;
             int blockCount = m_blockManager.blocks.Count;
             m_blockTypes = new List<NativeArray<Block>>();
-            for (int a = 0; a < archetypes.Count; a++)
+            for (int a = 0; a < archetypeCount; a++)
             {
                 NativeArray<Block> blocks = new NativeArray<Block>(
                     blockCount, Allocator.Persistent);
@@ -222,14 +251,6 @@ namespace VRoxel.Navigation
                 }
 
                 m_blockTypes.Add(blocks);
-            }
-
-            // configure each agents movement type
-            for (int i = 0; i < m_totalAgents; i++)
-            {
-                NavAgent agent = transforms[i].GetComponent<NavAgent>();
-                int index = configurations.IndexOf(agent.configuration);
-                m_agentMovementTypes[i] = index;
             }
         }
 
@@ -272,13 +293,6 @@ namespace VRoxel.Navigation
         /// </summary>
         public void Dispose()
         {
-            // dispose the agent data
-            if (m_agentActive.IsCreated){ m_agentActive.Dispose(); }
-            if (m_agentSteering.IsCreated) { m_agentSteering.Dispose(); }
-            if (m_agentKinematics.IsCreated) { m_agentKinematics.Dispose(); }
-            if (m_transformAccess.isCreated) { m_transformAccess.Dispose(); }
-            if (m_agentMovementTypes.IsCreated) { m_agentMovementTypes.Dispose(); }
-
             // dispose the spatial map data
             if (m_spatialMap.IsCreated) { m_spatialMap.Dispose(); }
 
@@ -309,6 +323,27 @@ namespace VRoxel.Navigation
 
             if (m_openNodes != null)
                 foreach (var item in m_openNodes)
+                    if (item.IsCreated) { item.Dispose(); }
+
+            // dispose the agent data
+            if (m_agentActive != null)
+                foreach (var item in m_agentActive)
+                    if (item.IsCreated) { item.Dispose(); }
+
+            if (m_agentSteering != null)
+                foreach (var item in m_agentSteering)
+                    if (item.IsCreated) { item.Dispose(); }
+
+            if (m_agentKinematics != null)
+                foreach (var item in m_agentKinematics)
+                    if (item.IsCreated) { item.Dispose(); }
+
+            if (m_transformAccess != null)
+                foreach (var item in m_transformAccess)
+                    if (item.isCreated) { item.Dispose(); }
+
+            if (m_agentMovementTypes != null)
+                foreach (var item in m_agentMovementTypes)
                     if (item.IsCreated) { item.Dispose(); }
         }
 
@@ -400,29 +435,29 @@ namespace VRoxel.Navigation
             BuildSpatialMapJob spaceJob = new BuildSpatialMapJob()
             {
                 world = world,
-                active = m_agentActive,
-                agents = m_agentKinematics,
+                active = m_agentActive[index],
+                agents = m_agentKinematics[index],
 
                 spatialMap = m_spatialMapWriter,
                 size = spatialBucketSize
             };
-            JobHandle spaceHandle = spaceJob.Schedule(m_transformAccess, dependsOn);
+            JobHandle spaceHandle = spaceJob.Schedule(m_transformAccess[index], dependsOn);
 
             FlowFieldSeekJob seekJob = new FlowFieldSeekJob()
             {
                 world = world,
                 movementTypes = m_movementTypes,
-                agentMovement = m_agentMovementTypes,
+                agentMovement = m_agentMovementTypes[index],
 
                 flowField = m_flowFields[0],
                 flowDirections = m_directions,
                 flowFieldSize = worldSize,
 
-                active = m_agentActive,
-                agents = m_agentKinematics,
-                steering = m_agentSteering,
+                active = m_agentActive[index],
+                agents = m_agentKinematics[index],
+                steering = m_agentSteering[index],
             };
-            JobHandle seekHandle = seekJob.Schedule(m_totalAgents, 1, spaceHandle);
+            JobHandle seekHandle = seekJob.Schedule(m_totalAgents[index], 1, spaceHandle);
 
             AvoidCollisionBehavior avoidJob = new AvoidCollisionBehavior()
             {
@@ -432,14 +467,14 @@ namespace VRoxel.Navigation
                 maxDepth = maxAvoidDepth,
 
                 world = world,
-                active = m_agentActive,
-                agents = m_agentKinematics,
-                steering = m_agentSteering,
+                active = m_agentActive[index],
+                agents = m_agentKinematics[index],
+                steering = m_agentSteering[index],
 
                 spatialMap = m_spatialMap,
                 size = spatialBucketSize
             };
-            JobHandle avoidHandle = avoidJob.Schedule(m_totalAgents, 1, seekHandle);
+            JobHandle avoidHandle = avoidJob.Schedule(m_totalAgents[index], 1, seekHandle);
 
             QueueBehavior queueJob = new QueueBehavior()
             {
@@ -449,14 +484,14 @@ namespace VRoxel.Navigation
                 maxQueueAhead = queueDistance,
 
                 world = world,
-                active = m_agentActive,
-                agents = m_agentKinematics,
-                steering = m_agentSteering,
+                active = m_agentActive[index],
+                agents = m_agentKinematics[index],
+                steering = m_agentSteering[index],
 
                 size = spatialBucketSize,
                 spatialMap = m_spatialMap
             };
-            JobHandle queueHandle = queueJob.Schedule(m_totalAgents, 1, avoidHandle);
+            JobHandle queueHandle = queueJob.Schedule(m_totalAgents[index], 1, avoidHandle);
 
             ResolveCollisionBehavior collisionJob = new ResolveCollisionBehavior()
             {
@@ -465,33 +500,33 @@ namespace VRoxel.Navigation
                 maxDepth = maxCollisionDepth,
 
                 world = world,
-                active = m_agentActive,
-                agents = m_agentKinematics,
-                steering = m_agentSteering,
+                active = m_agentActive[index],
+                agents = m_agentKinematics[index],
+                steering = m_agentSteering[index],
 
                 spatialMap = m_spatialMap,
                 size = spatialBucketSize
             };
-            JobHandle collisionHandle = collisionJob.Schedule(m_totalAgents, 1, queueHandle);
+            JobHandle collisionHandle = collisionJob.Schedule(m_totalAgents[index], 1, queueHandle);
 
             MoveAgentJob moveJob = new MoveAgentJob()
             {
 
                 maxForce = maxForce,
                 movementTypes = m_movementTypes,
-                agentMovement = m_agentMovementTypes,
+                agentMovement = m_agentMovementTypes[index],
 
                 world = world,
-                active = m_agentActive,
-                agents = m_agentKinematics,
-                steering = m_agentSteering,
+                active = m_agentActive[index],
+                agents = m_agentKinematics[index],
+                steering = m_agentSteering[index],
                 deltaTime = dt,
 
                 flowField = m_flowFields[0],
                 flowFieldSize = worldSize,
             };
 
-            return moveJob.Schedule(m_transformAccess, collisionHandle);
+            return moveJob.Schedule(m_transformAccess[index], collisionHandle);
         }
     }
 }
