@@ -48,8 +48,35 @@ public class Navigation : MonoBehaviour
             world = GetComponent<World>();
     }
 
-    void Start()
+    void OnDestroy()
     {
+        updateHandle.Complete();
+        moveHandle.Complete();
+    }
+
+    void Update()
+    {
+        if (!initialized) { Initialize(); }
+        UpdateGoalPostPosition();
+
+        if (autoSpawnAgents)
+            SpawnAgents(1);
+        else if (Input.GetKey(spawnAgents) && CanSpawnAt(editor.currentIndex))
+            Spawn(editor.currentPosition);
+
+        moveHandle = agentManager.MoveAgents(Time.deltaTime, updateHandle);
+    }
+
+    void LateUpdate()
+    {
+        updateHandle.Complete();
+        moveHandle.Complete();
+    }
+
+    void Initialize()
+    {
+        initialized = true;
+
         // configure the agent manager
         agentManager.spatialBucketSize = new Unity.Mathematics.int3(2,2,2);
 
@@ -107,36 +134,6 @@ public class Navigation : MonoBehaviour
         }
 
         agentManager.Initialize(transforms);
-    }
-
-    void OnDestroy()
-    {
-        updateHandle.Complete();
-        moveHandle.Complete();
-    }
-
-    void Update()
-    {
-        if (!initialized) { Initialize(); }
-        UpdateGoalPostPosition();
-
-        if (autoSpawnAgents)
-            SpawnAgents(1);
-        else if (Input.GetKey(spawnAgents) && CanSpawnAt(editor.currentIndex))
-            Spawn(editor.currentPosition);
-
-        moveHandle = agentManager.MoveAgents(Time.deltaTime, updateHandle);
-    }
-
-    void LateUpdate()
-    {
-        updateHandle.Complete();
-        moveHandle.Complete();
-    }
-
-    void Initialize()
-    {
-        initialized = true;
         goal.transform.position = GetGoalScenePosition();
 
         world.data.OnEdit.AddListener(UpdatePathfindingAsync);
