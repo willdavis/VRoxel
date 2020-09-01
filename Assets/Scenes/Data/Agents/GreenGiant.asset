@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ac10723d54dd8b4a8ac6f16a7c148f3, type: 3}
+  m_Name: GreenGiant
+  m_EditorClassIdentifier: 
+  archetype: {fileID: 11400000, guid: 1eadd636634247f4ba284b58acea92f3, type: 2}
+  movement:
+    mass: 10
+    topSpeed: 1
+    turnSpeed: 1

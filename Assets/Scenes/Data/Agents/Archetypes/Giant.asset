@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61ea91feb0567fe49b44e814f24ec833, type: 3}
+  m_Name: Giant
+  m_EditorClassIdentifier: 
+  name: Giant
+  description: Really really big man
+  collision:
+    height: 4
+    radius: 1.5
+  movementCosts:
+  - block: {fileID: 11400000, guid: cea5cd229a5856c4ea4047d285c45e0e, type: 2}
+    cost: 10
+  - block: {fileID: 11400000, guid: e2cacd518c46bae4bb669899d2840688, type: 2}
+    cost: 5

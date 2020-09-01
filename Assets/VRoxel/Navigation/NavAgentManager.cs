@@ -65,7 +65,7 @@ namespace VRoxel.Navigation
         public float collisionRadius;
         public int maxCollisionDepth;
 
-        public NativeArray<bool> activeAgents { get { return m_agentActive[0]; } }
+        public List<NativeArray<bool>> activeAgents { get { return m_agentActive; } }
 
         /// <summary>
         /// The current active agents of each archetype
@@ -108,19 +108,13 @@ namespace VRoxel.Navigation
         protected JobHandle m_movingAllAgents;
 
         /// <summary>
-        /// The handles for moving the agents of each archetype
-        /// </summary>
-        protected NativeArray<JobHandle> m_movingByArchetype;
-
-        /// <summary>
         /// The combined handle for updating all flow fields
         /// </summary>
         protected JobHandle m_updatingFlowFields;
 
-        /// <summary>
-        /// The handles for updating each archetypes flow field
-        /// </summary>
+
         protected NativeArray<JobHandle> m_updatingHandles;
+        protected NativeArray<JobHandle> m_movingByArchetype;
 
 
         protected NativeArray<int3> m_directions;
@@ -263,11 +257,26 @@ namespace VRoxel.Navigation
         {
             m_spatialMap.Clear();
 
+            AgentWorld agentWorld = new AgentWorld();
+            agentWorld.offset = world.transform.position;
+            agentWorld.rotation = world.transform.rotation;
+            agentWorld.center = world.data.center;
+            agentWorld.scale = world.scale;
+            agentWorld.size = new int3(
+                world.size.x,
+                world.size.y,
+                world.size.z
+            );
+
             if (!m_movingAllAgents.IsCompleted)
                 m_movingAllAgents.Complete();
 
+            // update the spatial map with all agent positions
+            JobHandle spatialMaps = UpdateSpatialMap(agentWorld, dependsOn);
+
+            // update each agents position by archetype
             for (int i = 0; i < archetypes.Count; i++)
-                m_movingByArchetype[i] = MoveByArchetype(i, dt, dependsOn);
+                m_movingByArchetype[i] = MoveByArchetype(i, agentWorld, dt, spatialMaps);
 
             m_movingAllAgents = JobHandle.CombineDependencies(m_movingByArchetype);
             return m_movingAllAgents;
@@ -426,44 +435,49 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
+        /// Schedules background jobs to update the spatial map for all agents
+        /// </summary>
+        protected JobHandle UpdateSpatialMap(AgentWorld agentWorld, JobHandle dependsOn = default)
+        {
+            JobHandle handle = dependsOn;
+            for (int i = 0; i < archetypes.Count; i++)
+            {
+                BuildSpatialMapJob job = new BuildSpatialMapJob();
+                job.spatialMap = m_spatialMapWriter;
+                job.agents = m_agentKinematics[i];
+                job.active = m_agentActive[i];
+                job.size = spatialBucketSize;
+                job.world = agentWorld;
+
+                handle = job.Schedule(
+                    m_transformAccess[i],
+                    handle
+                );
+            }
+
+            return handle;
+        }
+
+        /// <summary>
         /// Schedules background jobs to move each agent in the scene by the given delta time
         /// </summary>
-        protected JobHandle MoveByArchetype(int index, float dt, JobHandle dependsOn = default)
+        protected JobHandle MoveByArchetype(int index, AgentWorld agentWorld, float dt, JobHandle dependsOn = default)
         {
-            int3 worldSize = new int3(world.size.x, world.size.y, world.size.z);
-
-            AgentWorld agentWorld = new AgentWorld();
-            agentWorld.offset = world.transform.position;
-            agentWorld.rotation = world.transform.rotation;
-            agentWorld.center = world.data.center;
-            agentWorld.scale = world.scale;
-
-            BuildSpatialMapJob spaceJob = new BuildSpatialMapJob()
-            {
-                world = agentWorld,
-                active = m_agentActive[index],
-                agents = m_agentKinematics[index],
-
-                spatialMap = m_spatialMapWriter,
-                size = spatialBucketSize
-            };
-            JobHandle spaceHandle = spaceJob.Schedule(m_transformAccess[index], dependsOn);
-
             FlowFieldSeekJob seekJob = new FlowFieldSeekJob()
             {
                 world = agentWorld,
                 movementTypes = m_movementTypes,
                 agentMovement = m_agentMovementTypes[index],
 
-                flowField = m_flowFields[0],
+                flowField = m_flowFields[index],
                 flowDirections = m_directions,
-                flowFieldSize = worldSize,
+                flowFieldSize = agentWorld.size,
 
                 active = m_agentActive[index],
                 agents = m_agentKinematics[index],
                 steering = m_agentSteering[index],
             };
-            JobHandle seekHandle = seekJob.Schedule(m_totalAgents[index], 1, spaceHandle);
+            JobHandle seekHandle = seekJob.Schedule(m_totalAgents[index], 1, dependsOn);
 
             AvoidCollisionBehavior avoidJob = new AvoidCollisionBehavior()
             {
@@ -517,7 +531,6 @@ namespace VRoxel.Navigation
 
             MoveAgentJob moveJob = new MoveAgentJob()
             {
-
                 maxForce = maxForce,
                 movementTypes = m_movementTypes,
                 agentMovement = m_agentMovementTypes[index],
@@ -528,8 +541,8 @@ namespace VRoxel.Navigation
                 steering = m_agentSteering[index],
                 deltaTime = dt,
 
-                flowField = m_flowFields[0],
-                flowFieldSize = worldSize,
+                flowField = m_flowFields[index],
+                flowFieldSize = agentWorld.size,
             };
 
             return moveJob.Schedule(m_transformAccess[index], collisionHandle);

@@ -108,23 +108,26 @@ public class Navigation : MonoBehaviour
             transforms[agentManager.archetypes[a]] = new List<Transform>();
 
         // initialize each agent
-        int agentPartition = maxAgents / agentManager.archetypes.Count;
-        for (int i = 0; i < maxAgents; i++)
+        int total = 0;
+        int agentsPerArchetype = maxAgents / agentManager.archetypes.Count;
+        for (int a = 0; a < agentManager.archetypes.Count; a++)
         {
-            int index = i / agentPartition;
-            var agent = Poolable.TryGetPoolable<NavAgent>(
-                agentsToSpawn[index].gameObject);
+            NavAgentArchetype archetype = agentManager.archetypes[a];
+            int poolIndex = agentsToSpawn.FindIndex(
+                x=>x.configuration.archetype == archetype);
 
-            agent.index = i;
-            agents[i] = agent;
+            for (int i = 0; i < agentsPerArchetype; i++)
+            {
+                var agent = Poolable.TryGetPoolable<NavAgent>(
+                    agentsToSpawn[poolIndex].gameObject);
 
-            Enemy enemy = agent.GetComponent<Enemy>();
-            enemy.OnDeath.AddListener(Remove);
+                Enemy enemy = agent.GetComponent<Enemy>();
+                enemy.OnDeath.AddListener(Remove);
 
-            NavAgentArchetype archetype = agent.configuration.archetype;
-            if (!transforms.ContainsKey(archetype))
-                transforms[archetype] = new List<Transform>();
-            transforms[archetype].Add(agent.transform);
+                transforms[archetype].Add(agent.transform);
+                agent.index = i; agents[total] = agent;
+                total++;
+            }
         }
 
         // re-pool the initialized agents
@@ -197,7 +200,7 @@ public class Navigation : MonoBehaviour
     /// </summary>
     public NavAgent Spawn(Vector3 position)
     {
-        int index = Random.Range(0, agentsToSpawn.Count-1);
+        int index = Random.Range(0, agentsToSpawn.Count);
         NavAgent agent = Poolable.TryGetPoolable<NavAgent>(
                 agentsToSpawn[index].gameObject);
 
@@ -206,7 +209,11 @@ public class Navigation : MonoBehaviour
         agent.transform.position = position;
         agent.gameObject.SetActive(true);
 
-        NativeSlice<bool> slice = agentManager.activeAgents.Slice(agent.index, 1);
+        NavAgentArchetype archetype = agent.configuration.archetype;
+        int archetypeIndex = agentManager.archetypes.IndexOf(archetype);
+        NativeArray<bool> agents = agentManager.activeAgents[archetypeIndex];
+
+        NativeSlice<bool> slice = agents.Slice(agent.index, 1);
         ActivateAgents activation = new ActivateAgents()
         {
             status = true,
@@ -243,7 +250,7 @@ public class Navigation : MonoBehaviour
             position = WorldEditor.Get(world, grid);
 
             // spawn the new enemy agent
-            int index = Random.Range(0, agentsToSpawn.Count-1);
+            int index = Random.Range(0, agentsToSpawn.Count);
             NavAgent agent = Poolable.TryGetPoolable<NavAgent>(
                     agentsToSpawn[index].gameObject);
 
@@ -252,8 +259,12 @@ public class Navigation : MonoBehaviour
             agent.transform.position = position;
             agent.gameObject.SetActive(true);
 
+            NavAgentArchetype archetype = agent.configuration.archetype;
+            int archetypeIndex = agentManager.archetypes.IndexOf(archetype);
+            NativeArray<bool> agents = agentManager.activeAgents[archetypeIndex];
+
             // activate the agent's navigation behaviors
-            NativeSlice<bool> slice = agentManager.activeAgents.Slice(agent.index, 1);
+            NativeSlice<bool> slice = agents.Slice(agent.index, 1);
             ActivateAgents activation = new ActivateAgents()
             {
                 status = true,
@@ -271,7 +282,11 @@ public class Navigation : MonoBehaviour
         NavAgent agent = enemy.GetComponent<NavAgent>();
         Poolable.TryPool(agent.gameObject);
 
-        NativeSlice<bool> slice = agentManager.activeAgents.Slice(agent.index, 1);
+        NavAgentArchetype archetype = agent.configuration.archetype;
+        int archetypeIndex = agentManager.archetypes.IndexOf(archetype);
+        NativeArray<bool> agents = agentManager.activeAgents[archetypeIndex];
+
+        NativeSlice<bool> slice = agents.Slice(agent.index, 1);
         ActivateAgents activation = new ActivateAgents()
         {
             status = false,
