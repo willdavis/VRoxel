@@ -105,12 +105,12 @@ namespace VRoxel.Navigation
         /// <summary>
         /// The background job to move all agents in the scene
         /// </summary>
-        protected JobHandle m_movingAllAgents;
+        public JobHandle movingAllAgents { get; private set; }
 
         /// <summary>
-        /// The combined handle for updating all flow fields
+        /// The background job for updating all flow fields
         /// </summary>
-        protected JobHandle m_updatingFlowFields;
+        public JobHandle updatingFlowFields { get; private set; }
 
 
         protected NativeArray<JobHandle> m_updatingHandles;
@@ -268,8 +268,8 @@ namespace VRoxel.Navigation
                 world.size.z
             );
 
-            if (!m_movingAllAgents.IsCompleted)
-                m_movingAllAgents.Complete();
+            if (!movingAllAgents.IsCompleted)
+                movingAllAgents.Complete();
 
             // update the spatial map with all agent positions
             JobHandle spatialMaps = UpdateSpatialMap(agentWorld, dependsOn);
@@ -278,8 +278,8 @@ namespace VRoxel.Navigation
             for (int i = 0; i < archetypes.Count; i++)
                 m_movingByArchetype[i] = MoveByArchetype(i, agentWorld, dt, spatialMaps);
 
-            m_movingAllAgents = JobHandle.CombineDependencies(m_movingByArchetype);
-            return m_movingAllAgents;
+            movingAllAgents = JobHandle.CombineDependencies(m_movingByArchetype);
+            return movingAllAgents;
         }
 
         /// <summary>
@@ -289,14 +289,14 @@ namespace VRoxel.Navigation
         {
             int3 target = new int3(goal.x, goal.y, goal.z);
 
-            if (!m_updatingFlowFields.IsCompleted)
-                m_updatingFlowFields.Complete();
+            if (!updatingFlowFields.IsCompleted)
+                updatingFlowFields.Complete();
 
             for (int i = 0; i < archetypes.Count; i++)
                 m_updatingHandles[i] = UpdateFlowField(i, target, dependsOn);
 
-            m_updatingFlowFields = JobHandle.CombineDependencies(m_updatingHandles);
-            return m_updatingFlowFields;
+            updatingFlowFields = JobHandle.CombineDependencies(m_updatingHandles);
+            return updatingFlowFields;
         }
 
         /// <summary>
