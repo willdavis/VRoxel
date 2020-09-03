@@ -10,12 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4ac10723d54dd8b4a8ac6f16a7c148f3, type: 3}
-  m_Name: RedNPC
+  m_Name: RedHumanoid
   m_EditorClassIdentifier: 
-  name: RedNPC
-  description: A common enemy
   archetype: {fileID: 11400000, guid: b483c28a62480df4d8363e6dddaf36b8, type: 2}
   movement:
     mass: 1
-    topSpeed: 1
+    topSpeed: 2
     turnSpeed: 1
