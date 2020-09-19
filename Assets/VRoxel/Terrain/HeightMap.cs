@@ -67,7 +67,7 @@ namespace VRoxel.Terrain
 
             int batch = 1;
             int length = size.x * size.z;
-            UpdateHeightMap job = new UpdateHeightMap()
+            RefreshHeightMap job = new RefreshHeightMap()
             {
                 data = m_data,
                 voxels = voxels,

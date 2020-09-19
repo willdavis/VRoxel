@@ -6,10 +6,10 @@ using Unity.Burst;
 namespace VRoxel.Terrain.HeightMaps
 {
     /// <summary>
-    /// Updates the height map for each column in the voxel terrain
+    /// Updates the height of each (x,y) position in the height map
     /// </summary>
     [BurstCompile]
-    public struct UpdateHeightMap : IJobParallelFor
+    public struct RefreshHeightMap : IJobParallelFor
     {
         /// <summary>
         /// The dimensions of the height map and voxels
