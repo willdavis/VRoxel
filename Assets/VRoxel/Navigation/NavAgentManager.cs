@@ -306,6 +306,21 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
+        /// Changes the current max speed of an agent
+        /// </summary>
+        public void SetMaxSpeed(NavAgent agent, float maxSpeed)
+        {
+            movingAllAgents.Complete();
+
+            int archetypeIndex = archetypes.IndexOf(agent.configuration.archetype);
+            AgentKinematics kinematics = m_agentKinematics[archetypeIndex][agent.index];
+            kinematics.maxSpeed = maxSpeed;
+
+            NativeArray<AgentKinematics> agentKinematics = m_agentKinematics[archetypeIndex];
+            agentKinematics[agent.index] = kinematics;
+        }
+
+        /// <summary>
         /// Disposes any unmanaged memory from the agent manager
         /// </summary>
         public void Dispose()
