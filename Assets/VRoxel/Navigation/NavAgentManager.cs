@@ -46,6 +46,7 @@ namespace VRoxel.Navigation
         public int3 spatialBucketSize;
 
         // moving
+        public Vector3 gravity;
         public float maxForce;
 
         // queuing
@@ -529,6 +530,23 @@ namespace VRoxel.Navigation
             };
             JobHandle collisionHandle = collisionJob.Schedule(m_totalAgents[index], 1, queueHandle);
 
+            GravityBehavior gravityJob = new GravityBehavior()
+            {
+                world = agentWorld,
+                active = m_agentActive[index],
+                agents = m_agentKinematics[index],
+                steering = m_agentSteering[index],
+
+                blocks = m_blockTypes[index],
+                voxels = world.data.voxels,
+                gravity = new float3(
+                    gravity.x,
+                    gravity.y,
+                    gravity.z
+                ),
+            };
+            JobHandle gravityHandle = gravityJob.Schedule(m_totalAgents[index], 1, collisionHandle);
+
             MoveAgentJob moveJob = new MoveAgentJob()
             {
                 maxForce = maxForce,
@@ -545,7 +563,7 @@ namespace VRoxel.Navigation
                 flowFieldSize = agentWorld.size,
             };
 
-            return moveJob.Schedule(m_transformAccess[index], collisionHandle);
+            return moveJob.Schedule(m_transformAccess[index], gravityHandle);
         }
     }
 }

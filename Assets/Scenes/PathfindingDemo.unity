@@ -592,6 +592,7 @@ MonoBehaviour:
     x: 2
     y: 2
     z: 2
+  gravity: {x: 0, y: -1, z: 0}
   maxForce: 0
   brakeForce: 0
   queueRadius: 0

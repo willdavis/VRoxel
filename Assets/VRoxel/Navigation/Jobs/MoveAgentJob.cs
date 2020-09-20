@@ -74,8 +74,8 @@ namespace VRoxel.Navigation
             float3 nextPosition = agent.position + agent.velocity * deltaTime;
             int3 nextGrid = GridPosition(nextPosition);
 
-            if (!OutOfBounds(nextGrid) && !Obstructed(nextGrid))
-                transform.position = nextPosition;
+            if (OutOfBounds(nextGrid)) { return; }
+            transform.position = nextPosition;
 
             if (agent.velocity.Equals(float3.zero)) { return; }
             quaternion look = quaternion.LookRotation(agent.velocity, up);
