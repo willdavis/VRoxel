@@ -9,6 +9,7 @@ namespace VRoxel.Navigation.Agents
     [Serializable]
     public struct AgentKinematics
     {
+        public float maxSpeed;
         public float3 position;
         public float3 velocity;
     }

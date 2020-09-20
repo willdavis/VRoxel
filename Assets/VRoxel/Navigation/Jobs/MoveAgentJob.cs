@@ -67,7 +67,7 @@ namespace VRoxel.Navigation
             steering[i] = Clamp(steering[i], maxForce);
             steering[i] = steering[i] / movement.mass;
 
-            agent.velocity = Clamp(agent.velocity + steering[i], movement.topSpeed);
+            agent.velocity = Clamp(agent.velocity + steering[i], agent.maxSpeed);
             steering[i] = float3.zero;  // reset steering forces for next frame
             agents[i] = agent;  // update the kinematics for the next frame
 
