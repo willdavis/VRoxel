@@ -5,12 +5,12 @@ using VRoxel.Terrain.HeightMaps;
 
 namespace TerrainSpecs
 {
-    public class UpdateHeightMapSpec
+    public class RefreshHeightMapSpec
     {
         [Test]
         public void CanUpdateTheHeightMap()
         {
-            UpdateHeightMap job = new UpdateHeightMap();
+            RefreshHeightMap job = new RefreshHeightMap();
             job.voxels = new NativeArray<byte>(8, Allocator.Persistent);
             job.data = new NativeArray<ushort>(4, Allocator.Persistent);
             job.size = new int3(2,2,2);
@@ -30,7 +30,7 @@ namespace TerrainSpecs
         [Test]
         public void CanUnflattenAnIndex()
         {
-            UpdateHeightMap job = new UpdateHeightMap();
+            RefreshHeightMap job = new RefreshHeightMap();
             job.size = new int3(2,2,2);
 
             Assert.AreEqual(new int2(0,0), job.UnFlatten(0));
@@ -42,7 +42,7 @@ namespace TerrainSpecs
         [Test]
         public void CanFlatten3DPoint()
         {
-            UpdateHeightMap job = new UpdateHeightMap();
+            RefreshHeightMap job = new RefreshHeightMap();
             job.size = new int3(2,2,2);
 
             Assert.AreEqual(0, job.Flatten(new int3(0,0,0)));
@@ -58,7 +58,7 @@ namespace TerrainSpecs
         [Test]
         public void CanCheckForSolidBlocks()
         {
-            UpdateHeightMap job = new UpdateHeightMap();
+            RefreshHeightMap job = new RefreshHeightMap();
 
             job.size = new int3(1,1,1);
             job.voxels = new NativeArray<byte>(8, Allocator.Persistent);
