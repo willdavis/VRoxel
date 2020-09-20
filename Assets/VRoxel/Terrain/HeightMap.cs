@@ -63,15 +63,19 @@ namespace VRoxel.Terrain
         /// </summary>
         public JobHandle Refresh(JobHandle dependsOn = default(JobHandle))
         {
-            if (!m_refreshing.IsCompleted) { m_refreshing.Complete(); }
+            m_refreshing.Complete();
 
             int batch = 1;
             int length = size.x * size.z;
-            UpdateHeightMap job = new UpdateHeightMap()
+            RefreshHeightMap job = new RefreshHeightMap()
             {
-                size = new int3(size.x, size.y, size.z),
-                voxels = voxels,
                 data = m_data,
+                voxels = voxels,
+                size = new int3(
+                    size.x,
+                    size.y,
+                    size.z
+                ),
             };
 
             m_refreshing = job.Schedule(length, batch, dependsOn);
@@ -83,8 +87,10 @@ namespace VRoxel.Terrain
         /// </summary>
         public ushort Read(int x, int z)
         {
-            if (!Contains(x,z)) { return ushort.MaxValue; }
-            if (!m_refreshing.IsCompleted) { m_refreshing.Complete(); }
+            if (!Contains(x,z))
+                return ushort.MaxValue;
+
+            m_refreshing.Complete();
 
             /// 2D[x,y] = 2D[x * height + y]
             return m_data[x * size.z + z];
