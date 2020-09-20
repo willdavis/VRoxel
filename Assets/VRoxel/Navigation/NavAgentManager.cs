@@ -191,7 +191,12 @@ namespace VRoxel.Navigation
                 {
                     NavAgent agent = transforms[a].GetComponent<NavAgent>();
                     int index = configurations.IndexOf(agent.configuration);
+
+                    AgentKinematics agentKinematics = new AgentKinematics();
+                    agentKinematics.maxSpeed = agent.configuration.movement.topSpeed;
+
                     movementTypes[a] = index;
+                    kinematics[a] = agentKinematics;
                 }
 
                 m_agentMovementTypes.Add(movementTypes);
