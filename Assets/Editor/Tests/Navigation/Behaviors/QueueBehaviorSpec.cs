@@ -54,9 +54,9 @@ namespace NavigationBehaviorSpecs
             float3 position1 = float3.zero;
             float3 position2 = new float3(0, 0.5f, 0);
 
-            NativeMultiHashMap<int3, float3> spatialMap = new NativeMultiHashMap<int3, float3>(1, Allocator.Persistent);
-            spatialMap.Add(int3.zero, position1);
-            spatialMap.Add(int3.zero, position2);
+            NativeMultiHashMap<int3, SpatialMapData> spatialMap = new NativeMultiHashMap<int3, SpatialMapData>(1, Allocator.Persistent);
+            spatialMap.Add(int3.zero, new SpatialMapData() { position = position1 });
+            spatialMap.Add(int3.zero, new SpatialMapData() { position = position2 });
 
             NativeArray<AgentKinematics> agents = new NativeArray<AgentKinematics>(2, Allocator.Persistent);
             agents[0] = new AgentKinematics(){ position = position1 };
@@ -87,9 +87,9 @@ namespace NavigationBehaviorSpecs
             float3 position1 = float3.zero;
             float3 position2 = new float3(0f, 1f, 0f);
 
-            NativeMultiHashMap<int3, float3> spatialMap = new NativeMultiHashMap<int3, float3>(1, Allocator.Persistent);
-            spatialMap.Add(int3.zero, position1);
-            spatialMap.Add(int3.zero, position2);
+            NativeMultiHashMap<int3, SpatialMapData> spatialMap = new NativeMultiHashMap<int3, SpatialMapData>(1, Allocator.Persistent);
+            spatialMap.Add(int3.zero, new SpatialMapData() { position = position1 });
+            spatialMap.Add(int3.zero, new SpatialMapData() { position = position2 });
 
             NativeArray<AgentKinematics> agents = new NativeArray<AgentKinematics>(2, Allocator.Persistent);
             agents[0] = new AgentKinematics(){ position = position1, velocity = new float3(0, 0, 0) };

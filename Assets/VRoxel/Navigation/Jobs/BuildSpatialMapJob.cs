@@ -3,9 +3,13 @@ using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine.Jobs;
 using Unity.Burst;
+using System;
 
 namespace VRoxel.Navigation
 {
+    /// <summary>
+    /// Builds a spatial map of all agent positions
+    /// </summary>
     [BurstCompile]
     public struct BuildSpatialMapJob : IJobParallelForTransform
     {
@@ -20,6 +24,21 @@ namespace VRoxel.Navigation
         public AgentWorld world;
 
         /// <summary>
+        /// the collision properties for this archetype
+        /// </summary>
+        public AgentCollision collision;
+
+        /// <summary>
+        /// Refrences each agents movement configuration
+        /// </summary>
+        [ReadOnly] public NativeArray<int> movement;
+
+        /// <summary>
+        /// A lookup table for all agent movement configurations
+        /// </summary>
+        [ReadOnly] public NativeArray<AgentMovement> movementConfigs;
+
+        /// <summary>
         /// the active agents in the scene
         /// </summary>
         [ReadOnly] public NativeArray<bool> active;
@@ -32,12 +51,13 @@ namespace VRoxel.Navigation
         /// <summary>
         /// the spatial map of all agent positions in the scene
         /// </summary>
-        [WriteOnly] public NativeMultiHashMap<int3, float3>.ParallelWriter spatialMap;
+        [WriteOnly] public NativeMultiHashMap<int3, SpatialMapData>.ParallelWriter spatialMap;
 
         public void Execute(int i, TransformAccess transform)
         {
             if (!active[i]) { return; }
 
+            float mass = movementConfigs[movement[i]].mass;
             int3 grid = GridPosition(transform.position);
             int3 bucket = new int3(
                 grid.x / size.x,
@@ -49,7 +69,13 @@ namespace VRoxel.Navigation
             agent.position = transform.position;
             agents[i] = agent;
 
-            spatialMap.Add(bucket, transform.position);
+            SpatialMapData data = new SpatialMapData();
+            data.position = transform.position;
+            data.height = collision.height;
+            data.radius = collision.radius;
+            data.mass = mass;
+
+            spatialMap.Add(bucket, data);
         }
 
         /// <summary>
@@ -74,5 +100,32 @@ namespace VRoxel.Navigation
 
             return gridPosition;
         }
+    }
+
+    /// <summary>
+    /// Data container for each agent in the spatial map
+    /// </summary>
+    [Serializable]
+    public struct SpatialMapData
+    {
+        /// <summary>
+        /// The mass of the agent
+        /// </summary>
+        public float mass;
+
+        /// <summary>
+        /// The voxel height of the agent
+        /// </summary>
+        public int height;
+
+        /// <summary>
+        /// The collision radius of the agent
+        /// </summary>
+        public float radius;
+
+        /// <summary>
+        /// The current scene position of the agent
+        /// </summary>
+        public float3 position;
     }
 }

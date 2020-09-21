@@ -42,7 +42,7 @@ namespace VRoxel.Navigation
         /// <summary>
         /// the spatial map of all agent positions in the scene
         /// </summary>
-        [ReadOnly] public NativeMultiHashMap<int3, float3> spatialMap;
+        [ReadOnly] public NativeMultiHashMap<int3, SpatialMapData> spatialMap;
 
         public void Execute(int i)
         {
@@ -98,7 +98,7 @@ namespace VRoxel.Navigation
         public bool DetectCollision(int i, float3 ahead, int3 bucket)
         {
             bool hasValues;
-            float3 agent = float3.zero;
+            SpatialMapData agent;
             NativeMultiHashMapIterator<int3> iter;
 
             int count = 0;
@@ -108,7 +108,7 @@ namespace VRoxel.Navigation
                 if (count == maxDepth) { break; }
                 count++;
 
-                if (!agents[i].position.Equals(agent) && math.length(agent - ahead) <= maxQueueRadius)
+                if (!agents[i].position.Equals(agent.position) && math.length(agent.position - ahead) <= maxQueueRadius)
                     return true;
 
                 hasValues = spatialMap.TryGetNextValue(out agent, ref iter);

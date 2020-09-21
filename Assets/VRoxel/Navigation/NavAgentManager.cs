@@ -129,8 +129,8 @@ namespace VRoxel.Navigation
         protected List<NativeArray<ushort>> m_intFields;
 
 
-        protected NativeMultiHashMap<int3, float3> m_spatialMap;
-        protected NativeMultiHashMap<int3, float3>.ParallelWriter m_spatialMapWriter;
+        protected NativeMultiHashMap<int3, SpatialMapData> m_spatialMap;
+        protected NativeMultiHashMap<int3, SpatialMapData>.ParallelWriter m_spatialMapWriter;
 
         //-------------------------------------------------
         #region Public API
@@ -208,7 +208,7 @@ namespace VRoxel.Navigation
             }
 
             // initialize the agent spatial map
-            m_spatialMap = new NativeMultiHashMap<int3, float3>(m_totalAgents.Sum(), Allocator.Persistent);
+            m_spatialMap = new NativeMultiHashMap<int3, SpatialMapData>(m_totalAgents.Sum(), Allocator.Persistent);
             m_spatialMapWriter = m_spatialMap.AsParallelWriter();
 
             // cache all directions
@@ -478,6 +478,9 @@ namespace VRoxel.Navigation
             for (int i = 0; i < archetypes.Count; i++)
             {
                 BuildSpatialMapJob job = new BuildSpatialMapJob();
+                job.movementConfigs = m_movementTypes;
+                job.movement = m_agentMovementTypes[i];
+                job.collision = archetypes[i].collision;
                 job.spatialMap = m_spatialMapWriter;
                 job.agents = m_agentKinematics[i];
                 job.active = m_agentActive[i];
