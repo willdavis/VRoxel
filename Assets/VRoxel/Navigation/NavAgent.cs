@@ -9,13 +9,27 @@ namespace VRoxel.Navigation
     public class NavAgent : MonoBehaviour
     {
         /// <summary>
-        /// The agents index in the background job arrays
+        /// The agents index in the agent manager
         /// </summary>
         [HideInInspector] public int index;
+
+        /// <summary>
+        /// The current agent manager that controls this agent
+        /// </summary>
+        [HideInInspector] public NavAgentManager agentManager;
 
         /// <summary>
         /// The configuration settings for this type of agent
         /// </summary>
         public NavAgentConfiguration configuration;
+
+        /// <summary>
+        /// The current max speed of this agent
+        /// </summary>
+        public float speed
+        {
+            get { return agentManager.MaxSpeed(this);    }
+            set { agentManager.SetMaxSpeed(this, value); }
+        }
     }
 }

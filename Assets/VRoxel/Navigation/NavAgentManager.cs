@@ -190,12 +190,12 @@ namespace VRoxel.Navigation
                 for (int a = 0; a < count; a++)
                 {
                     NavAgent agent = transforms[a].GetComponent<NavAgent>();
-                    int index = configurations.IndexOf(agent.configuration);
+                    int movementType = configurations.IndexOf(agent.configuration);
 
                     AgentKinematics agentKinematics = new AgentKinematics();
                     agentKinematics.maxSpeed = agent.configuration.movement.topSpeed;
 
-                    movementTypes[a] = index;
+                    movementTypes[a] = movementType;
                     kinematics[a] = agentKinematics;
                 }
 
@@ -303,6 +303,20 @@ namespace VRoxel.Navigation
 
             updatingFlowFields = JobHandle.CombineDependencies(m_updatingHandles);
             return updatingFlowFields;
+        }
+
+        /// <summary>
+        /// Returns the current max speed of an agent
+        /// </summary>
+        public float MaxSpeed(NavAgent agent)
+        {
+            if (m_agentKinematics == null)
+                return agent.configuration.movement.topSpeed;
+
+            movingAllAgents.Complete();
+
+            int archetypeIndex = archetypes.IndexOf(agent.configuration.archetype);
+            return m_agentKinematics[archetypeIndex][agent.index].maxSpeed;
         }
 
         /// <summary>
