@@ -20,8 +20,8 @@ namespace NavigationBehaviorSpecs
         public void CanCheckForCollisions()
         {
             float radius = 1f;
-            float3 self = new float3(0, 0, 0);
-            float3 target  = new float3(0, 0.5f, 0);
+            AgentKinematics self = new AgentKinematics() { position = float3.zero };
+            SpatialMapData target = new SpatialMapData() { position = new float3(0, 0.5f, 0) };
 
             ResolveCollisionBehavior job = new ResolveCollisionBehavior()
             {
@@ -29,15 +29,15 @@ namespace NavigationBehaviorSpecs
             };
 
             bool result;
-            result = job.Collision(self, target, radius);
+            result = job.Collision(self, target);
             Assert.AreEqual(true, result);      // inside
 
-            target += new float3(0, 0.5f, 0);
-            result = job.Collision(self, target, radius);
+            target.position += new float3(0, 0.5f, 0);
+            result = job.Collision(self, target);
             Assert.AreEqual(true, result);      // on the edge
 
-            target += new float3(0, 0.5f, 0);
-            result = job.Collision(self, target, radius);
+            target.position += new float3(0, 0.5f, 0);
+            result = job.Collision(self, target);
             Assert.AreEqual(false, result);     // outside
         }
 
@@ -54,14 +54,15 @@ namespace NavigationBehaviorSpecs
                 agents = agents,
             };
 
-            float3 self = float3.zero;
-            float3 target = float3.zero;
+            SpatialMapData target = new SpatialMapData()
+                { position = float3.zero };
+
             job.ApplyCollisionForce(0, target);
             Assert.AreEqual(float3.zero, steering[0]);
 
             steering[0] = float3.zero;
 
-            target = new float3(0,1,0);
+            target = new SpatialMapData() { position = new float3(0, 1, 0) };
             job.ApplyCollisionForce(0, target);
             Assert.AreEqual(new float3(0, -0.5f, 0), steering[0]);
 

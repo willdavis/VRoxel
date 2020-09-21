@@ -64,16 +64,18 @@ namespace VRoxel.Navigation
                 ResolveCollisions(i, minBucket, maxBucket);
         }
 
-        public bool Collision(float3 self, float3 target, float radius)
+        public bool Collision(AgentKinematics self, SpatialMapData target)
         {
-            if (self.Equals(target)) { return false; }
-            return math.length(self - target) <= radius;
+            if (self.position.Equals(target.position)) { return false; }
+
+            float distance = math.length(self.position - target.position);
+            return distance <= collision.radius + target.radius;
         }
 
-        public void ApplyCollisionForce(int i, float3 target)
+        public void ApplyCollisionForce(int i, SpatialMapData target)
         {
-            float3 distance = agents[i].position - target;
-            float length = math.length(agents[i].position - target);
+            float3 distance = agents[i].position - target.position;
+            float length = math.length(agents[i].position - target.position);
             if (length == 0) { return; }
 
             float scale = (collision.radius / length) * collisionForce;
@@ -111,13 +113,15 @@ namespace VRoxel.Navigation
             hasValue = spatialMap.TryGetFirstValue(bucket, out agent, out iter);
             while (hasValue)
             {
-                if (count == maxDepth) { break; }
+                if (count == maxDepth)
+                    break;
+
+                if (Collision(agents[i], agent))
+                    ApplyCollisionForce(i, agent);
+
                 count++;
-
-                if (Collision(agents[i].position, agent.position, collision.radius))
-                    ApplyCollisionForce(i, agent.position);
-
-                hasValue = spatialMap.TryGetNextValue(out agent, ref iter);
+                hasValue = spatialMap
+                    .TryGetNextValue(out agent, ref iter);
             }
         }
 

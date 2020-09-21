@@ -16,7 +16,7 @@ MonoBehaviour:
   description: Really really big man
   collision:
     height: 4
-    radius: 1.5
+    radius: 0.5
   movementCosts:
   - block: {fileID: 11400000, guid: cea5cd229a5856c4ea4047d285c45e0e, type: 2}
     cost: 10

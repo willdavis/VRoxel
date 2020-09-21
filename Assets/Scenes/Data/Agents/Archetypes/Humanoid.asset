@@ -16,4 +16,5 @@ MonoBehaviour:
   description: Human sized navigation agents
   collision:
     height: 2
-    radius: 0.5
+    radius: 0.25
+  movementCosts: []
