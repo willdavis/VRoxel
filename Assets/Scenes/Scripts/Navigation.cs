@@ -75,29 +75,6 @@ public class Navigation : MonoBehaviour
 
     void Initialize()
     {
-        initialized = true;
-
-        // configure the agent manager
-        agentManager.spatialBucketSize = new Unity.Mathematics.int3(2,2,2);
-
-        // movement
-        agentManager.maxForce = 10f * world.scale;
-
-        // collision
-        agentManager.maxCollisionDepth = 200;
-
-        // queuing
-        agentManager.brakeForce = 0.8f;
-        agentManager.queueRadius = 1.5f * world.scale;
-        agentManager.queueDistance = 1.5f * world.scale;
-        agentManager.maxQueueDepth = 200;
-
-        // avoidance
-        agentManager.avoidForce = 4f * world.scale;
-        agentManager.avoidRadius = 3f * world.scale;
-        agentManager.avoidDistance = 8f * world.scale;
-        agentManager.maxAvoidDepth = 200;
-
         NavAgent[] agents = new NavAgent[maxAgents];
         Dictionary<NavAgentArchetype, List<Transform>> transforms = new Dictionary<NavAgentArchetype, List<Transform>>();
 
@@ -139,6 +116,7 @@ public class Navigation : MonoBehaviour
 
         world.data.OnEdit.AddListener(UpdatePathfindingAsync);
         agentManager.UpdateFlowFields(GetGoalGridPosition(), updateHandle).Complete();
+        initialized = true;
     }
 
     void UpdatePathfindingAsync(JobHandle handle)
