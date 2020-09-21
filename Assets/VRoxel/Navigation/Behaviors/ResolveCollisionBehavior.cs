@@ -11,7 +11,6 @@ namespace VRoxel.Navigation
     {
         public int maxDepth;
         public float collisionForce;
-        public float collisionRadius;
 
         /// <summary>
         /// the size of all spatial buckets
@@ -22,6 +21,11 @@ namespace VRoxel.Navigation
         /// the reference to the voxel world
         /// </summary>
         public AgentWorld world;
+
+        /// <summary>
+        /// the collision properties for this archetype
+        /// </summary>
+        public AgentCollision collision;
 
         /// <summary>
         /// the current steering forces acting on each agent
@@ -48,8 +52,8 @@ namespace VRoxel.Navigation
             if (!active[i]) { return; }
 
             AgentKinematics agent = agents[i];
-            float3 min = agent.position + new float3(-collisionRadius, -collisionRadius, -collisionRadius);
-            float3 max = agent.position + new float3( collisionRadius,  collisionRadius,  collisionRadius);
+            float3 min = agent.position + new float3(-collision.radius, -collision.radius, -collision.radius);
+            float3 max = agent.position + new float3( collision.radius,  collision.radius,  collision.radius);
 
             int3 minBucket = GetSpatialBucket(min);
             int3 maxBucket = GetSpatialBucket(max);
@@ -68,14 +72,14 @@ namespace VRoxel.Navigation
 
         public void ApplyCollisionForce(int i, float3 target)
         {
-            float3 collision = agents[i].position - target;
+            float3 distance = agents[i].position - target;
             float length = math.length(agents[i].position - target);
             if (length == 0) { return; }
 
-            float scale = (collisionRadius / length) * collisionForce;
-            collision = math.normalizesafe(collision, float3.zero);
+            float scale = (collision.radius / length) * collisionForce;
+            distance = math.normalizesafe(distance, float3.zero);
 
-            steering[i] += collision * scale;
+            steering[i] += distance * scale;
             steering[i] += -agents[i].velocity * scale;
         }
 
@@ -110,7 +114,7 @@ namespace VRoxel.Navigation
                 if (count == maxDepth) { break; }
                 count++;
 
-                if (Collision(agents[i].position, agent.position, collisionRadius))
+                if (Collision(agents[i].position, agent.position, collision.radius))
                     ApplyCollisionForce(i, agent.position);
 
                 hasValue = spatialMap.TryGetNextValue(out agent, ref iter);

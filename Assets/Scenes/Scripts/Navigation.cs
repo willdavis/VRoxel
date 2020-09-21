@@ -85,7 +85,6 @@ public class Navigation : MonoBehaviour
 
         // collision
         agentManager.collisionForce = 6f * world.scale;
-        agentManager.collisionRadius = 1.5f * world.scale;
         agentManager.maxCollisionDepth = 200;
 
         // queuing

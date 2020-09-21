@@ -63,7 +63,6 @@ namespace VRoxel.Navigation
 
         // collision
         public float collisionForce;
-        public float collisionRadius;
         public int maxCollisionDepth;
 
         public List<NativeArray<bool>> activeAgents { get { return m_agentActive; } }
@@ -554,7 +553,7 @@ namespace VRoxel.Navigation
             ResolveCollisionBehavior collisionJob = new ResolveCollisionBehavior()
             {
                 collisionForce = collisionForce,
-                collisionRadius = collisionRadius,
+                collision = archetypes[index].collision,
                 maxDepth = maxCollisionDepth,
 
                 world = agentWorld,

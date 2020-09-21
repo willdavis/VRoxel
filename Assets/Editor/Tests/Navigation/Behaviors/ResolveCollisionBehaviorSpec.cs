@@ -25,7 +25,7 @@ namespace NavigationBehaviorSpecs
 
             ResolveCollisionBehavior job = new ResolveCollisionBehavior()
             {
-                collisionRadius = radius
+                collision = new AgentCollision() { radius = radius }
             };
 
             bool result;
@@ -48,7 +48,7 @@ namespace NavigationBehaviorSpecs
             NativeArray<float3> steering = new NativeArray<float3>(1, Allocator.Persistent);
             ResolveCollisionBehavior job = new ResolveCollisionBehavior()
             {
-                collisionRadius = 1f,
+                collision = new AgentCollision() { radius = 1f },
                 collisionForce = 0.5f,
                 steering = steering,
                 agents = agents,
