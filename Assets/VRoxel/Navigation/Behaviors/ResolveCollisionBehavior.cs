@@ -10,7 +10,6 @@ namespace VRoxel.Navigation
     public struct ResolveCollisionBehavior : IJobParallelFor
     {
         public int maxDepth;
-        public float collisionForce;
 
         /// <summary>
         /// the size of all spatial buckets
@@ -31,6 +30,16 @@ namespace VRoxel.Navigation
         /// the current steering forces acting on each agent
         /// </summary>
         public NativeArray<float3> steering;
+
+        /// <summary>
+        /// Refrences each agents movement configuration
+        /// </summary>
+        [ReadOnly] public NativeArray<int> movement;
+
+        /// <summary>
+        /// A lookup table for all agent movement configurations
+        /// </summary>
+        [ReadOnly] public NativeArray<AgentMovement> movementConfigs;
 
         /// <summary>
         /// the active agents in the scene
@@ -74,15 +83,23 @@ namespace VRoxel.Navigation
 
         public void ApplyCollisionForce(int i, SpatialMapData target)
         {
-            float3 distance = agents[i].position - target.position;
-            float length = math.length(agents[i].position - target.position);
-            if (length == 0) { return; }
+            // calculate the distance bewteen the two agents
+            float3 direction = agents[i].position - target.position;
+            float distance = math.length(direction);
+            if (distance == 0) { return; }
 
-            float scale = (collision.radius / length) * collisionForce;
-            distance = math.normalizesafe(distance, float3.zero);
+            // calculate the mass difference between the two agents
+            float mass = movementConfigs[movement[i]].mass;
+            float massRatio = target.mass / mass;
 
-            steering[i] += distance * scale;
-            steering[i] += -agents[i].velocity * scale;
+            // calcuate the collision force for this agent
+            float combinedRadius = collision.radius + target.radius;
+            float penetration = combinedRadius / distance;
+            float forceScale = penetration * massRatio;
+
+            // apply the collision to the agents steering force
+            direction = math.normalizesafe(direction, float3.zero);
+            steering[i] += direction * forceScale;
         }
 
         public void ResolveCollisions(int i, int3 min, int3 max)

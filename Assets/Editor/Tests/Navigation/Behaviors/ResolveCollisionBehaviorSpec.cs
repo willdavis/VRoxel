@@ -49,7 +49,6 @@ namespace NavigationBehaviorSpecs
             ResolveCollisionBehavior job = new ResolveCollisionBehavior()
             {
                 collision = new AgentCollision() { radius = 1f },
-                collisionForce = 0.5f,
                 steering = steering,
                 agents = agents,
             };
