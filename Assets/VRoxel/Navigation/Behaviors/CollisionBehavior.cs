@@ -6,12 +6,21 @@ using Unity.Burst;
 
 namespace VRoxel.Navigation
 {
+    /// <summary>
+    /// A steering behavior that provides collision resolution
+    /// </summary>
     [BurstCompile]
-    public struct ResolveCollisionBehavior : IJobParallelFor
+    public struct CollisionBehavior : IJobParallelFor
     {
+        /// <summary>
+        /// the maximum amount of agents to test when resolving collision
+        /// </summary>
         public int maxDepth;
-        public float collisionForce;
-        public float collisionRadius;
+
+        /// <summary>
+        /// the minimum distance required for collision detection
+        /// </summary>
+        public float minDistance;
 
         /// <summary>
         /// the size of all spatial buckets
@@ -22,6 +31,11 @@ namespace VRoxel.Navigation
         /// the reference to the voxel world
         /// </summary>
         public AgentWorld world;
+
+        /// <summary>
+        /// the collision properties for this archetype
+        /// </summary>
+        public AgentCollision collision;
 
         /// <summary>
         /// the current steering forces acting on each agent
@@ -39,17 +53,27 @@ namespace VRoxel.Navigation
         [ReadOnly] public NativeArray<AgentKinematics> agents;
 
         /// <summary>
+        /// Refrences each agents movement configuration
+        /// </summary>
+        [ReadOnly] public NativeArray<int> movement;
+
+        /// <summary>
+        /// A lookup table for all agent movement configurations
+        /// </summary>
+        [ReadOnly] public NativeArray<AgentMovement> movementConfigs;
+
+        /// <summary>
         /// the spatial map of all agent positions in the scene
         /// </summary>
-        [ReadOnly] public NativeMultiHashMap<int3, float3> spatialMap;
+        [ReadOnly] public NativeMultiHashMap<int3, SpatialMapData> spatialMap;
 
         public void Execute(int i)
         {
             if (!active[i]) { return; }
 
             AgentKinematics agent = agents[i];
-            float3 min = agent.position + new float3(-collisionRadius, -collisionRadius, -collisionRadius);
-            float3 max = agent.position + new float3( collisionRadius,  collisionRadius,  collisionRadius);
+            float3 min = agent.position + new float3(-collision.radius, -collision.radius, -collision.radius);
+            float3 max = agent.position + new float3( collision.radius,  collision.radius,  collision.radius);
 
             int3 minBucket = GetSpatialBucket(min);
             int3 maxBucket = GetSpatialBucket(max);
@@ -60,25 +84,44 @@ namespace VRoxel.Navigation
                 ResolveCollisions(i, minBucket, maxBucket);
         }
 
-        public bool Collision(float3 self, float3 target, float radius)
+        /// <summary>
+        /// Checks if there is a collision between two agents
+        /// </summary>
+        public bool Collision(AgentKinematics self, SpatialMapData target)
         {
-            if (self.Equals(target)) { return false; }
-            return math.length(self - target) <= radius;
+            if (self.position.Equals(target.position)) { return false; }
+
+            float distance = math.length(self.position - target.position);
+            return distance <= collision.radius + target.radius;
         }
 
-        public void ApplyCollisionForce(int i, float3 target)
+        /// <summary>
+        /// Calculates the required force to separate the two agents
+        /// </summary>
+        public void ApplyCollisionForce(int i, SpatialMapData target)
         {
-            float3 collision = agents[i].position - target;
-            float length = math.length(agents[i].position - target);
-            if (length == 0) { return; }
+            // calculate the distance bewteen the two agents
+            float3 direction = agents[i].position - target.position;
+            float distance = math.length(direction);
+            if (distance <= minDistance) { return; }
 
-            float scale = (collisionRadius / length) * collisionForce;
-            collision = math.normalizesafe(collision, float3.zero);
+            // calculate the mass difference between the two agents
+            float mass = movementConfigs[movement[i]].mass;
+            float massRatio = target.mass / mass;
 
-            steering[i] += collision * scale;
-            steering[i] += -agents[i].velocity * scale;
+            // calcuate the collision force for this agent
+            float combinedRadius = collision.radius + target.radius;
+            float penetration = combinedRadius / distance;
+            float forceScale = penetration * massRatio;
+
+            // apply the collision to the agents steering force
+            direction = math.normalizesafe(direction, float3.zero);
+            steering[i] += direction * forceScale;
         }
 
+        /// <summary>
+        /// Check for any collisions and apply a collision force
+        /// </summary>
         public void ResolveCollisions(int i, int3 min, int3 max)
         {
             int3 bucket = int3.zero;
@@ -97,26 +140,34 @@ namespace VRoxel.Navigation
             }
         }
 
+        /// <summary>
+        /// Check for any collisions and apply a collision force
+        /// </summary>
         public void ResolveCollisions(int i, int3 bucket)
         {
             bool hasValue;
-            float3 agent = float3.zero;
+            SpatialMapData agent;
             NativeMultiHashMapIterator<int3> iter;
 
             int count = 0;
             hasValue = spatialMap.TryGetFirstValue(bucket, out agent, out iter);
             while (hasValue)
             {
-                if (count == maxDepth) { break; }
-                count++;
+                if (count == maxDepth)
+                    break;
 
-                if (Collision(agents[i].position, agent, collisionRadius))
+                if (Collision(agents[i], agent))
                     ApplyCollisionForce(i, agent);
 
-                hasValue = spatialMap.TryGetNextValue(out agent, ref iter);
+                count++;
+                hasValue = spatialMap
+                    .TryGetNextValue(out agent, ref iter);
             }
         }
 
+        /// <summary>
+        /// Returns the spatial bucket that the position is inside
+        /// </summary>
         public int3 GetSpatialBucket(float3 position)
         {
             int3 grid = GridPosition(position);

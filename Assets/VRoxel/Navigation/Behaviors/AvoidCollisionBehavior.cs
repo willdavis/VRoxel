@@ -42,7 +42,7 @@ namespace VRoxel.Navigation
         /// <summary>
         /// the spatial map of all agent positions in the scene
         /// </summary>
-        [ReadOnly] public NativeMultiHashMap<int3, float3> spatialMap;
+        [ReadOnly] public NativeMultiHashMap<int3, SpatialMapData> spatialMap;
 
         public void Execute(int i)
         {
@@ -118,7 +118,7 @@ namespace VRoxel.Navigation
         {
             bool hasValues;
             bool obstructed = false;
-            float3 agent = float3.zero;
+            SpatialMapData agent;
             NativeMultiHashMapIterator<int3> iter;
 
             int count = 0;
@@ -128,9 +128,9 @@ namespace VRoxel.Navigation
                 if (count == maxDepth) { break; }
                 count++;
 
-                if (!agents[i].position.Equals(agent) && IntersectsCircle(ahead, ahead2, agent, avoidRadius))
+                if (!agents[i].position.Equals(agent.position) && IntersectsCircle(ahead, ahead2, agent.position, avoidRadius))
                 {
-                    if (MostThreatening(i, agent, closest)) { closest = agent; }
+                    if (MostThreatening(i, agent.position, closest)) { closest = agent.position; }
                     obstructed = true;
                 }
 

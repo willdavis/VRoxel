@@ -45,26 +45,28 @@ namespace VRoxel.Navigation
         /// </summary>
         public int3 spatialBucketSize;
 
-        // moving
+        [Header("Movement Settings")]
         public Vector3 gravity;
         public float maxForce;
 
-        // queuing
+        [Header("Collision Detection")]
+        [Tooltip("The minimum distance required to detect a collision")]
+        public float minCollisionDistance = 0.01f;
+
+        [Tooltip("The maximum number of agents to check when resolving collisions")]
+        public int maxCollisionDepth = 100;
+
+        [Header("Queuing Behavior")]
         public float brakeForce;
         public float queueRadius;
         public float queueDistance;
         public int maxQueueDepth;
 
-        // avoidance
+        [Header("Avoidance Behavior")]
         public float avoidForce;
         public float avoidRadius;
         public float avoidDistance;
         public int maxAvoidDepth;
-
-        // collision
-        public float collisionForce;
-        public float collisionRadius;
-        public int maxCollisionDepth;
 
         public List<NativeArray<bool>> activeAgents { get { return m_agentActive; } }
 
@@ -129,8 +131,8 @@ namespace VRoxel.Navigation
         protected List<NativeArray<ushort>> m_intFields;
 
 
-        protected NativeMultiHashMap<int3, float3> m_spatialMap;
-        protected NativeMultiHashMap<int3, float3>.ParallelWriter m_spatialMapWriter;
+        protected NativeMultiHashMap<int3, SpatialMapData> m_spatialMap;
+        protected NativeMultiHashMap<int3, SpatialMapData>.ParallelWriter m_spatialMapWriter;
 
         //-------------------------------------------------
         #region Public API
@@ -208,7 +210,7 @@ namespace VRoxel.Navigation
             }
 
             // initialize the agent spatial map
-            m_spatialMap = new NativeMultiHashMap<int3, float3>(m_totalAgents.Sum(), Allocator.Persistent);
+            m_spatialMap = new NativeMultiHashMap<int3, SpatialMapData>(m_totalAgents.Sum(), Allocator.Persistent);
             m_spatialMapWriter = m_spatialMap.AsParallelWriter();
 
             // cache all directions
@@ -478,6 +480,9 @@ namespace VRoxel.Navigation
             for (int i = 0; i < archetypes.Count; i++)
             {
                 BuildSpatialMapJob job = new BuildSpatialMapJob();
+                job.movementConfigs = m_movementTypes;
+                job.movement = m_agentMovementTypes[i];
+                job.collision = archetypes[i].collision;
                 job.spatialMap = m_spatialMapWriter;
                 job.agents = m_agentKinematics[i];
                 job.active = m_agentActive[i];
@@ -548,10 +553,12 @@ namespace VRoxel.Navigation
             };
             JobHandle queueHandle = queueJob.Schedule(m_totalAgents[index], 1, avoidHandle);
 
-            ResolveCollisionBehavior collisionJob = new ResolveCollisionBehavior()
+            CollisionBehavior collisionJob = new CollisionBehavior()
             {
-                collisionForce = collisionForce,
-                collisionRadius = collisionRadius,
+                movementConfigs = m_movementTypes,
+                movement = m_agentMovementTypes[index],
+                collision = archetypes[index].collision,
+                minDistance = minCollisionDistance,
                 maxDepth = maxCollisionDepth,
 
                 world = agentWorld,
