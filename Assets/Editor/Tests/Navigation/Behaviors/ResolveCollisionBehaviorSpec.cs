@@ -46,9 +46,16 @@ namespace NavigationBehaviorSpecs
         {
             NativeArray<AgentKinematics> agents = new NativeArray<AgentKinematics>(1, Allocator.Persistent);
             NativeArray<float3> steering = new NativeArray<float3>(1, Allocator.Persistent);
+
+            NativeArray<int> agentMovementTypes = new NativeArray<int>(1, Allocator.Persistent);
+            NativeArray<AgentMovement> movementTypes = new NativeArray<AgentMovement>(1, Allocator.Persistent);
+            movementTypes[0] = new AgentMovement() { mass = 1f, topSpeed = 1f, turnSpeed = 1f };
+
             ResolveCollisionBehavior job = new ResolveCollisionBehavior()
             {
-                collision = new AgentCollision() { radius = 1f },
+                movement = agentMovementTypes,
+                movementConfigs = movementTypes,
+                collision = new AgentCollision() { radius = 0.5f },
                 steering = steering,
                 agents = agents,
             };
@@ -61,9 +68,14 @@ namespace NavigationBehaviorSpecs
 
             steering[0] = float3.zero;
 
-            target = new SpatialMapData() { position = new float3(0, 1, 0) };
+            target = new SpatialMapData()
+            {
+                mass = 1f, radius = 0.5f,
+                position = new float3(0, 1f, 0)
+            };
+
             job.ApplyCollisionForce(0, target);
-            Assert.AreEqual(new float3(0, -0.5f, 0), steering[0]);
+            Assert.AreEqual(new float3(0, -1f, 0), steering[0]);
 
             agents.Dispose();
             steering.Dispose();

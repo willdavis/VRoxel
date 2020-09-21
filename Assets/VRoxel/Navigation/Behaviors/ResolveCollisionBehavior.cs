@@ -73,6 +73,9 @@ namespace VRoxel.Navigation
                 ResolveCollisions(i, minBucket, maxBucket);
         }
 
+        /// <summary>
+        /// Checks if there is a collision between two agents
+        /// </summary>
         public bool Collision(AgentKinematics self, SpatialMapData target)
         {
             if (self.position.Equals(target.position)) { return false; }
@@ -81,6 +84,9 @@ namespace VRoxel.Navigation
             return distance <= collision.radius + target.radius;
         }
 
+        /// <summary>
+        /// Calculates the required force to separate the two agents
+        /// </summary>
         public void ApplyCollisionForce(int i, SpatialMapData target)
         {
             // calculate the distance bewteen the two agents
@@ -102,6 +108,9 @@ namespace VRoxel.Navigation
             steering[i] += direction * forceScale;
         }
 
+        /// <summary>
+        /// Check for any collisions and apply a collision force
+        /// </summary>
         public void ResolveCollisions(int i, int3 min, int3 max)
         {
             int3 bucket = int3.zero;
@@ -120,6 +129,9 @@ namespace VRoxel.Navigation
             }
         }
 
+        /// <summary>
+        /// Check for any collisions and apply a collision force
+        /// </summary>
         public void ResolveCollisions(int i, int3 bucket)
         {
             bool hasValue;
@@ -142,6 +154,9 @@ namespace VRoxel.Navigation
             }
         }
 
+        /// <summary>
+        /// Returns the spatial bucket that the position is inside
+        /// </summary>
         public int3 GetSpatialBucket(float3 position)
         {
             int3 grid = GridPosition(position);
