@@ -45,24 +45,28 @@ namespace VRoxel.Navigation
         /// </summary>
         public int3 spatialBucketSize;
 
-        // moving
+        [Header("Movement Settings")]
         public Vector3 gravity;
         public float maxForce;
 
-        // queuing
+        [Header("Collision Detection")]
+        [Tooltip("The minimum distance required to detect a collision")]
+        public float minCollisionDistance = 0.01f;
+
+        [Tooltip("The maximum number of agents to check when resolving collisions")]
+        public int maxCollisionDepth = 100;
+
+        [Header("Queuing Behavior")]
         public float brakeForce;
         public float queueRadius;
         public float queueDistance;
         public int maxQueueDepth;
 
-        // avoidance
+        [Header("Avoidance Behavior")]
         public float avoidForce;
         public float avoidRadius;
         public float avoidDistance;
         public int maxAvoidDepth;
-
-        // collision
-        public int maxCollisionDepth;
 
         public List<NativeArray<bool>> activeAgents { get { return m_agentActive; } }
 
@@ -554,6 +558,7 @@ namespace VRoxel.Navigation
                 movementConfigs = m_movementTypes,
                 movement = m_agentMovementTypes[index],
                 collision = archetypes[index].collision,
+                minDistance = minCollisionDistance,
                 maxDepth = maxCollisionDepth,
 
                 world = agentWorld,

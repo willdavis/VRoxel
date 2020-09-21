@@ -594,6 +594,8 @@ MonoBehaviour:
     z: 2
   gravity: {x: 0, y: -1, z: 0}
   maxForce: 0
+  minCollisionDistance: 0.01
+  maxCollisionDepth: 100
   brakeForce: 0
   queueRadius: 0
   queueDistance: 0
@@ -602,9 +604,6 @@ MonoBehaviour:
   avoidRadius: 0
   avoidDistance: 0
   maxAvoidDepth: 0
-  collisionForce: 0
-  collisionRadius: 0
-  maxCollisionDepth: 0
 --- !u!114 &1606828621
 MonoBehaviour:
   m_ObjectHideFlags: 0

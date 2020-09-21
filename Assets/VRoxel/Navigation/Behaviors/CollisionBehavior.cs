@@ -12,7 +12,15 @@ namespace VRoxel.Navigation
     [BurstCompile]
     public struct CollisionBehavior : IJobParallelFor
     {
+        /// <summary>
+        /// the maximum amount of agents to test when resolving collision
+        /// </summary>
         public int maxDepth;
+
+        /// <summary>
+        /// the minimum distance required for collision detection
+        /// </summary>
+        public float minDistance;
 
         /// <summary>
         /// the size of all spatial buckets
@@ -95,7 +103,7 @@ namespace VRoxel.Navigation
             // calculate the distance bewteen the two agents
             float3 direction = agents[i].position - target.position;
             float distance = math.length(direction);
-            if (distance == 0) { return; }
+            if (distance <= minDistance) { return; }
 
             // calculate the mass difference between the two agents
             float mass = movementConfigs[movement[i]].mass;

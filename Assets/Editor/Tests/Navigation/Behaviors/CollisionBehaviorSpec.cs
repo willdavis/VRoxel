@@ -25,6 +25,7 @@ namespace NavigationBehaviorSpecs
 
             CollisionBehavior job = new CollisionBehavior()
             {
+                minDistance = 0.01f,
                 collision = new AgentCollision() { radius = radius }
             };
 
@@ -53,6 +54,7 @@ namespace NavigationBehaviorSpecs
 
             CollisionBehavior job = new CollisionBehavior()
             {
+                minDistance = 0.01f,
                 movement = agentMovementTypes,
                 movementConfigs = movementTypes,
                 collision = new AgentCollision() { radius = 0.5f },
