@@ -50,6 +50,8 @@ namespace NavigationSpecs
             TransformAccessArray asyncTransforms = new TransformAccessArray(transforms);
 
             NativeArray<AgentKinematics> agents = new NativeArray<AgentKinematics>(2, Allocator.Persistent);
+            agents[0] = new AgentKinematics() { maxSpeed = 1f };
+            agents[1] = new AgentKinematics() { maxSpeed = 1f };
 
             NativeArray<float3> directions = new NativeArray<float3>(2, Allocator.Persistent);
             directions[0] = Vector3.right;

@@ -153,7 +153,7 @@ namespace NavigationBehaviorSpecs
 
             NativeMultiHashMap<int3, SpatialMapData> spatialMap = new NativeMultiHashMap<int3, SpatialMapData>(1, Allocator.Persistent);
             spatialMap.Add(int3.zero, new SpatialMapData() { position = position1 });
-            spatialMap.Add(int3.zero, new SpatialMapData() { position = position1 });
+            spatialMap.Add(int3.zero, new SpatialMapData() { position = position2 });
 
             NativeArray<AgentKinematics> agents = new NativeArray<AgentKinematics>(2, Allocator.Persistent);
             agents[0] = new AgentKinematics(){ position = position1, velocity = new float3(0, 0, 0) };
