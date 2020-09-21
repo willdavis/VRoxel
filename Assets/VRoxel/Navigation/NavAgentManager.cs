@@ -549,7 +549,7 @@ namespace VRoxel.Navigation
             };
             JobHandle queueHandle = queueJob.Schedule(m_totalAgents[index], 1, avoidHandle);
 
-            ResolveCollisionBehavior collisionJob = new ResolveCollisionBehavior()
+            CollisionBehavior collisionJob = new CollisionBehavior()
             {
                 movementConfigs = m_movementTypes,
                 movement = m_agentMovementTypes[index],

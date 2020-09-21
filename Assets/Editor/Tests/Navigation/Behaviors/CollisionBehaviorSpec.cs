@@ -14,7 +14,7 @@ using VRoxel.Navigation.Agents;
 
 namespace NavigationBehaviorSpecs
 {
-    public class ResolveCollisionBehaviorSpec
+    public class CollisionBehaviorSpec
     {
         [Test]
         public void CanCheckForCollisions()
@@ -23,7 +23,7 @@ namespace NavigationBehaviorSpecs
             AgentKinematics self = new AgentKinematics() { position = float3.zero };
             SpatialMapData target = new SpatialMapData() { position = new float3(0, 0.5f, 0) };
 
-            ResolveCollisionBehavior job = new ResolveCollisionBehavior()
+            CollisionBehavior job = new CollisionBehavior()
             {
                 collision = new AgentCollision() { radius = radius }
             };
@@ -51,7 +51,7 @@ namespace NavigationBehaviorSpecs
             NativeArray<AgentMovement> movementTypes = new NativeArray<AgentMovement>(1, Allocator.Persistent);
             movementTypes[0] = new AgentMovement() { mass = 1f, topSpeed = 1f, turnSpeed = 1f };
 
-            ResolveCollisionBehavior job = new ResolveCollisionBehavior()
+            CollisionBehavior job = new CollisionBehavior()
             {
                 movement = agentMovementTypes,
                 movementConfigs = movementTypes,

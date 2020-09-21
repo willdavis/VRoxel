@@ -6,8 +6,11 @@ using Unity.Burst;
 
 namespace VRoxel.Navigation
 {
+    /// <summary>
+    /// A steering behavior that provides collision resolution
+    /// </summary>
     [BurstCompile]
-    public struct ResolveCollisionBehavior : IJobParallelFor
+    public struct CollisionBehavior : IJobParallelFor
     {
         public int maxDepth;
 
@@ -32,16 +35,6 @@ namespace VRoxel.Navigation
         public NativeArray<float3> steering;
 
         /// <summary>
-        /// Refrences each agents movement configuration
-        /// </summary>
-        [ReadOnly] public NativeArray<int> movement;
-
-        /// <summary>
-        /// A lookup table for all agent movement configurations
-        /// </summary>
-        [ReadOnly] public NativeArray<AgentMovement> movementConfigs;
-
-        /// <summary>
         /// the active agents in the scene
         /// </summary>
         [ReadOnly] public NativeArray<bool> active;
@@ -50,6 +43,16 @@ namespace VRoxel.Navigation
         /// the position and velocity of each agent in the scene
         /// </summary>
         [ReadOnly] public NativeArray<AgentKinematics> agents;
+
+        /// <summary>
+        /// Refrences each agents movement configuration
+        /// </summary>
+        [ReadOnly] public NativeArray<int> movement;
+
+        /// <summary>
+        /// A lookup table for all agent movement configurations
+        /// </summary>
+        [ReadOnly] public NativeArray<AgentMovement> movementConfigs;
 
         /// <summary>
         /// the spatial map of all agent positions in the scene
