@@ -12,10 +12,8 @@ namespace VRoxel.Core.Chunks
     public struct BuildChunkMesh : IJob
     {
         public int3 size;
-        public int blockCount;
-        public float textureScale;
-        public float halfWorldScale;
         public float worldScale;
+        public float textureScale;
 
         /// <summary>
         /// a 2D reference array to the 6 faces of a cube and their vertices
@@ -42,11 +40,24 @@ namespace VRoxel.Core.Chunks
         /// </summary>
         [ReadOnly] public NativeArray<byte> voxels;
 
-
+        /// <summary>
+        /// the vertices that will be used for the Chunks mesh
+        /// </summary>
         [WriteOnly] public NativeList<float3> vertices;
+
+        /// <summary>
+        /// the triangles that will be used for the Chunks mesh
+        /// </summary>
         [WriteOnly] public NativeList<int> triangles;
+
+        /// <summary>
+        /// the UV coordinates that will be used for the Chunks mesh
+        /// </summary>
         [WriteOnly] public NativeList<float2> uvs;
 
+        private int faceCount;
+        private int blockCount;
+        private float halfScale;
 
         /// <summary>
         /// Iterate over each voxel in the chunk
@@ -55,6 +66,9 @@ namespace VRoxel.Core.Chunks
         public void Execute()
         {
             int3 grid = int3.zero;
+            blockCount = blocks.Length;
+            halfScale = worldScale / 2f;
+
             for (int x = 0; x < size.x; x++)
             {
                 grid.x = x;
@@ -96,29 +110,37 @@ namespace VRoxel.Core.Chunks
 
             // check each neighbor for a non-collidable block
             // add a cube face to the mesh if one is found
-            int faceCount = 0;
-            for (int i = 1; i < 9; i++)
-                AddFace(i, grid, localPos, ref faceCount);
+            for (int i = 0; i < 6; i++)
+            {
+                AddFace(i, block, grid, localPos);
+            }
         }
 
         /// <summary>
         /// Adds vertices, triangles, and uvs for the face of a cube
         /// at the desired local position in a Chunk
         /// </summary>
-        public void AddFace(int i, int3 grid, float3 localPos, ref int faceCount)
+        public void AddFace(int i, Block block, int3 grid, float3 localPos)
         {
-            Block block = new Block();
+            byte neighbor = 0;
+            Block nextBlock = new Block();
             int3 next = grid + directions[i];
-            byte neighbor = voxels[Flatten(next)];
-            bool hasBlock = TryGetBlock(neighbor, ref block);
 
-            // skip if the neighboring block is collidable
-            if ( hasBlock && block.collidable ) { return; }
+            // check if the adjacent block is out of bounds
+            // and if there is block rendering data for it
+            bool hasNext = TryGetVoxel(next, ref neighbor);
+            bool hasBlock = hasNext ? TryGetBlock(neighbor, ref nextBlock) : false;
+
+            // skip if the adjacent block is out of bounds
+            if (!hasNext) { return; }
+
+            // skip if the adjacent block is collidable
+            if ( hasBlock && nextBlock.collidable ) { return; }
 
             // render a face for the cube
             AddFaceVertices(i, localPos);
-            AddFaceTriangles(ref faceCount);
             AddFaceUV(i, block);
+            AddFaceTriangles();
         }
 
         /// <summary>
@@ -133,7 +155,7 @@ namespace VRoxel.Core.Chunks
             {
                 index = cubeFaces[(dir * 4) + f];
                 vertex = cubeVertices[index];
-                vertex *= halfWorldScale;
+                vertex *= halfScale;
                 vertex += localPos;
                 vertices.Add(vertex);
             }
@@ -165,7 +187,7 @@ namespace VRoxel.Core.Chunks
         /// <summary>
         /// Adds 2 triangles to form a quad for the cube face
         /// </summary>
-        public void AddFaceTriangles(ref int faceCount)
+        public void AddFaceTriangles()
         {
             triangles.Add(faceCount * 4);      // 1
             triangles.Add(faceCount * 4 + 1);  // 2
@@ -177,7 +199,7 @@ namespace VRoxel.Core.Chunks
         }
 
         /// <summary>
-        /// Attempts to fetch a block using an id and
+        /// Attempts to fetch a block using a voxel and
         /// returns false if no block can be found
         /// </summary>
         public bool TryGetBlock(byte id, ref Block block)
@@ -187,6 +209,29 @@ namespace VRoxel.Core.Chunks
 
             block = blocks[id];
             return true;
+        }
+
+        /// <summary>
+        /// Attempts to fetch a voxel from the world and
+        /// returns false if the grid coordinate is out of bounds
+        /// </summary>
+        public bool TryGetVoxel(int3 grid, ref byte voxel)
+        {
+            if (OutOfBounds(grid)) { return false; }
+
+            voxel = voxels[Flatten(grid)];
+            return true;
+        }
+
+        /// <summary>
+        /// Test if a point is outside the Chunks voxel grid
+        /// </summary>
+        public bool OutOfBounds(int3 grid)
+        {
+            if (grid.x < 0 || grid.x >= size.x) { return true; }
+            if (grid.y < 0 || grid.y >= size.y) { return true; }
+            if (grid.z < 0 || grid.z >= size.z) { return true; }
+            return false;
         }
 
         /// <summary>
