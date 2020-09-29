@@ -6,10 +6,10 @@ using Unity.Burst;
 namespace VRoxel.Core.Chunks
 {
     /// <summary>
-    /// Builds the vertices, triangles, and uvs for a Chunk mesh
+    /// Builds the vertices, triangles, and uvs for a Chunks mesh
     /// </summary>
     [BurstCompile]
-    public struct BuildCubeMesh : IJob
+    public struct BuildChunkMesh : IJob
     {
         public int3 size;
         public int blockCount;
@@ -42,9 +42,11 @@ namespace VRoxel.Core.Chunks
         /// </summary>
         [ReadOnly] public NativeArray<byte> voxels;
 
+
         [WriteOnly] public NativeList<float3> vertices;
         [WriteOnly] public NativeList<int> triangles;
         [WriteOnly] public NativeList<float2> uvs;
+
 
         /// <summary>
         /// Iterate over each voxel in the chunk
@@ -114,16 +116,16 @@ namespace VRoxel.Core.Chunks
             if ( hasBlock && block.collidable ) { return; }
 
             // render a face for the cube
-            AddVertices(i, localPos);
-            AddTriangles(ref faceCount);
-            AddUvs(i, block);
+            AddFaceVertices(i, localPos);
+            AddFaceTriangles(ref faceCount);
+            AddFaceUV(i, block);
         }
 
         /// <summary>
         /// Adds 4 vertices to define the face for a cube
         /// centered at a local position in the Chunk
         /// </summary>
-        public void AddVertices(int dir, float3 localPos)
+        public void AddFaceVertices(int dir, float3 localPos)
         {
             int index = 0;
             float3 vertex = float3.zero;
@@ -140,7 +142,7 @@ namespace VRoxel.Core.Chunks
         /// <summary>
         /// Adds 4 UV coordinates to texture the cube face
         /// </summary>
-        public void AddUvs(int dir, Block block)
+        public void AddFaceUV(int dir, Block block)
         {
             float2 faceUV = float2.zero;
             faceUV.x = textureScale * block.textures[dir].x + textureScale;
@@ -163,7 +165,7 @@ namespace VRoxel.Core.Chunks
         /// <summary>
         /// Adds 2 triangles to form a quad for the cube face
         /// </summary>
-        public void AddTriangles(ref int faceCount)
+        public void AddFaceTriangles(ref int faceCount)
         {
             triangles.Add(faceCount * 4);      // 1
             triangles.Add(faceCount * 4 + 1);  // 2
