@@ -11,7 +11,9 @@ namespace VRoxel.Core.Chunks
     [BurstCompile]
     public struct BuildChunkMesh : IJob
     {
-        public int3 size;
+        public int3 chunkOffset;
+        public int3 chunkSize;
+        public int3 worldSize;
         public float worldScale;
         public float textureScale;
 
@@ -36,9 +38,15 @@ namespace VRoxel.Core.Chunks
         [ReadOnly] public NativeArray<Block> blocks;
 
         /// <summary>
-        /// the block indexes for each voxel in the world.
+        /// the block indexes for each voxel in the chunk
         /// </summary>
         [ReadOnly] public NativeArray<byte> voxels;
+        [ReadOnly] public NativeArray<byte> voxelsTop;
+        [ReadOnly] public NativeArray<byte> voxelsBottom;
+        [ReadOnly] public NativeArray<byte> voxelsNorth;
+        [ReadOnly] public NativeArray<byte> voxelsSouth;
+        [ReadOnly] public NativeArray<byte> voxelsEast;
+        [ReadOnly] public NativeArray<byte> voxelsWest;
 
         /// <summary>
         /// the vertices that will be used for the Chunks mesh
@@ -66,16 +74,21 @@ namespace VRoxel.Core.Chunks
         public void Execute()
         {
             int3 grid = int3.zero;
-            blockCount = blocks.Length;
             halfScale = worldScale / 2f;
+            blockCount = blocks.Length;
+            faceCount = 0;
 
-            for (int x = 0; x < size.x; x++)
+            vertices.Clear();
+            triangles.Clear();
+            uvs.Clear();
+
+            for (int x = 0; x < chunkSize.x; x++)
             {
                 grid.x = x;
-                for (int z = 0; z < size.z; z++)
+                for (int z = 0; z < chunkSize.z; z++)
                 {
                     grid.z = z;
-                    for (int y = 0; y < size.y; y++)
+                    for (int y = 0; y < chunkSize.y; y++)
                     {
                         grid.y = y;
                         BuildCube(grid);
@@ -86,7 +99,7 @@ namespace VRoxel.Core.Chunks
 
         /// <summary>
         /// Calculates the position of a cube and adds
-        /// the cubes faces to the voxel mesh
+        /// all visible faces to the voxel mesh
         /// </summary>
         public void BuildCube(int3 grid)
         {
@@ -104,12 +117,11 @@ namespace VRoxel.Core.Chunks
             localPos.z = (float)grid.z * worldScale;
 
             // offset the position to center it on the grid coordinate
-            localPos.x -= 0.5f * ((float)size.x - 1f) * worldScale;
-            localPos.y -= 0.5f * ((float)size.y - 1f) * worldScale;
-            localPos.z -= 0.5f * ((float)size.z - 1f) * worldScale;
+            localPos.x -= 0.5f * ((float)chunkSize.x - 1f) * worldScale;
+            localPos.y -= 0.5f * ((float)chunkSize.y - 1f) * worldScale;
+            localPos.z -= 0.5f * ((float)chunkSize.z - 1f) * worldScale;
 
-            // check each neighbor for a non-collidable block
-            // add a cube face to the mesh if one is found
+            // check visibility of each adjacent block and add faces
             for (int i = 0; i < 6; i++)
             {
                 AddFace(i, block, grid, localPos);
@@ -128,16 +140,18 @@ namespace VRoxel.Core.Chunks
 
             // check if the adjacent block is out of bounds
             // and if there is block rendering data for it
-            bool hasNext = TryGetVoxel(next, ref neighbor);
-            bool hasBlock = hasNext ? TryGetBlock(neighbor, ref nextBlock) : false;
+            bool hasNextBlock = TryGetVoxel(next, ref neighbor);
+            bool hasValidBlock = hasNextBlock ? TryGetBlock(neighbor, ref nextBlock) : false;
 
-            // skip if the adjacent block is out of bounds
-            if (!hasNext) { return; }
+            // skip if there is no adjacent block
+            // this occurs at the edges of the world
+            if (!hasNextBlock) { return; }
 
             // skip if the adjacent block is collidable
-            if ( hasBlock && nextBlock.collidable ) { return; }
+            // this step culls the non-visible faces of the cube
+            if (hasValidBlock && nextBlock.collidable) { return; }
 
-            // render a face for the cube
+            // render the face of the cube
             AddFaceVertices(i, localPos);
             AddFaceUV(i, block);
             AddFaceTriangles();
@@ -212,36 +226,62 @@ namespace VRoxel.Core.Chunks
         }
 
         /// <summary>
-        /// Attempts to fetch a voxel from the world and
-        /// returns false if the grid coordinate is out of bounds
+        /// Attempts to fetch a voxel from the chunk and
+        /// returns false if the grid coordinate is not valid
         /// </summary>
         public bool TryGetVoxel(int3 grid, ref byte voxel)
         {
-            if (OutOfBounds(grid)) { return false; }
+            // early exit if the position is out of bounds
+            if (OutOfWorld(grid + chunkOffset)) { return false; }
 
-            voxel = voxels[Flatten(grid)];
+            // check if the position is outside the chunk
+            // if so, fetch the voxel from the adjacent chunk
+            if (OutOfChunk(grid))
+                voxel = GetFromNeighbor(grid);
+            else
+                voxel = voxels[Flatten(grid)];
+
             return true;
         }
 
         /// <summary>
-        /// Test if a point is outside the Chunks voxel grid
+        /// Fetch a voxel from a neighboring chunk
         /// </summary>
-        public bool OutOfBounds(int3 grid)
+        public byte GetFromNeighbor(int3 grid)
         {
-            if (grid.x < 0 || grid.x >= size.x) { return true; }
-            if (grid.y < 0 || grid.y >= size.y) { return true; }
-            if (grid.z < 0 || grid.z >= size.z) { return true; }
+            return 0;
+        }
+
+        /// <summary>
+        /// Test if a point is outside of the Chunk's boundary
+        /// </summary>
+        public bool OutOfChunk(int3 grid)
+        {
+            if (grid.x < 0 || grid.x >= chunkSize.x) { return true; }
+            if (grid.y < 0 || grid.y >= chunkSize.y) { return true; }
+            if (grid.z < 0 || grid.z >= chunkSize.z) { return true; }
+            return false;
+        }
+
+        /// <summary>
+        /// Test if a point is outside of the World's boundary
+        /// </summary>
+        public bool OutOfWorld(int3 grid)
+        {
+            if (grid.x < 0 || grid.x >= worldSize.x) { return true; }
+            if (grid.y < 0 || grid.y >= worldSize.y) { return true; }
+            if (grid.z < 0 || grid.z >= worldSize.z) { return true; }
             return false;
         }
 
         /// <summary>
         /// Calculate an array index from a int3 (Vector3Int) point
         /// </summary>
-        /// <param name="point">A point in the flow field</param>
+        /// <param name="point">A local position inside the Chunk</param>
         public int Flatten(int3 point)
         {
             /// A[x,y,z] = A[ x * height * depth + y * depth + z ]
-            return (point.x * size.y * size.z) + (point.y * size.z) + point.z;
+            return (point.x * chunkSize.y * chunkSize.z) + (point.y * chunkSize.z) + point.z;
         }
     }
 
