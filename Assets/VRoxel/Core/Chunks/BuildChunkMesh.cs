@@ -249,7 +249,41 @@ namespace VRoxel.Core.Chunks
         /// </summary>
         public byte GetFromNeighbor(int3 grid)
         {
-            return 0;
+            int3 localPos = int3.zero;
+            NativeArray<byte> data = voxels;
+
+            if (grid.x < 0) // Left (West)
+            {
+                data = voxelsWest;
+                localPos.x = chunkSize.x - 1;
+            }
+            else if (grid.z < 0) // Back (South)
+            {
+                data = voxelsSouth;
+                localPos.z = chunkSize.z - 1;
+            }
+            else if (grid.y < 0) // Bottom
+            {
+                data = voxelsBottom;
+                localPos.y = chunkSize.y - 1;
+            }
+            else if (grid.x == chunkSize.x) // Right (East)
+            {
+                data = voxelsEast;
+                localPos.x = 0;
+            }
+            else if (grid.z == chunkSize.z) // Front (North)
+            {
+                data = voxelsNorth;
+                localPos.z = 0;
+            }
+            else if (grid.y == chunkSize.y) // Top
+            {
+                data = voxelsTop;
+                localPos.y = 0;
+            }
+
+            return data[Flatten(localPos)];
         }
 
         /// <summary>
