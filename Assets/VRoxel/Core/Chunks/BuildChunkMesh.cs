@@ -2,6 +2,7 @@
 using Unity.Mathematics;
 using Unity.Jobs;
 using Unity.Burst;
+using System;
 
 namespace VRoxel.Core.Chunks
 {
@@ -73,15 +74,9 @@ namespace VRoxel.Core.Chunks
         /// </summary>
         public void Execute()
         {
+            Initialize();
+
             int3 grid = int3.zero;
-            halfScale = worldScale / 2f;
-            blockCount = blocks.Length;
-            faceCount = 0;
-
-            vertices.Clear();
-            triangles.Clear();
-            uvs.Clear();
-
             for (int x = 0; x < chunkSize.x; x++)
             {
                 grid.x = x;
@@ -95,6 +90,25 @@ namespace VRoxel.Core.Chunks
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Initializes the job for another run
+        /// </summary>
+        public void Initialize()
+        {
+            halfScale = worldScale / 2f;
+            blockCount = blocks.Length;
+            faceCount = 0;
+
+            if (triangles.IsCreated)
+                triangles.Clear();
+
+            if (vertices.IsCreated)
+                vertices.Clear();
+
+            if (uvs.IsCreated)
+                uvs.Clear();
         }
 
         /// <summary>
@@ -181,20 +195,46 @@ namespace VRoxel.Core.Chunks
         public void AddFaceUV(int dir, Block block)
         {
             float2 faceUV = float2.zero;
-            faceUV.x = textureScale * block.textures[dir].x + textureScale;
-            faceUV.y = textureScale * block.textures[dir].y;
+            float2 texture = float2.zero;
+
+            switch (dir)
+            {
+                case 0: // Top
+                    texture = block.texturesTop;
+                    break;
+                case 1: // Bottom
+                    texture = block.texturesBottom;
+                    break;
+                case 2: // North (Front)
+                    texture = block.texturesFront;
+                    break;
+                case 3: // East (Right)
+                    texture = block.texturesRight;
+                    break;
+                case 4: // South (Back)
+                    texture = block.texturesBack;
+                    break;
+                case 5: // West (Left)
+                    texture = block.texturesLeft;
+                    break;
+                default:
+                    return;
+            }
+
+            faceUV.x = textureScale * texture.x + textureScale;
+            faceUV.y = textureScale * texture.y;
             uvs.Add(faceUV);
 
-            faceUV.x = textureScale * block.textures[dir].x + textureScale;
-            faceUV.y = textureScale * block.textures[dir].y + textureScale;
+            faceUV.x = textureScale * texture.x + textureScale;
+            faceUV.y = textureScale * texture.y + textureScale;
             uvs.Add(faceUV);
 
-            faceUV.x = textureScale * block.textures[dir].x;
-            faceUV.y = textureScale * block.textures[dir].y + textureScale;
+            faceUV.x = textureScale * texture.x;
+            faceUV.y = textureScale * texture.y + textureScale;
             uvs.Add(faceUV);
 
-            faceUV.x = textureScale * block.textures[dir].x;
-            faceUV.y = textureScale * block.textures[dir].y;
+            faceUV.x = textureScale * texture.x;
+            faceUV.y = textureScale * texture.y;
             uvs.Add(faceUV);
         }
 
@@ -249,7 +289,7 @@ namespace VRoxel.Core.Chunks
         /// </summary>
         public byte GetFromNeighbor(int3 grid)
         {
-            int3 localPos = int3.zero;
+            int3 localPos = grid;
             NativeArray<byte> data = voxels;
 
             if (grid.x < 0) // Left (West)
@@ -322,9 +362,15 @@ namespace VRoxel.Core.Chunks
     /// <summary>
     /// Defines the rendering properties of a voxel block
     /// </summary>
+    [Serializable]
     public struct Block
     {
         public bool collidable;
-        public float2[] textures;
+        public float2 texturesTop;
+        public float2 texturesBottom;
+        public float2 texturesFront;
+        public float2 texturesBack;
+        public float2 texturesLeft;
+        public float2 texturesRight;
     }
 }
