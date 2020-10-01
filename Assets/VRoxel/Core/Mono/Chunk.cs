@@ -51,7 +51,7 @@ namespace VRoxel.Core
         /// <summary>
         /// Returns the scale factor for the chunks size
         /// </summary>
-        public float scale { get { return configuration.scale; } }
+        public float scale { get { return configuration.sizeScale; } }
 
         /// <summary>
         /// Returns the (x,y,z) dimensions of the chunk
@@ -59,7 +59,7 @@ namespace VRoxel.Core
         public Vector3Int size { get { return configuration.size; } }
 
         /// <summary>
-        /// Returns the material used to texture the chunk
+        /// Returns the texture atlas for the chunk
         /// </summary>
         public Material material { get { return configuration.material; } }
 
@@ -108,7 +108,7 @@ namespace VRoxel.Core
         /// </summary>
         public void Dispose()
         {
-            if (m_voxels != null)
+            if (m_voxels.IsCreated)
                 m_voxels.Dispose();
         }
 

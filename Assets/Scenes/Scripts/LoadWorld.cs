@@ -40,8 +40,9 @@ public class LoadWorld : MonoBehaviour
                 .CreateInstance("ChunkConfiguration") as VRoxel.Core.Data.ChunkConfiguration;
 
         configuration.collidable = true;
-        configuration.scale = _world.scale;
         configuration.size = _world.chunkSize;
+        configuration.sizeScale = _world.scale;
+        configuration.textureScale = _blocks.textureAtlas.scale;
         configuration.material = _blocks.textureAtlas.material;
 
         _world.chunks.configuration = configuration;
