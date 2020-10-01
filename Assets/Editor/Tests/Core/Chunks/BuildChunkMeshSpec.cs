@@ -213,7 +213,7 @@ namespace CoreChunksSpecs
             NativeArray<int> cubeFaces = new NativeArray<int>(Cube.Faces.Length, Allocator.Persistent);
             cubeFaces.CopyFrom(Cube.Faces);
 
-            NativeList<float3> vertices = new NativeList<float3>(Allocator.Persistent);
+            NativeList<Vector3> vertices = new NativeList<Vector3>(Allocator.Persistent);
             BuildChunkMesh job = new BuildChunkMesh();
             job.cubeVertices = cubeVertices;
             job.cubeFaces = cubeFaces;
@@ -238,7 +238,7 @@ namespace CoreChunksSpecs
         {
             Block block = new Block();
 
-            NativeList<float2> uvs = new NativeList<float2>(Allocator.Persistent);
+            NativeList<Vector2> uvs = new NativeList<Vector2>(Allocator.Persistent);
             BuildChunkMesh job = new BuildChunkMesh();
             job.textureScale = 0.5f;
             job.uvs = uvs;
@@ -267,9 +267,9 @@ namespace CoreChunksSpecs
             int flatSize = size.x * size.y * size.z;
             NativeArray<byte> voxels = new NativeArray<byte>(flatSize, Allocator.Persistent);
 
-            NativeList<float3> vertices = new NativeList<float3>(Allocator.Persistent);
+            NativeList<Vector3> vertices = new NativeList<Vector3>(Allocator.Persistent);
+            NativeList<Vector2> uvs = new NativeList<Vector2>(Allocator.Persistent);
             NativeList<int> triangles = new NativeList<int>(Allocator.Persistent);
-            NativeList<float2> uvs = new NativeList<float2>(Allocator.Persistent);
 
             BuildChunkMesh job = new BuildChunkMesh();
             job.directions = directions;
@@ -326,9 +326,9 @@ namespace CoreChunksSpecs
             NativeArray<byte> voxels = new NativeArray<byte>(flatSize, Allocator.Persistent);
             voxels[12] = 1; voxels[13] = 1; voxels[14] = 1; // cull 2 faces around voxels[13] (1,1,1)
 
-            NativeList<float3> vertices = new NativeList<float3>(Allocator.Persistent);
+            NativeList<Vector3> vertices = new NativeList<Vector3>(Allocator.Persistent);
+            NativeList<Vector2> uvs = new NativeList<Vector2>(Allocator.Persistent);
             NativeList<int> triangles = new NativeList<int>(Allocator.Persistent);
-            NativeList<float2> uvs = new NativeList<float2>(Allocator.Persistent);
 
             BuildChunkMesh job = new BuildChunkMesh();
             job.directions = directions;

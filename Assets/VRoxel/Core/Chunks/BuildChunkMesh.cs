@@ -2,6 +2,7 @@
 using Unity.Mathematics;
 using Unity.Jobs;
 using Unity.Burst;
+using UnityEngine;
 using System;
 
 namespace VRoxel.Core.Chunks
@@ -52,7 +53,7 @@ namespace VRoxel.Core.Chunks
         /// <summary>
         /// the vertices that will be used for the Chunks mesh
         /// </summary>
-        [WriteOnly] public NativeList<float3> vertices;
+        [WriteOnly] public NativeList<Vector3> vertices;
 
         /// <summary>
         /// the triangles that will be used for the Chunks mesh
@@ -62,7 +63,7 @@ namespace VRoxel.Core.Chunks
         /// <summary>
         /// the UV coordinates that will be used for the Chunks mesh
         /// </summary>
-        [WriteOnly] public NativeList<float2> uvs;
+        [WriteOnly] public NativeList<Vector2> uvs;
 
         private int faceCount;
         private int blockCount;
