@@ -37,19 +37,6 @@ namespace CoreSpecs
             Assert.AreEqual(new float3(-1,-1,-1), Cube.Vectors[7]);
         }
 
-        // unit vectors for a face must be returned in a clockwise order
-        // this is important so that the mesh normals are oriented correctly
-        [Test]
-        public void HasFaces()
-        {
-            Assert.AreEqual(new int[4] { 0,1,2,3 }, Cube.FaceVectors[(int)Cube.Direction.Top]);
-            Assert.AreEqual(new int[4] { 7,6,5,4 }, Cube.FaceVectors[(int)Cube.Direction.Bottom]);
-            Assert.AreEqual(new int[4] { 1,0,4,5 }, Cube.FaceVectors[(int)Cube.Direction.North]);
-            Assert.AreEqual(new int[4] { 2,1,5,6 }, Cube.FaceVectors[(int)Cube.Direction.East]);
-            Assert.AreEqual(new int[4] { 3,2,6,7 }, Cube.FaceVectors[(int)Cube.Direction.South]);
-            Assert.AreEqual(new int[4] { 0,3,7,4 }, Cube.FaceVectors[(int)Cube.Direction.West]);
-        }
-
         [Test]
         public void CanCalculateFace()
         {
@@ -59,17 +46,17 @@ namespace CoreSpecs
 
             Cube.Face(0, position, scale, ref face); // Top
 
-            Assert.AreEqual(new float3(-1, 1, 1), face[0]);
-            Assert.AreEqual(new float3( 1, 1, 1), face[1]);
-            Assert.AreEqual(new float3( 1, 1,-1), face[2]);
-            Assert.AreEqual(new float3(-1, 1,-1), face[3]);
+            Assert.AreEqual(new Vector3(-1, 1, 1), face[0]);
+            Assert.AreEqual(new Vector3( 1, 1, 1), face[1]);
+            Assert.AreEqual(new Vector3( 1, 1,-1), face[2]);
+            Assert.AreEqual(new Vector3(-1, 1,-1), face[3]);
 
             Cube.Face(1, position, scale, ref face); // Bottom
 
-            Assert.AreEqual(new float3(-1,-1,-1), face[0]);
-            Assert.AreEqual(new float3( 1,-1,-1), face[1]);
-            Assert.AreEqual(new float3( 1,-1, 1), face[2]);
-            Assert.AreEqual(new float3(-1,-1, 1), face[3]);
+            Assert.AreEqual(new Vector3(-1,-1,-1), face[0]);
+            Assert.AreEqual(new Vector3( 1,-1,-1), face[1]);
+            Assert.AreEqual(new Vector3( 1,-1, 1), face[2]);
+            Assert.AreEqual(new Vector3(-1,-1, 1), face[3]);
         }
 
         [Test]

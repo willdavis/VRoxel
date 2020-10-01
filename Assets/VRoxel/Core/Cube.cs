@@ -4,17 +4,29 @@ using UnityEngine;
 namespace VRoxel.Core
 {
     /// <summary>
-    /// Static reference for a Voxel cube
+    /// Static references for a Voxel cube
     /// </summary>
     public static class Cube
     {
         /// <summary>
-        /// the cardinal directions for a cube
+        /// the 6 cardinal directions around a cube
         /// </summary>
         public enum Direction
         {
             Top, Bottom, North, East, South, West
         }
+
+        /// <summary>
+        /// the unit vectors for each cardinal direction around a cube
+        /// </summary>
+        public static int3[] Directions = {
+            new int3( 0,  1,  0), // Top
+            new int3( 0, -1,  0), // Bottom
+            new int3( 0,  0,  1), // North (Front)
+            new int3( 1,  0,  0), // East  (Right)
+            new int3( 0,  0, -1), // South (Back)
+            new int3(-1,  0,  0), // West  (Left)
+        };
 
         /// <summary>
         /// the places a point can be relative to a cube
@@ -48,7 +60,7 @@ namespace VRoxel.Core
         };
 
         /// <summary>
-        /// the unit vectors for each of the 6 cube faces
+        /// references the unit vectors for each of the 6 cube faces
         /// </summary>
         //
         // Note: Indexes are returned in a clockwise order for each face
@@ -65,7 +77,7 @@ namespace VRoxel.Core
         //      South   |
         //            Bottom
         //
-        public static int[] FaceVectors = {
+        public static int[] Faces = {
             0, 1, 2, 3, // Top
             7, 6, 5, 4, // Bottom
             1, 0, 4, 5, // North
@@ -83,8 +95,7 @@ namespace VRoxel.Core
             for (int i = 0; i < 4; i++)
             {
                 index = direction * 4 + i;
-                face[i] = Vectors[
-                    FaceVectors[index]];
+                face[i] = Vectors[Faces[index]];
                 face[i] *= scale;
                 face[i] += new Vector3(
                     position.x,

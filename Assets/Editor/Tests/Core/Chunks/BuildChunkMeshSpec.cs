@@ -7,6 +7,7 @@ using UnityEngine.TestTools;
 using Unity.Mathematics;
 using Unity.Collections;
 using VRoxel.Core.Chunks;
+using VRoxel.Core;
 
 namespace CoreChunksSpecs
 {
@@ -206,31 +207,11 @@ namespace CoreChunksSpecs
         [Test]
         public void CanAddVerticesToTheMesh()
         {
-            float3[] unitVectors = {
-                new float3(-1,  1,  1),
-                new float3( 1,  1,  1),
-                new float3( 1,  1, -1),
-                new float3(-1,  1, -1),
-                new float3(-1, -1,  1),
-                new float3( 1, -1,  1),
-                new float3( 1, -1, -1),
-                new float3(-1, -1, -1),
-            };
+            NativeArray<float3> cubeVertices = new NativeArray<float3>(Cube.Vectors.Length, Allocator.Persistent);
+            cubeVertices.CopyFrom(Cube.Vectors);
 
-            int[] faces = {
-                0, 1, 2, 3,
-                7, 6, 5, 4,
-                1, 0, 4, 5,
-                2, 1, 5, 6,
-                3, 2, 6, 7,
-                0, 3, 7, 4
-            };
-
-            NativeArray<float3> cubeVertices = new NativeArray<float3>(8, Allocator.Persistent);
-            cubeVertices.CopyFrom(unitVectors);
-
-            NativeArray<int> cubeFaces = new NativeArray<int>(24, Allocator.Persistent);
-            cubeFaces.CopyFrom(faces);
+            NativeArray<int> cubeFaces = new NativeArray<int>(Cube.Faces.Length, Allocator.Persistent);
+            cubeFaces.CopyFrom(Cube.Faces);
 
             NativeList<float3> vertices = new NativeList<float3>(Allocator.Persistent);
             BuildChunkMesh job = new BuildChunkMesh();
@@ -273,44 +254,14 @@ namespace CoreChunksSpecs
         {
             Block block = new Block();
 
-            int3[] dir = {
-                new int3( 0, 1, 0), // Top
-                new int3( 0,-1, 0), // Bottom
-                new int3( 0, 0, 1), // North
-                new int3( 1, 0, 0), // East
-                new int3( 0, 0,-1), // South
-                new int3(-1, 0, 0), // West
-            };
-
-            float3[] unitVectors = {
-                new float3(-1,  1,  1),
-                new float3( 1,  1,  1),
-                new float3( 1,  1, -1),
-                new float3(-1,  1, -1),
-                new float3(-1, -1,  1),
-                new float3( 1, -1,  1),
-                new float3( 1, -1, -1),
-                new float3(-1, -1, -1),
-            };
-
-            int[] faces = {
-                0, 1, 2, 3,
-                7, 6, 5, 4,
-                1, 0, 4, 5,
-                2, 1, 5, 6,
-                3, 2, 6, 7,
-                0, 3, 7, 4
-            };
-
             NativeArray<Block> blocks = new NativeArray<Block>(1, Allocator.Persistent);
-            NativeArray<float3> cubeVertices = new NativeArray<float3>(8, Allocator.Persistent);
-            cubeVertices.CopyFrom(unitVectors);
+            NativeArray<float3> cubeVertices = new NativeArray<float3>(Cube.Vectors.Length, Allocator.Persistent);
+            NativeArray<int3> directions = new NativeArray<int3>(Cube.Directions.Length, Allocator.Persistent);
+            NativeArray<int> cubeFaces = new NativeArray<int>(Cube.Faces.Length, Allocator.Persistent);
 
-            NativeArray<int> cubeFaces = new NativeArray<int>(24, Allocator.Persistent);
-            cubeFaces.CopyFrom(faces);
-
-            NativeArray<int3> directions = new NativeArray<int3>(6, Allocator.Persistent);
-            directions.CopyFrom(dir);
+            directions.CopyFrom(Cube.Directions);
+            cubeVertices.CopyFrom(Cube.Vectors);
+            cubeFaces.CopyFrom(Cube.Faces);
 
             int3 size = new int3(3,3,3);
             int flatSize = size.x * size.y * size.z;
@@ -358,47 +309,17 @@ namespace CoreChunksSpecs
         [Test]
         public void CanCreateACube()
         {
-            int3[] dir = {
-                new int3( 0, 1, 0), // Top
-                new int3( 0,-1, 0), // Bottom
-                new int3( 0, 0, 1), // North
-                new int3( 1, 0, 0), // East
-                new int3( 0, 0,-1), // South
-                new int3(-1, 0, 0), // West
-            };
-
-            float3[] unitVectors = {
-                new float3(-1,  1,  1),
-                new float3( 1,  1,  1),
-                new float3( 1,  1, -1),
-                new float3(-1,  1, -1),
-                new float3(-1, -1,  1),
-                new float3( 1, -1,  1),
-                new float3( 1, -1, -1),
-                new float3(-1, -1, -1),
-            };
-
-            int[] faces = {
-                0, 1, 2, 3,
-                7, 6, 5, 4,
-                1, 0, 4, 5,
-                2, 1, 5, 6,
-                3, 2, 6, 7,
-                0, 3, 7, 4
-            };
-
             NativeArray<Block> blocks = new NativeArray<Block>(2, Allocator.Persistent);
             blocks[0] = new Block() { collidable = false }; // Air block
             blocks[1] = new Block() { collidable = true };  // Solid block
 
-            NativeArray<float3> cubeVertices = new NativeArray<float3>(8, Allocator.Persistent);
-            cubeVertices.CopyFrom(unitVectors);
+            NativeArray<float3> cubeVertices = new NativeArray<float3>(Cube.Vectors.Length, Allocator.Persistent);
+            NativeArray<int3> directions = new NativeArray<int3>(Cube.Directions.Length, Allocator.Persistent);
+            NativeArray<int> cubeFaces = new NativeArray<int>(Cube.Faces.Length, Allocator.Persistent);
 
-            NativeArray<int> cubeFaces = new NativeArray<int>(24, Allocator.Persistent);
-            cubeFaces.CopyFrom(faces);
-
-            NativeArray<int3> directions = new NativeArray<int3>(6, Allocator.Persistent);
-            directions.CopyFrom(dir);
+            directions.CopyFrom(Cube.Directions);
+            cubeVertices.CopyFrom(Cube.Vectors);
+            cubeFaces.CopyFrom(Cube.Faces);
 
             int3 size = new int3(3,3,3);
             int flatSize = size.x * size.y * size.z;
