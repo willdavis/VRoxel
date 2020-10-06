@@ -29,6 +29,18 @@ namespace VRoxel.Core
         };
 
         /// <summary>
+        /// the unit vectors for each cardinal direction around a cube
+        /// </summary>
+        public static Vector3Int[] Directions3Int = {
+            new Vector3Int( 0,  1,  0), // Top
+            new Vector3Int( 0, -1,  0), // Bottom
+            new Vector3Int( 0,  0,  1), // North (Front)
+            new Vector3Int( 1,  0,  0), // East  (Right)
+            new Vector3Int( 0,  0, -1), // South (Back)
+            new Vector3Int(-1,  0,  0), // West  (Left)
+        };
+
+        /// <summary>
         /// the places a point can be relative to a cube
         /// </summary>
         public enum Point

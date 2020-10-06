@@ -82,6 +82,7 @@ namespace VRoxel.Core
                 index.z * _world.chunkSize.z
             );
 
+            LinkChunkNeighbors(chunk, index);
             chunk.transform.parent = _world.transform;
             _cache.Add(index, chunk);
             return chunk;
@@ -118,6 +119,7 @@ namespace VRoxel.Core
             if (!Contains(index)) { return; }
             if (!HasIndex(index)) { return; }
 
+            UnLinkChunkNeighbors(index);
             Object.Destroy(_cache[index].gameObject);
             _cache.Remove(index);
         }
@@ -165,8 +167,6 @@ namespace VRoxel.Core
         /// <param name="index">A point in the voxel grid</param>
         public void UpdateFrom(Vector3Int point)
         {
-            Vector3Int Vector3Int_front = new Vector3Int(0,0,1);
-            Vector3Int Vector3Int_back = new Vector3Int(0,0,-1);
             Vector3Int index = IndexFrom(point);
             Update(index);
 
@@ -175,32 +175,32 @@ namespace VRoxel.Core
             // check if x is a local minimum for the chunk
             // and the chunk is not the first chunk on the X axis
             if (point.x - (index.x * _world.chunkSize.x) == 0 && index.x != 0)
-                Update(index + Vector3Int.left);
+                Update(index + Direction3Int.West);
 
             // check if x is a local maximum for the chunk
             // and the chunk is not the last chunk on the X axis
             if (point.x - (index.x * _world.chunkSize.x) == _world.chunkSize.x - 1 && index.x != _max.x - 1)
-                Update(index + Vector3Int.right);
+                Update(index + Direction3Int.East);
 
             // check if y is a local minimum for the chunk
             // and the chunk is not the first chunk on the Y axis
             if (point.y - (index.y * _world.chunkSize.y) == 0 && index.y != 0)
-                Update(index + Vector3Int.down);
+                Update(index + Direction3Int.Down);
 
             // check if y is a local maximum for the chunk
             // and the chunk is not the last chunk on the Y axis
             if (point.y - (index.y * _world.chunkSize.y) == _world.chunkSize.y - 1 && index.y != _max.y - 1)
-                Update(index + Vector3Int.up);
+                Update(index + Direction3Int.Up);
 
             // check if z is a local minimum for the chunk
             // and the chunk is not the first chunk on the Z axis
             if (point.z - (index.z * _world.chunkSize.z) == 0 && index.z != 0)
-                Update(index + Vector3Int_back);
+                Update(index + Direction3Int.South);
 
             // check if z is a local maximum for the chunk
             // and the chunk is not the last chunk on the Z axis
             if (point.z - (index.z * _world.chunkSize.z) == _world.chunkSize.z - 1 && index.z != _max.z - 1)
-                Update(index + Vector3Int_front);
+                Update(index + Direction3Int.North);
         }
 
         /// <summary>
@@ -249,6 +249,92 @@ namespace VRoxel.Core
                         if (!HasIndex(index)) { Create(index); }
                         else { Update(index); }
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Link the chunk with the 6 adjacent neighbors
+        /// </summary>
+        protected void LinkChunkNeighbors(Chunk chunk, Vector3Int index)
+        {
+            Vector3Int next = Vector3Int.zero;
+            Chunk nextChunk;
+
+            for (int i = 0; i < Cube.Directions3Int.Length; i++)
+            {
+                next = index + Cube.Directions3Int[i];
+                nextChunk = Get(next);
+
+                if (nextChunk == null)
+                    continue;
+
+                switch (i)
+                {
+                    case 0: // Top
+                        chunk.neighbors.top = nextChunk;
+                        nextChunk.neighbors.bottom = chunk;
+                        break;
+                    case 1: // Bottom
+                        chunk.neighbors.bottom = nextChunk;
+                        nextChunk.neighbors.top = chunk;
+                        break;
+                    case 2: // North (Front)
+                        chunk.neighbors.north = nextChunk;
+                        nextChunk.neighbors.south = chunk;
+                        break;
+                    case 3: // East (Right)
+                        chunk.neighbors.east = nextChunk;
+                        nextChunk.neighbors.west = chunk;
+                        break;
+                    case 4: // South (Back)
+                        chunk.neighbors.south = nextChunk;
+                        nextChunk.neighbors.north = chunk;
+                        break;
+                    case 5: // West (Left)
+                        chunk.neighbors.west = nextChunk;
+                        nextChunk.neighbors.east = chunk;
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Unlink a chunk from the 6 adjacent neighbors
+        /// </summary>
+        protected void UnLinkChunkNeighbors(Vector3Int index)
+        {
+            Vector3Int next = Vector3Int.zero;
+            Chunk nextChunk;
+
+            for (int i = 0; i < Cube.Directions3Int.Length; i++)
+            {
+                next = index + Cube.Directions3Int[i];
+                nextChunk = Get(next);
+
+                if (nextChunk == null)
+                    continue;
+
+                switch (i)
+                {
+                    case 0: // Top
+                        nextChunk.neighbors.bottom = null;
+                        break;
+                    case 1: // Bottom
+                        nextChunk.neighbors.top = null;
+                        break;
+                    case 2: // North (Front)
+                        nextChunk.neighbors.south = null;
+                        break;
+                    case 3: // East (Right)
+                        nextChunk.neighbors.west = null;
+                        break;
+                    case 4: // South (Back)
+                        nextChunk.neighbors.north = null;
+                        break;
+                    case 5: // West (Left)
+                        nextChunk.neighbors.east = null;
+                        break;
                 }
             }
         }
