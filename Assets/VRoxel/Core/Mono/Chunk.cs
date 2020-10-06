@@ -45,6 +45,10 @@ namespace VRoxel.Core
         /// </summary>
         protected NativeArray<byte> m_voxels;
 
+        protected NativeList<Vector3> m_vertices;
+        protected NativeList<int> m_triangles;
+        protected NativeList<Vector2> m_uvs;
+
         //-------------------------------------------------
         #region Read-Only Chunk Attributes
 
@@ -80,9 +84,12 @@ namespace VRoxel.Core
         /// </summary>
         public void Initialize()
         {
-            m_voxels = new NativeArray<byte>(
-                size.x * size.y * size.z, Allocator.Persistent
-            );
+            int size1D = size.x * size.y * size.z;
+            m_voxels = new NativeArray<byte>(size1D, Allocator.Persistent);
+
+            m_vertices = new NativeList<Vector3>(Allocator.Persistent);
+            m_triangles = new NativeList<int>(Allocator.Persistent);
+            m_uvs = new NativeList<Vector2>(Allocator.Persistent);
         }
 
         /// <summary>
@@ -110,6 +117,15 @@ namespace VRoxel.Core
         {
             if (m_voxels.IsCreated)
                 m_voxels.Dispose();
+
+            if (m_vertices.IsCreated)
+                m_vertices.Dispose();
+
+            if (m_triangles.IsCreated)
+                m_triangles.Dispose();
+
+            if (m_uvs.IsCreated)
+                m_uvs.Dispose();
         }
 
         #endregion
