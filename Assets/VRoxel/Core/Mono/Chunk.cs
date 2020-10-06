@@ -1,4 +1,5 @@
-﻿using VRoxel.Core.Data;
+﻿using VRoxel.Core.Chunks;
+using VRoxel.Core.Data;
 using Unity.Collections;
 using UnityEngine;
 
@@ -31,9 +32,12 @@ namespace VRoxel.Core
         /// <summary>
         /// Flags if the Chunk needs to be updated
         /// </summary>
-        [HideInInspector]
-        public bool stale;
+        [HideInInspector] public bool stale;
 
+        /// <summary>
+        /// A reference to the 6 adjacent chunks
+        /// </summary>
+        [HideInInspector] public ChunkNeighbors neighbors;
 
         protected Mesh m_mesh;
         protected MeshFilter m_meshFilter;
