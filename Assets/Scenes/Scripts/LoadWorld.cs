@@ -19,6 +19,7 @@ public class LoadWorld : MonoBehaviour
     public float scale = 25f;
     public float offset = 10f;
 
+    bool initialized;
 
     void Awake()
     {
@@ -27,30 +28,23 @@ public class LoadWorld : MonoBehaviour
         _heightMap = GetComponent<HeightMap>();
     }
 
-    void Start()
+    void Update()
     {
+        if (!initialized)
+            Initialize();
+    }
+
+    void Initialize()
+    {
+        initialized = true;
         _world.Initialize();
         GenerateTerrainData();
 
-        MeshGenerator generator = new MeshGenerator(
-            _world.data, _blocks, _world.scale
-        );
-
-        VRoxel.Core.Data.ChunkConfiguration configuration = ScriptableObject
-                .CreateInstance("ChunkConfiguration") as VRoxel.Core.Data.ChunkConfiguration;
-
-        configuration.collidable = true;
-        configuration.size = _world.chunkSize;
-        configuration.sizeScale = _world.scale;
-        configuration.textureScale = _blocks.textureAtlas.scale;
-        configuration.material = _blocks.textureAtlas.material;
-
-        _world.chunks.configuration = configuration;
-        _world.chunks.meshGenerator = generator;
-        _world.chunks.LoadAll();    // 4. initialize all chunks in the world
+        _world.chunks.meshGenerator = new MeshGenerator(_world.data, _blocks, _world.scale);
+        _world.chunks.LoadAll();    // initialize all chunks in the world
 
         _heightMap.voxels = _world.data.voxels;
-        _heightMap.Initialize();    // 5. initialize the height map
+        _heightMap.Initialize();    // initialize the height map
         _heightMap.Refresh().Complete();
     }
 

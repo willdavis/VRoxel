@@ -5,19 +5,10 @@ namespace VRoxel.Core
 {
     public class World : MonoBehaviour
     {
-        private VoxelGrid _data;
-        private ChunkManager _chunks;
-
-
         /// <summary>
-        /// Unity prefab for a Chunk
+        /// The chunk manager for this voxel world
         /// </summary>
-        public Chunk chunk;
-
-        /// <summary>
-        /// The scale factor for the world
-        /// </summary>
-        public float scale = 1f;
+        public ChunkManager chunks;
 
         /// <summary>
         /// The voxel dimensions for the world
@@ -25,19 +16,16 @@ namespace VRoxel.Core
         public Vector3Int size = Vector3Int.one;
 
         /// <summary>
-        /// The number of voxels in a chunk
+        /// The size scale factor for the world
         /// </summary>
-        public Vector3Int chunkSize = Vector3Int.one;
+        [Range(0,100)]
+        public float scale = 1f;
 
         /// <summary>
         /// The voxel data for the World
         /// </summary>
         public VoxelGrid data { get { return _data; } }
-
-        /// <summary>
-        /// The Chunk data for the world
-        /// </summary>
-        public ChunkManager chunks { get { return _chunks; } }
+        private VoxelGrid _data;
 
         /// <summary>
         /// Initialize a new World
@@ -45,22 +33,33 @@ namespace VRoxel.Core
         public void Initialize()
         {
             _data = new VoxelGrid(size);
-            _chunks = new ChunkManager(this, chunk);
         }
 
-        void OnDestroy()
-        {
-            if (_data != null)
-                _data.Dispose();
-        }
-
+        /// <summary>
+        /// Tests if a scene position is inside the voxel world
+        /// </summary>
         public bool Contains(Vector3 position)
         {
             Vector3Int point = WorldEditor.Get(this, position);
             return _data.Contains(point);
         }
 
-        void OnDrawGizmos()
+        //-------------------------------------------------
+        #region Monobehaviors
+
+        protected void Awake()
+        {
+            if (chunks == null)
+                chunks = GetComponent<ChunkManager>();
+        }
+
+        protected void OnDestroy()
+        {
+            if (_data != null)
+                _data.Dispose();
+        }
+
+        protected void OnDrawGizmos()
         {
             Vector3 bounds = new Vector3(
                 size.x * scale,
@@ -72,5 +71,8 @@ namespace VRoxel.Core
             Gizmos.matrix = transform.localToWorldMatrix;
             Gizmos.DrawWireCube(Vector3.zero, bounds);
         }
+
+        #endregion
+        //-------------------------------------------------
     }
 }
