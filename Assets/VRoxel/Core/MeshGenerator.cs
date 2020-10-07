@@ -4,6 +4,7 @@ using VRoxel.Core.Data;
 
 using Unity.Collections;
 using Unity.Mathematics;
+using Unity.Jobs;
 using UnityEngine;
 
 namespace VRoxel.Core
@@ -81,6 +82,53 @@ namespace VRoxel.Core
 
             if (m_blocks.IsCreated)
                 m_blocks.Dispose();
+        }
+
+        public JobHandle BuildMesh(Chunk chunk,
+            ref BuildChunkMesh job, ref NativeList<Vector3> verts,
+            ref NativeList<int> tris, ref NativeList<Vector2> uv)
+        {
+            job.chunkSize = new int3(chunk.size.x, chunk.size.y, chunk.size.z);
+            job.chunkOffset = new int3(chunk.offset.x, chunk.offset.y, chunk.offset.z);
+            job.worldSize = new int3(m_world.size.x, m_world.size.y, m_world.size.z);
+            job.textureScale = chunk.configuration.textureScale;
+            job.worldScale = m_world.scale;
+
+            job.cubeFaces = m_cubeFaces;
+            job.cubeVertices = m_cubeVertices;
+            job.directions = m_directions;
+            job.blocks = m_blocks;
+
+            job.vertices = verts;
+            job.triangles = tris;
+            job.uvs = uv;
+
+            job.voxels = chunk.voxels;
+            if (chunk.neighbors.top)
+                job.voxelsTop = chunk.neighbors.top.voxels;
+            else { job.voxelsTop = m_emptyChunk; }
+
+            if (chunk.neighbors.bottom)
+                job.voxelsBottom = chunk.neighbors.bottom.voxels;
+            else { job.voxelsBottom = m_emptyChunk; }
+
+            if (chunk.neighbors.north)
+                job.voxelsNorth = chunk.neighbors.north.voxels;
+            else { job.voxelsNorth = m_emptyChunk; }
+
+            if (chunk.neighbors.south)
+                job.voxelsSouth = chunk.neighbors.south.voxels;
+            else { job.voxelsSouth = m_emptyChunk; }
+
+            if (chunk.neighbors.east)
+                job.voxelsEast = chunk.neighbors.east.voxels;
+            else { job.voxelsEast = m_emptyChunk; }
+
+            if (chunk.neighbors.west)
+                job.voxelsWest = chunk.neighbors.west.voxels;
+            else { job.voxelsWest = m_emptyChunk; }
+
+            return job.Schedule();
         }
 
         /// <summary>

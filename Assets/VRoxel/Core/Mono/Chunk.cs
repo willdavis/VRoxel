@@ -1,6 +1,7 @@
 ﻿using VRoxel.Core.Chunks;
 using VRoxel.Core.Data;
 using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 
 namespace VRoxel.Core
@@ -15,6 +16,11 @@ namespace VRoxel.Core
     public class Chunk : MonoBehaviour
     {
         /// <summary>
+        /// The chunks offset in the voxel space
+        /// </summary>
+        public Vector3Int offset;
+
+        /// <summary>
         /// The configuration settings for this chunk
         /// </summary>
         public ChunkConfiguration configuration;
@@ -22,22 +28,17 @@ namespace VRoxel.Core
         /// <summary>
         /// The generator used to create the voxel mesh
         /// </summary>
-        public MeshGenerator meshGenerator;
-
-        /// <summary>
-        /// The chunks offset in the voxel space
-        /// </summary>
-        public Vector3Int offset;
-
-        /// <summary>
-        /// Flags if the Chunk needs to be updated
-        /// </summary>
-        [HideInInspector] public bool stale;
+        [HideInInspector] public MeshGenerator meshGenerator;
 
         /// <summary>
         /// A reference to the 6 adjacent chunks
         /// </summary>
         [HideInInspector] public ChunkNeighbors neighbors;
+
+        /// <summary>
+        /// Flags if the Chunk needs to be updated
+        /// </summary>
+        [HideInInspector] public bool stale;
 
         protected Mesh m_mesh;
         protected MeshFilter m_meshFilter;
@@ -45,9 +46,14 @@ namespace VRoxel.Core
         protected MeshRenderer m_meshRenderer;
 
         /// <summary>
-        /// The voxel blocks contained in this chunk
+        /// The voxel data contained in this chunk
         /// </summary>
+        public NativeArray<byte> voxels { get { return m_voxels; } }
         protected NativeArray<byte> m_voxels;
+
+        public JobHandle buildingMesh { get; private set; }
+        protected BuildChunkMesh m_buildChunkMesh;
+        protected bool m_buildingMesh;
 
         protected NativeList<Vector3> m_vertices;
         protected NativeList<int> m_triangles;
@@ -94,6 +100,7 @@ namespace VRoxel.Core
             m_vertices = new NativeList<Vector3>(Allocator.Persistent);
             m_triangles = new NativeList<int>(Allocator.Persistent);
             m_uvs = new NativeList<Vector2>(Allocator.Persistent);
+            m_buildChunkMesh = new BuildChunkMesh();
         }
 
         /// <summary>
@@ -152,16 +159,13 @@ namespace VRoxel.Core
             m_meshRenderer.material = material;
 
             Initialize();
-            GenerateMesh();
+            stale = true;
         }
 
         protected virtual void Update()
         {
-            if (stale)
-            {
-                stale = false;
-                GenerateMesh();
-            }
+            if (stale) { GenerateMesh(); }
+            if (m_buildingMesh) { UpdateMesh(); }
         }
 
         protected virtual void OnDestroy()
@@ -187,9 +191,28 @@ namespace VRoxel.Core
         /// </summary>
         protected void GenerateMesh()
         {
-            meshGenerator.BuildMesh(size, offset, ref m_mesh);
-            m_meshFilter.sharedMesh = m_mesh;
+            stale = false;
+            m_buildingMesh = true;
+            buildingMesh = meshGenerator.BuildMesh(
+                this, ref m_buildChunkMesh, ref m_vertices,
+                ref m_triangles, ref m_uvs);
+        }
 
+        protected void UpdateMesh()
+        {
+            buildingMesh.Complete();
+            m_buildingMesh = false;
+
+            /// new rendering method
+            //m_mesh.vertices = m_vertices.ToArray();
+            //m_mesh.triangles = m_triangles.ToArray();
+            //m_mesh.uv = m_uvs.ToArray();
+            //m_mesh.RecalculateNormals();
+
+            /// old rendering method
+            meshGenerator.BuildMesh(size, offset, ref m_mesh);
+
+            m_meshFilter.sharedMesh = m_mesh;
             if (collidable) { m_meshCollider.sharedMesh = m_mesh; }
             else { m_meshCollider.sharedMesh = null; }
         }
