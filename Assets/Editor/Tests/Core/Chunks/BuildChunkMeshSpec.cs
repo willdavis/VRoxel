@@ -105,6 +105,8 @@ namespace CoreChunksSpecs
                 flatSize, Allocator.Persistent);
             NativeArray<byte> voxelsWest = new NativeArray<byte>(
                 flatSize, Allocator.Persistent);
+            NativeArray<byte> emptyChunk = new NativeArray<byte>(
+                flatSize, Allocator.Persistent);
 
             BuildChunkMesh job = new BuildChunkMesh();
             job.chunkOffset = new int3(3,3,3);
@@ -153,6 +155,11 @@ namespace CoreChunksSpecs
             Assert.AreEqual(true, job.TryGetVoxel(new int3(-1,0,0), ref voxel));
             Assert.AreEqual(1, voxel);
 
+            // returns 0 when the neighbor chunk is empty
+            job.voxelsWest = emptyChunk;
+            Assert.AreEqual(true, job.TryGetVoxel(new int3(-1,0,0), ref voxel));
+            Assert.AreEqual(0, voxel);
+
             voxels.Dispose();
             voxelsTop.Dispose();
             voxelsBottom.Dispose();
@@ -160,6 +167,7 @@ namespace CoreChunksSpecs
             voxelsEast.Dispose();
             voxelsSouth.Dispose();
             voxelsWest.Dispose();
+            emptyChunk.Dispose();
         }
 
         [Test]

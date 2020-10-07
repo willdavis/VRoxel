@@ -40,7 +40,7 @@ public class LoadWorld : MonoBehaviour
         _world.Initialize();
         GenerateTerrainData();
 
-        _world.chunks.meshGenerator = new MeshGenerator(_world.data, _blocks, _world.scale);
+        _world.chunks.meshGenerator = new MeshGenerator(_world, _blocks, _world.chunks.configuration);
         _world.chunks.LoadAll();    // initialize all chunks in the world
 
         _heightMap.voxels = _world.data.voxels;

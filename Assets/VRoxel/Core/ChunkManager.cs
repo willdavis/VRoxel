@@ -48,6 +48,11 @@ namespace VRoxel.Core
             );
         }
 
+        protected void OnDestroy()
+        {
+            meshGenerator.Dispose();
+        }
+
         #endregion
         //-------------------------------------------------
 
