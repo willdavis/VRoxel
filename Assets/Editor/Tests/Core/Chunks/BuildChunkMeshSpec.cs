@@ -4,6 +4,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Collections;
 using VRoxel.Core.Chunks;
@@ -203,11 +204,27 @@ namespace CoreChunksSpecs
             NativeList<int> triangles = new NativeList<int>(Allocator.Persistent);
             BuildChunkMesh job = new BuildChunkMesh();
             job.triangles = triangles;
-            job.Initialize();
 
-            Assert.AreEqual(0, job.triangles.Length);
+            job.Initialize();
             job.AddFaceTriangles();
             Assert.AreEqual(6, job.triangles.Length);
+
+            Assert.AreEqual(0, job.triangles[0]);
+            Assert.AreEqual(1, job.triangles[1]);
+            Assert.AreEqual(2, job.triangles[2]);
+            Assert.AreEqual(0, job.triangles[3]);
+            Assert.AreEqual(2, job.triangles[4]);
+            Assert.AreEqual(3, job.triangles[5]);
+
+            job.AddFaceTriangles();
+            Assert.AreEqual(12, job.triangles.Length);
+
+            Assert.AreEqual(4, job.triangles[6]);
+            Assert.AreEqual(5, job.triangles[7]);
+            Assert.AreEqual(6, job.triangles[8]);
+            Assert.AreEqual(4, job.triangles[9]);
+            Assert.AreEqual(6, job.triangles[10]);
+            Assert.AreEqual(7, job.triangles[11]);
 
             triangles.Dispose();
         }
@@ -226,15 +243,55 @@ namespace CoreChunksSpecs
             job.cubeVertices = cubeVertices;
             job.cubeFaces = cubeFaces;
             job.vertices = vertices;
-            job.Initialize();
+            job.worldScale = 2f;
 
-            Assert.AreEqual(0, job.vertices.Length);
-
+            job.Initialize();   // top
             job.AddFaceVertices(0, float3.zero);
-            Assert.AreEqual(4, job.vertices.Length);
 
+            Assert.AreEqual(new Vector3(-1, 1, 1), job.vertices[0]);
+            Assert.AreEqual(new Vector3( 1, 1, 1), job.vertices[1]);
+            Assert.AreEqual(new Vector3( 1, 1,-1), job.vertices[2]);
+            Assert.AreEqual(new Vector3(-1, 1,-1), job.vertices[3]);
+
+            job.Initialize();   // bottom
             job.AddFaceVertices(1, float3.zero);
-            Assert.AreEqual(8, job.vertices.Length);
+
+            Assert.AreEqual(new Vector3(-1,-1,-1), job.vertices[0]);
+            Assert.AreEqual(new Vector3( 1,-1,-1), job.vertices[1]);
+            Assert.AreEqual(new Vector3( 1,-1, 1), job.vertices[2]);
+            Assert.AreEqual(new Vector3(-1,-1, 1), job.vertices[3]);
+
+            job.Initialize();   // north (front)
+            job.AddFaceVertices(2, float3.zero);
+
+            Assert.AreEqual(new Vector3( 1, 1, 1), job.vertices[0]);
+            Assert.AreEqual(new Vector3(-1, 1, 1), job.vertices[1]);
+            Assert.AreEqual(new Vector3(-1,-1, 1), job.vertices[2]);
+            Assert.AreEqual(new Vector3( 1,-1, 1), job.vertices[3]);
+
+            job.Initialize();   // east (right)
+            job.AddFaceVertices(3, float3.zero);
+
+            Assert.AreEqual(new Vector3( 1, 1,-1), job.vertices[0]);
+            Assert.AreEqual(new Vector3( 1, 1, 1), job.vertices[1]);
+            Assert.AreEqual(new Vector3( 1,-1, 1), job.vertices[2]);
+            Assert.AreEqual(new Vector3( 1,-1,-1), job.vertices[3]);
+
+            job.Initialize();   // south (back)
+            job.AddFaceVertices(4, float3.zero);
+
+            Assert.AreEqual(new Vector3(-1, 1,-1), job.vertices[0]);
+            Assert.AreEqual(new Vector3( 1, 1,-1), job.vertices[1]);
+            Assert.AreEqual(new Vector3( 1,-1,-1), job.vertices[2]);
+            Assert.AreEqual(new Vector3(-1,-1,-1), job.vertices[3]);
+
+            job.Initialize();   // west (left)
+            job.AddFaceVertices(5, float3.zero);
+
+            Assert.AreEqual(new Vector3(-1, 1, 1), job.vertices[0]);
+            Assert.AreEqual(new Vector3(-1, 1,-1), job.vertices[1]);
+            Assert.AreEqual(new Vector3(-1,-1,-1), job.vertices[2]);
+            Assert.AreEqual(new Vector3(-1,-1, 1), job.vertices[3]);
 
             vertices.Dispose();
             cubeFaces.Dispose();
@@ -244,15 +301,20 @@ namespace CoreChunksSpecs
         [Test]
         public void CanAddUVsToTheMesh()
         {
-            Block block = new Block();
-
             NativeList<Vector2> uvs = new NativeList<Vector2>(Allocator.Persistent);
             BuildChunkMesh job = new BuildChunkMesh();
-            job.textureScale = 0.5f;
+            job.textureScale = 1f;
             job.uvs = uvs;
 
+            Block block = new Block();
+            job.Initialize();
             job.AddFaceUV(0, block);
+
             Assert.AreEqual(4, job.uvs.Length);
+            Assert.AreEqual(new Vector2( 1, 0), job.uvs[0]);
+            Assert.AreEqual(new Vector2( 1, 1), job.uvs[1]);
+            Assert.AreEqual(new Vector2( 0, 1), job.uvs[2]);
+            Assert.AreEqual(new Vector2( 0, 0), job.uvs[3]);
 
             uvs.Dispose();
         }
@@ -288,7 +350,7 @@ namespace CoreChunksSpecs
 
             job.chunkSize = size;
             job.worldSize = size;
-            job.worldScale = 1f;
+            job.worldScale = 2f;
             job.textureScale = 0.5f;
             job.chunkOffset = int3.zero;
 
@@ -302,6 +364,11 @@ namespace CoreChunksSpecs
             Assert.AreEqual(4, job.uvs.Length);
             Assert.AreEqual(4, job.vertices.Length);
             Assert.AreEqual(6, job.triangles.Length);
+
+            Assert.AreEqual(new Vector3(-1, 1, 1), job.vertices[0]);
+            Assert.AreEqual(new Vector3( 1, 1, 1), job.vertices[1]);
+            Assert.AreEqual(new Vector3( 1, 1,-1), job.vertices[2]);
+            Assert.AreEqual(new Vector3(-1, 1,-1), job.vertices[3]);
 
             uvs.Dispose();
             vertices.Dispose();
@@ -371,6 +438,106 @@ namespace CoreChunksSpecs
             cubeVertices.Dispose();
             directions.Dispose();
             blocks.Dispose();
+        }
+
+        [Test]
+        public void CanCreateAChunk()
+        {
+            NativeArray<Block> blocks = new NativeArray<Block>(2, Allocator.Persistent);
+            blocks[0] = new Block() { collidable = false }; // Air block
+            blocks[1] = new Block() { collidable = true };  // Solid block
+
+            NativeArray<float3> cubeVertices = new NativeArray<float3>(Cube.Vectors.Length, Allocator.Persistent);
+            NativeArray<int3> directions = new NativeArray<int3>(Cube.Directions.Length, Allocator.Persistent);
+            NativeArray<int> cubeFaces = new NativeArray<int>(Cube.Faces.Length, Allocator.Persistent);
+
+            directions.CopyFrom(Cube.Directions);
+            cubeVertices.CopyFrom(Cube.Vectors);
+            cubeFaces.CopyFrom(Cube.Faces);
+
+            int3 chunkSize = new int3(3,3,3);
+            int3 worldSize = new int3(9,9,9);
+            int flatSize = chunkSize.x * chunkSize.y * chunkSize.z;
+
+            NativeArray<byte> voxels = new NativeArray<byte>(
+                flatSize, Allocator.Persistent);
+            NativeArray<byte> voxelsTop = new NativeArray<byte>(
+                flatSize, Allocator.Persistent);
+            NativeArray<byte> voxelsBottom = new NativeArray<byte>(
+                flatSize, Allocator.Persistent);
+            NativeArray<byte> voxelsNorth = new NativeArray<byte>(
+                flatSize, Allocator.Persistent);
+            NativeArray<byte> voxelsEast = new NativeArray<byte>(
+                flatSize, Allocator.Persistent);
+            NativeArray<byte> voxelsSouth = new NativeArray<byte>(
+                flatSize, Allocator.Persistent);
+            NativeArray<byte> voxelsWest = new NativeArray<byte>(
+                flatSize, Allocator.Persistent);
+
+            for (int i = 0; i < flatSize; i++)
+                voxels[i] = 1;  // fill the chunk
+
+            NativeList<Vector3> vertices = new NativeList<Vector3>(Allocator.Persistent);
+            NativeList<Vector2> uvs = new NativeList<Vector2>(Allocator.Persistent);
+            NativeList<int> triangles = new NativeList<int>(Allocator.Persistent);
+
+            BuildChunkMesh job = new BuildChunkMesh();
+            job.directions = directions;
+            job.blocks = blocks;
+            job.voxels = voxels;
+            job.cubeVertices = cubeVertices;
+            job.cubeFaces = cubeFaces;
+
+            job.chunkSize = chunkSize;
+            job.worldSize = worldSize;
+            job.worldScale = 0.5f;
+            job.textureScale = 0.5f;
+            job.chunkOffset = int3.zero;
+            job.renderWorldEdges = false;
+
+            job.voxelsTop = voxelsTop;
+            job.voxelsBottom = voxelsBottom;
+            job.voxelsNorth = voxelsNorth;
+            job.voxelsEast = voxelsEast;
+            job.voxelsSouth = voxelsSouth;
+            job.voxelsWest = voxelsWest;
+            job.voxels = voxels;
+
+            job.vertices = vertices;
+            job.triangles = triangles;
+            job.uvs = uvs;
+
+            // test rendering and skip world edges
+            job.Schedule().Complete();
+
+            Assert.AreEqual(108, job.uvs.Length);
+            Assert.AreEqual(108, job.vertices.Length);
+            Assert.AreEqual(162, job.triangles.Length);
+
+            // test rendering with world edges
+            job.renderWorldEdges = true;
+            job.Schedule().Complete();
+
+            Assert.AreEqual(216, job.uvs.Length);
+            Assert.AreEqual(216, job.vertices.Length);
+            Assert.AreEqual(324, job.triangles.Length);
+
+            uvs.Dispose();
+            vertices.Dispose();
+            triangles.Dispose();
+
+            cubeFaces.Dispose();
+            cubeVertices.Dispose();
+            directions.Dispose();
+            blocks.Dispose();
+
+            voxels.Dispose();
+            voxelsTop.Dispose();
+            voxelsBottom.Dispose();
+            voxelsNorth.Dispose();
+            voxelsEast.Dispose();
+            voxelsSouth.Dispose();
+            voxelsWest.Dispose();
         }
     }
 }

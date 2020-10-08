@@ -93,6 +93,7 @@ namespace VRoxel.Core
             job.worldSize = new int3(m_world.size.x, m_world.size.y, m_world.size.z);
             job.textureScale = chunk.configuration.textureScale;
             job.worldScale = m_world.scale;
+            job.renderWorldEdges = true;
 
             job.cubeFaces = m_cubeFaces;
             job.cubeVertices = m_cubeVertices;

@@ -20,6 +20,11 @@ namespace VRoxel.Core.Chunks
         public float textureScale;
 
         /// <summary>
+        /// Flags if chunk faces on the edge of the world should render
+        /// </summary>
+        public bool renderWorldEdges;
+
+        /// <summary>
         /// a 2D reference array to the 6 faces of a cube and their vertices
         /// </summary>
         [ReadOnly] public NativeArray<int> cubeFaces;
@@ -160,7 +165,7 @@ namespace VRoxel.Core.Chunks
 
             // skip if there is no adjacent block
             // this occurs at the edges of the world
-            if (!hasNextBlock) { return; }
+            if (!hasNextBlock && !renderWorldEdges) { return; }
 
             // skip if the adjacent block is collidable
             // this step culls the non-visible faces of the cube
