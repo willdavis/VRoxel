@@ -100,6 +100,7 @@ namespace VRoxel.Core
                 index.y * configuration.size.y,
                 index.z * configuration.size.z
             );
+            chunk.Initialize();
 
             LinkChunkNeighbors(chunk, index);
             chunk.transform.parent = world.transform;

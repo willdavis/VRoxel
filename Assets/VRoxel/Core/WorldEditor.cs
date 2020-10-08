@@ -160,6 +160,11 @@ namespace VRoxel.Core
             if (!world.data.Contains(point)) { return; }
             if (world.data.Get(point.x, point.y, point.z) == block) { return; }
 
+            Vector3Int chunkIndex = world.chunks.IndexFrom(point);
+            Chunk chunk = world.chunks.Get(chunkIndex);
+            Vector3Int localPos = point - chunk.offset;
+            chunk.Write(localPos, block);
+
             world.data.Set(point.x, point.y, point.z, block);
             world.chunks.UpdateFrom(point);
         }

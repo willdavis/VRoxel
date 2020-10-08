@@ -38,10 +38,11 @@ public class LoadWorld : MonoBehaviour
     {
         initialized = true;
         _world.Initialize();
-        GenerateTerrainData();
 
         _world.chunks.meshGenerator = new MeshGenerator(_world, _blocks, _world.chunks.configuration);
         _world.chunks.LoadAll();    // initialize all chunks in the world
+
+        GenerateTerrainData();
 
         _heightMap.voxels = _world.data.voxels;
         _heightMap.Initialize();    // initialize the height map
@@ -69,11 +70,11 @@ public class LoadWorld : MonoBehaviour
                 {
                     point.y = y;
                     if (point.y == height)
-                        _world.data.Set(point, grass);
+                        WorldEditor.Set(_world, point, grass);
                     else if (point.y >= height-3 && point.y <  height)
-                        _world.data.Set(point, dirt);
+                        WorldEditor.Set(_world, point, dirt);
                     else if (point.y <  height-3)
-                        _world.data.Set(point, stone);
+                        WorldEditor.Set(_world, point, stone);
                 }
             }
         }

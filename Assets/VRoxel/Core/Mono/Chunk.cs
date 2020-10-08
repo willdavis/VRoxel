@@ -94,13 +94,18 @@ namespace VRoxel.Core
         /// </summary>
         public void Initialize()
         {
+            Dispose(); // clear any existing data
             int size1D = size.x * size.y * size.z;
             m_voxels = new NativeArray<byte>(size1D, Allocator.Persistent);
 
             m_vertices = new NativeList<Vector3>(Allocator.Persistent);
             m_triangles = new NativeList<int>(Allocator.Persistent);
             m_uvs = new NativeList<Vector2>(Allocator.Persistent);
+
             m_buildChunkMesh = new BuildChunkMesh();
+            m_meshRenderer.material = material;
+
+            stale = true;
         }
 
         /// <summary>
@@ -154,14 +159,6 @@ namespace VRoxel.Core
             m_meshRenderer = GetComponent<MeshRenderer>();
         }
 
-        protected virtual void Start()
-        {
-            m_meshRenderer.material = material;
-
-            Initialize();
-            stale = true;
-        }
-
         protected virtual void Update()
         {
             if (stale) { GenerateMesh(); }
@@ -204,13 +201,13 @@ namespace VRoxel.Core
             m_buildingMesh = false;
 
             /// new rendering method
-            //m_mesh.vertices = m_vertices.ToArray();
-            //m_mesh.triangles = m_triangles.ToArray();
-            //m_mesh.uv = m_uvs.ToArray();
-            //m_mesh.RecalculateNormals();
+            m_mesh.vertices = m_vertices.ToArray();
+            m_mesh.triangles = m_triangles.ToArray();
+            m_mesh.uv = m_uvs.ToArray();
+            m_mesh.RecalculateNormals();
 
             /// old rendering method
-            meshGenerator.BuildMesh(size, offset, ref m_mesh);
+            //meshGenerator.BuildMesh(size, offset, ref m_mesh);
 
             m_meshFilter.sharedMesh = m_mesh;
             if (collidable) { m_meshCollider.sharedMesh = m_mesh; }
