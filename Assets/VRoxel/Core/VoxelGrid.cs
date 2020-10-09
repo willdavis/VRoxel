@@ -15,7 +15,6 @@ namespace VRoxel.Core
     {
         public VoxelEditEvent OnEdit = new VoxelEditEvent();
 
-        private byte[,,] _cache;
         private Vector3 _center;
         private Vector3Int _size;
 
@@ -25,7 +24,6 @@ namespace VRoxel.Core
         public VoxelGrid(Vector3Int size)
         {
             _size = size;
-            _cache = new byte[size.x, size.y, size.z];
             _center = new Vector3(size.x / 2f, size.y / 2f, size.z / 2f);
             _voxels = new NativeArray<byte>(size.x * size.y * size.z, Allocator.Persistent);
         }
@@ -67,7 +65,7 @@ namespace VRoxel.Core
         /// <param name="x">the X coordinate</param>
         /// <param name="y">the Y coordinate</param>
         /// <param name="z">the Z coordinate</param>
-        public byte Get(int x, int y, int z) { return _cache[x, y, z]; }
+        public byte Get(int x, int y, int z) { return _voxels[Flatten(x,y,z)]; }
 
         /// <summary>
         /// Safely get a block type from the voxel grid cache
@@ -88,7 +86,6 @@ namespace VRoxel.Core
         /// <param name="block">The block index to set</param>
         public void Set(int x, int y, int z, byte block)
         {
-            _cache[x, y, z] = block;
             _voxels[Flatten(x,y,z)] = block;
         }
 

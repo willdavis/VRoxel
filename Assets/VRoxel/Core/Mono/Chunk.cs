@@ -51,6 +51,7 @@ namespace VRoxel.Core
         public NativeArray<byte> voxels { get { return m_voxels; } }
         protected NativeArray<byte> m_voxels;
 
+        public JobHandle dependsOn { get; private set; }
         public JobHandle buildingMesh { get; private set; }
         protected BuildChunkMesh m_buildChunkMesh;
         protected bool m_buildingMesh;
@@ -118,12 +119,21 @@ namespace VRoxel.Core
         }
 
         /// <summary>
-        /// Write voxel data at a position in the Chunk
+        /// Write voxel data to a position in the Chunk
         /// </summary>
         public void Write(Vector3Int point, byte block)
         {
             if (!Contains(point)) { return; }
             m_voxels[Flatten(point)] = block;
+        }
+
+        /// <summary>
+        /// Flag the chunk as modifed so it is refreshed next frame
+        /// </summary>
+        public void Refresh(JobHandle handle = default)
+        {
+            dependsOn = handle;
+            stale = true;
         }
 
         /// <summary>
@@ -188,6 +198,8 @@ namespace VRoxel.Core
         /// </summary>
         protected void GenerateMesh()
         {
+            dependsOn.Complete();
+
             stale = false;
             m_buildingMesh = true;
             buildingMesh = meshGenerator.BuildMesh(
@@ -200,14 +212,10 @@ namespace VRoxel.Core
             buildingMesh.Complete();
             m_buildingMesh = false;
 
-            /// new rendering method
             m_mesh.vertices = m_vertices.ToArray();
             m_mesh.triangles = m_triangles.ToArray();
             m_mesh.uv = m_uvs.ToArray();
             m_mesh.RecalculateNormals();
-
-            /// old rendering method
-            //meshGenerator.BuildMesh(size, offset, ref m_mesh);
 
             m_meshFilter.sharedMesh = m_mesh;
             if (collidable) { m_meshCollider.sharedMesh = m_mesh; }
