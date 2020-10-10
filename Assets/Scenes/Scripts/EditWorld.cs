@@ -39,6 +39,7 @@ public class EditWorld : MonoBehaviour
     Vector3 _hitPosition;
 
     HeightMap _heightMap;
+    List<Chunk> m_editChunks;
 
     public JobHandle editHandle;
     public JobHandle heightMapHandle;
@@ -54,6 +55,7 @@ public class EditWorld : MonoBehaviour
         _world = GetComponent<World>();
         _heightMap = GetComponent<HeightMap>();
         _blockManager = GetComponent<BlockManager>();
+        m_editChunks = new List<Chunk>();
     }
 
     void Update()
@@ -134,10 +136,9 @@ public class EditWorld : MonoBehaviour
 
         Chunk chunk;
         int jobIndex = 0;
-        List<Chunk> chunks = new List<Chunk>();
         Vector3Int chunkIndex = Vector3Int.zero;
         int chunkCount = chunkDelta.x * chunkDelta.y * chunkDelta.z;
-        NativeArray<JobHandle> jobs = new NativeArray<JobHandle>(chunkCount, Allocator.TempJob);
+        NativeArray<JobHandle> jobs = new NativeArray<JobHandle>(chunkCount, Allocator.Temp);
 
         for (int x = chunkMin.x; x < chunkMin.x + chunkDelta.x; x++)
         {
@@ -150,7 +151,7 @@ public class EditWorld : MonoBehaviour
                     chunkIndex.y = y;
                     chunk = _world.chunks
                         .Get(chunkIndex);
-                    chunks.Add(chunk);
+                    m_editChunks.Add(chunk);
 
                     ModifyRectangle job = new ModifyRectangle();
                     job.chunkOffset = new int3(chunk.offset.x, chunk.offset.y, chunk.offset.z);
@@ -180,13 +181,14 @@ public class EditWorld : MonoBehaviour
         // combine dependencies and refresh the chunks
         editHandle = JobHandle.CombineDependencies(jobs);
         editHandle = JobHandle.CombineDependencies(editHandle, navHandle);
-        foreach (var item in chunks) { item.Refresh(editHandle); }
+        foreach (var item in m_editChunks) { item.Refresh(editHandle); }
+
+        m_editChunks.Clear();
+        jobs.Dispose();
 
         // notify listeners
         heightMapHandle = _heightMap.Refresh(editHandle);
         _world.data.OnEdit.Invoke(heightMapHandle);
-
-        jobs.Dispose();
     }
 
     /// <summary>

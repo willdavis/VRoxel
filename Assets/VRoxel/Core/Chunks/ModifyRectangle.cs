@@ -12,17 +12,17 @@ namespace VRoxel.Core.Chunks
     public struct ModifyRectangle : IJob
     {
         /// <summary>
-        /// All voxels inside the rectangle will be set to this block index
+        /// All voxels inside the rectangle will be set to this block
         /// </summary>
         public byte block;
 
         /// <summary>
-        /// The global position of this chunk
+        /// The global position offset for this chunk
         /// </summary>
         public int3 chunkOffset;
 
         /// <summary>
-        /// The dimensions of this chunk
+        /// The (x,y,z) dimensions of this chunk
         /// </summary>
         public int3 chunkSize;
 
@@ -43,7 +43,8 @@ namespace VRoxel.Core.Chunks
 
 
         /// <summary>
-        /// Iterate through the rectangle and update voxels in the chunk
+        /// Iterate over the chunk and update voxels
+        /// that are inside the rectangles bounds.
         /// </summary>
         public void Execute()
         {
@@ -52,8 +53,6 @@ namespace VRoxel.Core.Chunks
             int3 localPos = int3.zero;
             int3 globalPos = int3.zero;
 
-            // calculate min and delta of the rectangle so the
-            // start and end positions orientation will not matter
             delta.x = math.abs(end.x - start.x) + 1;
             delta.y = math.abs(end.y - start.y) + 1;
             delta.z = math.abs(end.z - start.z) + 1;
@@ -62,22 +61,19 @@ namespace VRoxel.Core.Chunks
             min.y = math.min(start.y, end.y);
             min.z = math.min(start.z, end.z);
 
-            // skip any point that is outside the chunk
-            // and update any voxel inside the rectangle
-            for (int x = min.x; x < min.x + delta.x; x++)
+            for (int x = 0; x < chunkSize.x; x++)
             {
-                globalPos.x = x;
-                for (int z = min.z; z < min.z + delta.z; z++)
+                localPos.x = x;
+                for (int z = 0; z < chunkSize.z; z++)
                 {
-                    globalPos.z = z;
-                    for (int y = min.y; y < min.y + delta.y; y++)
+                    localPos.z = z;
+                    for (int y = 0; y < chunkSize.y; y++)
                     {
-                        globalPos.y = y;
-
-                        if (OutOfChunk(globalPos))
+                        localPos.y = y;
+                        globalPos = localPos + chunkOffset;
+                        if (OutOfRectangle(globalPos, min, delta))
                             continue;
 
-                        localPos = globalPos - chunkOffset;
                         voxels[Flatten(localPos)] = block;
                     }
                 }
@@ -85,22 +81,28 @@ namespace VRoxel.Core.Chunks
         }
 
         /// <summary>
-        /// Calculate an array index from an int3 (Vector3Int) point
+        /// Calculate a chunk index from a local position in the chunk
         /// </summary>
+        /// <param name="point">A local position in the chunk</param>
         public int Flatten(int3 point)
         {
             /// A[x,y,z] = A[ x * height * depth + y * depth + z ]
-            return (point.x * chunkSize.y * chunkSize.z) + (point.y * chunkSize.z) + point.z;
+            return (point.x * chunkSize.y * chunkSize.z)
+                + (point.y * chunkSize.z)
+                + point.z;
         }
 
         /// <summary>
-        /// Test if a global position is outside the chunk
+        /// Checks if a position is out side the bounds of the rectangle
         /// </summary>
-        public bool OutOfChunk(int3 point)
+        /// <param name="point">A global position in the voxel space</param>
+        /// <param name="min">The global position to start the rectangle</param>
+        /// <param name="delta">The height, width, and depth of the rectangle</param>
+        public bool OutOfRectangle(int3 point, int3 min, int3 delta)
         {
-            if (point.y < chunkOffset.y || point.y >= chunkOffset.y + chunkSize.y) { return true; }
-            if (point.z < chunkOffset.z || point.z >= chunkOffset.z + chunkSize.z) { return true; }
-            if (point.x < chunkOffset.x || point.x >= chunkOffset.x + chunkSize.x) { return true; }
+            if (point.y < min.y || point.y >= min.y + delta.y) { return true; }
+            if (point.z < min.z || point.z >= min.z + delta.z) { return true; }
+            if (point.x < min.x || point.x >= min.x + delta.x) { return true; }
             return false;
         }
     }

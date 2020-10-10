@@ -212,6 +212,7 @@ namespace VRoxel.Core
             buildingMesh.Complete();
             m_buildingMesh = false;
 
+            m_mesh.Clear();
             m_mesh.vertices = m_vertices.ToArray();
             m_mesh.triangles = m_triangles.ToArray();
             m_mesh.uv = m_uvs.ToArray();
