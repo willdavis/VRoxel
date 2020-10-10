@@ -48,8 +48,8 @@ namespace VRoxel.Core.Chunks
         /// the block indexes for each voxel in the chunk
         /// </summary>
         [ReadOnly] public NativeArray<byte> voxels;
-        [ReadOnly] public NativeArray<byte> voxelsTop;
-        [ReadOnly] public NativeArray<byte> voxelsBottom;
+        [ReadOnly] public NativeArray<byte> voxelsUp;
+        [ReadOnly] public NativeArray<byte> voxelsDown;
         [ReadOnly] public NativeArray<byte> voxelsNorth;
         [ReadOnly] public NativeArray<byte> voxelsSouth;
         [ReadOnly] public NativeArray<byte> voxelsEast;
@@ -206,10 +206,10 @@ namespace VRoxel.Core.Chunks
             switch (dir)
             {
                 case 0: // Top
-                    texture = block.texturesTop;
+                    texture = block.texturesUp;
                     break;
                 case 1: // Bottom
-                    texture = block.texturesBottom;
+                    texture = block.texturesDown;
                     break;
                 case 2: // North (Front)
                     texture = block.texturesFront;
@@ -308,9 +308,9 @@ namespace VRoxel.Core.Chunks
                 data = voxelsSouth;
                 localPos.z = chunkSize.z - 1;
             }
-            else if (grid.y < 0) // Bottom
+            else if (grid.y < 0) // Down
             {
-                data = voxelsBottom;
+                data = voxelsDown;
                 localPos.y = chunkSize.y - 1;
             }
             else if (grid.x == chunkSize.x) // Right (East)
@@ -323,9 +323,9 @@ namespace VRoxel.Core.Chunks
                 data = voxelsNorth;
                 localPos.z = 0;
             }
-            else if (grid.y == chunkSize.y) // Top
+            else if (grid.y == chunkSize.y) // Up
             {
-                data = voxelsTop;
+                data = voxelsUp;
                 localPos.y = 0;
             }
 
@@ -372,8 +372,8 @@ namespace VRoxel.Core.Chunks
     public struct Block
     {
         public bool collidable;
-        public float2 texturesTop;
-        public float2 texturesBottom;
+        public float2 texturesUp;
+        public float2 texturesDown;
         public float2 texturesFront;
         public float2 texturesBack;
         public float2 texturesLeft;

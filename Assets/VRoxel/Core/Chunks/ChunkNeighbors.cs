@@ -2,8 +2,8 @@
 {
     public struct ChunkNeighbors
     {
-        public Chunk top;
-        public Chunk bottom;
+        public Chunk up;
+        public Chunk down;
         public Chunk north;
         public Chunk south;
         public Chunk east;

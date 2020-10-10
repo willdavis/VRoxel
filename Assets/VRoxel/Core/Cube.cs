@@ -13,7 +13,7 @@ namespace VRoxel.Core
         /// </summary>
         public enum Direction
         {
-            Top, Bottom, North, East, South, West
+            Up, Down, North, East, South, West
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace VRoxel.Core
         //
         // Note: Indexes are returned in a clockwise order for each face
         //
-        //             Top
+        //              Up
         //              |   North
         //              |  /
         //              | /
@@ -87,11 +87,11 @@ namespace VRoxel.Core
         //            / |
         //           /  |
         //      South   |
-        //            Bottom
+        //             Down
         //
         public static int[] Faces = {
-            0, 1, 2, 3, // Top
-            7, 6, 5, 4, // Bottom
+            0, 1, 2, 3, // Up
+            7, 6, 5, 4, // Down
             1, 0, 4, 5, // North
             2, 1, 5, 6, // East
             3, 2, 6, 7, // South

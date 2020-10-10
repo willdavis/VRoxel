@@ -15,8 +15,8 @@ namespace CoreSpecs
         [Test]
         public void HasDirections()
         {
-            Assert.AreEqual(0, (int)Cube.Direction.Top);
-            Assert.AreEqual(1, (int)Cube.Direction.Bottom);
+            Assert.AreEqual(0, (int)Cube.Direction.Up);
+            Assert.AreEqual(1, (int)Cube.Direction.Down);
             Assert.AreEqual(2, (int)Cube.Direction.North);
             Assert.AreEqual(3, (int)Cube.Direction.East);
             Assert.AreEqual(4, (int)Cube.Direction.South);

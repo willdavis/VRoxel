@@ -52,8 +52,8 @@ namespace VRoxel.Core
                 m_blocks[i] = new Block()
                 {
                     collidable = blockConfig.collidable,
-                    texturesTop = blockConfig.texture,
-                    texturesBottom = blockConfig.texture,
+                    texturesUp = blockConfig.texture,
+                    texturesDown = blockConfig.texture,
                     texturesBack = blockConfig.texture,
                     texturesFront = blockConfig.texture,
                     texturesLeft = blockConfig.texture,
@@ -105,13 +105,13 @@ namespace VRoxel.Core
             job.uvs = uv;
 
             job.voxels = chunk.voxels;
-            if (chunk.neighbors.top)
-                job.voxelsTop = chunk.neighbors.top.voxels;
-            else { job.voxelsTop = m_emptyChunk; }
+            if (chunk.neighbors.up)
+                job.voxelsUp = chunk.neighbors.up.voxels;
+            else { job.voxelsUp = m_emptyChunk; }
 
-            if (chunk.neighbors.bottom)
-                job.voxelsBottom = chunk.neighbors.bottom.voxels;
-            else { job.voxelsBottom = m_emptyChunk; }
+            if (chunk.neighbors.down)
+                job.voxelsDown = chunk.neighbors.down.voxels;
+            else { job.voxelsDown = m_emptyChunk; }
 
             if (chunk.neighbors.north)
                 job.voxelsNorth = chunk.neighbors.north.voxels;
@@ -181,8 +181,8 @@ namespace VRoxel.Core
                         }
 
                         block = m_blockManager.blocks[index];
-                        if (m_world.data.Get(voxel + Direction3Int.Up) == 0)    { AddFace(position, block, Cube.Direction.Top);    }
-                        if (m_world.data.Get(voxel + Direction3Int.Down) == 0)  { AddFace(position, block, Cube.Direction.Bottom); }
+                        if (m_world.data.Get(voxel + Direction3Int.Up) == 0)    { AddFace(position, block, Cube.Direction.Up);     }
+                        if (m_world.data.Get(voxel + Direction3Int.Down) == 0)  { AddFace(position, block, Cube.Direction.Down);   }
                         if (m_world.data.Get(voxel + Direction3Int.North) == 0) { AddFace(position, block, Cube.Direction.North);  }
                         if (m_world.data.Get(voxel + Direction3Int.East) == 0)  { AddFace(position, block, Cube.Direction.East);   }
                         if (m_world.data.Get(voxel + Direction3Int.South) == 0) { AddFace(position, block, Cube.Direction.South);  }

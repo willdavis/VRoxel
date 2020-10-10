@@ -291,13 +291,13 @@ namespace VRoxel.Core
 
                 switch (i)
                 {
-                    case 0: // Top
-                        chunk.neighbors.top = nextChunk;
-                        nextChunk.neighbors.bottom = chunk;
+                    case 0: // Up
+                        chunk.neighbors.up = nextChunk;
+                        nextChunk.neighbors.down = chunk;
                         break;
-                    case 1: // Bottom
-                        chunk.neighbors.bottom = nextChunk;
-                        nextChunk.neighbors.top = chunk;
+                    case 1: // Down
+                        chunk.neighbors.down = nextChunk;
+                        nextChunk.neighbors.up = chunk;
                         break;
                     case 2: // North (Front)
                         chunk.neighbors.north = nextChunk;
@@ -337,11 +337,11 @@ namespace VRoxel.Core
 
                 switch (i)
                 {
-                    case 0: // Top
-                        nextChunk.neighbors.bottom = null;
+                    case 0: // Up
+                        nextChunk.neighbors.down = null;
                         break;
-                    case 1: // Bottom
-                        nextChunk.neighbors.top = null;
+                    case 1: // Down
+                        nextChunk.neighbors.up = null;
                         break;
                     case 2: // North (Front)
                         nextChunk.neighbors.south = null;

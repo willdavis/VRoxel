@@ -94,9 +94,9 @@ namespace CoreChunksSpecs
 
             NativeArray<byte> voxels = new NativeArray<byte>(
                 flatSize, Allocator.Persistent);
-            NativeArray<byte> voxelsTop = new NativeArray<byte>(
+            NativeArray<byte> voxelsUp = new NativeArray<byte>(
                 flatSize, Allocator.Persistent);
-            NativeArray<byte> voxelsBottom = new NativeArray<byte>(
+            NativeArray<byte> voxelsDown = new NativeArray<byte>(
                 flatSize, Allocator.Persistent);
             NativeArray<byte> voxelsNorth = new NativeArray<byte>(
                 flatSize, Allocator.Persistent);
@@ -113,8 +113,8 @@ namespace CoreChunksSpecs
             job.chunkOffset = new int3(3,3,3);
             job.chunkSize = chunkSize;
             job.worldSize = worldSize;
-            job.voxelsTop = voxelsTop;
-            job.voxelsBottom = voxelsBottom;
+            job.voxelsUp = voxelsUp;
+            job.voxelsDown = voxelsDown;
             job.voxelsNorth = voxelsNorth;
             job.voxelsEast = voxelsEast;
             job.voxelsSouth = voxelsSouth;
@@ -122,8 +122,8 @@ namespace CoreChunksSpecs
             job.voxels = voxels;
 
             /// set voxel data
-            voxelsTop[0]    = 6;
-            voxelsBottom[6] = 5;
+            voxelsUp[0]     = 6;
+            voxelsDown[6]   = 5;
             voxelsNorth[0]  = 4;
             voxelsEast[0]   = 3;
             voxelsSouth[2]  = 2;
@@ -162,8 +162,8 @@ namespace CoreChunksSpecs
             Assert.AreEqual(0, voxel);
 
             voxels.Dispose();
-            voxelsTop.Dispose();
-            voxelsBottom.Dispose();
+            voxelsUp.Dispose();
+            voxelsDown.Dispose();
             voxelsNorth.Dispose();
             voxelsEast.Dispose();
             voxelsSouth.Dispose();
@@ -461,9 +461,9 @@ namespace CoreChunksSpecs
 
             NativeArray<byte> voxels = new NativeArray<byte>(
                 flatSize, Allocator.Persistent);
-            NativeArray<byte> voxelsTop = new NativeArray<byte>(
+            NativeArray<byte> voxelsUp = new NativeArray<byte>(
                 flatSize, Allocator.Persistent);
-            NativeArray<byte> voxelsBottom = new NativeArray<byte>(
+            NativeArray<byte> voxelsDown = new NativeArray<byte>(
                 flatSize, Allocator.Persistent);
             NativeArray<byte> voxelsNorth = new NativeArray<byte>(
                 flatSize, Allocator.Persistent);
@@ -495,8 +495,8 @@ namespace CoreChunksSpecs
             job.chunkOffset = int3.zero;
             job.renderWorldEdges = false;
 
-            job.voxelsTop = voxelsTop;
-            job.voxelsBottom = voxelsBottom;
+            job.voxelsUp = voxelsUp;
+            job.voxelsDown = voxelsDown;
             job.voxelsNorth = voxelsNorth;
             job.voxelsEast = voxelsEast;
             job.voxelsSouth = voxelsSouth;
@@ -532,8 +532,8 @@ namespace CoreChunksSpecs
             blocks.Dispose();
 
             voxels.Dispose();
-            voxelsTop.Dispose();
-            voxelsBottom.Dispose();
+            voxelsUp.Dispose();
+            voxelsDown.Dispose();
             voxelsNorth.Dispose();
             voxelsEast.Dispose();
             voxelsSouth.Dispose();
