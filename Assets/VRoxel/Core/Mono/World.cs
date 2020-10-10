@@ -1,14 +1,21 @@
-﻿using VRoxel.Core.Data;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace VRoxel.Core
 {
+    /// <summary>
+    /// Defines a voxel space in the scene
+    /// </summary>
     public class World : MonoBehaviour
     {
         /// <summary>
-        /// The chunk manager for this voxel world
+        /// A reference to the block manager for this world
         /// </summary>
-        public ChunkManager chunks;
+        public BlockManager blockManager;
+
+        /// <summary>
+        /// A reference to the chunk manager for this world
+        /// </summary>
+        public ChunkManager chunkManager;
 
         /// <summary>
         /// The voxel dimensions for the world
@@ -20,6 +27,11 @@ namespace VRoxel.Core
         /// </summary>
         [Range(0,100)]
         public float scale = 1f;
+
+        /// <summary>
+        /// Flags if the outer faces of the world should be rendered
+        /// </summary>
+        public bool renderWorldEdges = true;
 
         /// <summary>
         /// The voxel data for the World
@@ -49,8 +61,10 @@ namespace VRoxel.Core
 
         protected void Awake()
         {
-            if (chunks == null)
-                chunks = GetComponent<ChunkManager>();
+            if (blockManager == null)
+                blockManager = GetComponent<BlockManager>();
+            if (chunkManager == null)
+                chunkManager = GetComponent<ChunkManager>();
         }
 
         protected void OnDestroy()

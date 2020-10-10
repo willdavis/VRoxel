@@ -119,9 +119,9 @@ public class EditWorld : MonoBehaviour
 
         Vector3Int chunkMin = Vector3Int.zero;
         Vector3Int chunkDelta = Vector3Int.zero;
-        Vector3Int chunkEnd   = _world.chunks.IndexFrom(end);
-        Vector3Int chunkStart = _world.chunks.IndexFrom(start);
-        Vector3Int chunkSize = _world.chunks.configuration.size;
+        Vector3Int chunkEnd   = _world.chunkManager.IndexFrom(end);
+        Vector3Int chunkStart = _world.chunkManager.IndexFrom(start);
+        Vector3Int chunkSize = _world.chunkManager.configuration.size;
 
         // calculate min and delta of the rectangle so the
         // start and end positions orientation will not matter
@@ -149,8 +149,7 @@ public class EditWorld : MonoBehaviour
                 for (int y = chunkMin.y; y < chunkMin.y + chunkDelta.y; y++)
                 {
                     chunkIndex.y = y;
-                    chunk = _world.chunks
-                        .Get(chunkIndex);
+                    chunk = _world.chunkManager.Get(chunkIndex);
                     m_editChunks.Add(chunk);
 
                     ModifyRectangle job = new ModifyRectangle();

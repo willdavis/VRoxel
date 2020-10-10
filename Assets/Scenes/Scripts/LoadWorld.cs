@@ -37,15 +37,15 @@ public class LoadWorld : MonoBehaviour
     void Initialize()
     {
         initialized = true;
-        _world.Initialize();
 
-        _world.chunks.meshGenerator = new MeshGenerator(_world, _blocks, _world.chunks.configuration);
-        _world.chunks.LoadAll();    // initialize all chunks in the world
+        _world.Initialize();
+        _world.chunkManager.meshGenerator = new MeshGenerator(_world);
+        _world.chunkManager.LoadAll(); // initialize all chunks in the world
 
         GenerateTerrainData();
 
         _heightMap.voxels = _world.data.voxels;
-        _heightMap.Initialize();    // initialize the height map
+        _heightMap.Initialize(); // initialize the height map
         _heightMap.Refresh().Complete();
     }
 
