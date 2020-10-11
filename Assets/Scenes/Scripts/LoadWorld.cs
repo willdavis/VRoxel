@@ -2,12 +2,11 @@
 using VRoxel.Core;
 using VRoxel.Terrain;
 
-[RequireComponent(typeof(World), typeof(BlockManager), typeof(HeightMap))]
 public class LoadWorld : MonoBehaviour
 {
-    World _world;
-    BlockManager _blocks;
-    HeightMap _heightMap;
+    public World world;
+    public HeightMap heightMap;
+    public BlockManager blockManager;
 
     [HideInInspector]
     public Generator terrain;
@@ -23,9 +22,12 @@ public class LoadWorld : MonoBehaviour
 
     void Awake()
     {
-        _world = GetComponent<World>();
-        _blocks = GetComponent<BlockManager>();
-        _heightMap = GetComponent<HeightMap>();
+        if (world == null)
+            world = GetComponent<World>();
+        if (blockManager == null)
+            blockManager = GetComponent<BlockManager>();
+        if (heightMap == null)
+            heightMap = GetComponent<HeightMap>();
     }
 
     void Update()
@@ -38,15 +40,15 @@ public class LoadWorld : MonoBehaviour
     {
         initialized = true;
 
-        _world.Initialize();
-        _world.chunkManager.meshGenerator = new MeshGenerator(_world);
-        _world.chunkManager.LoadAll(); // initialize all chunks in the world
+        world.Initialize();
+        world.chunkManager.meshGenerator = new MeshGenerator(world);
+        world.chunkManager.LoadAll(); // initialize all chunks in the world
 
         GenerateTerrainData();
 
-        _heightMap.voxels = _world.data.voxels;
-        _heightMap.Initialize(); // initialize the height map
-        _heightMap.Refresh().Complete();
+        heightMap.voxels = world.data.voxels;
+        heightMap.Initialize(); // initialize the height map
+        heightMap.Refresh().Complete();
     }
 
     void GenerateTerrainData()
@@ -55,26 +57,26 @@ public class LoadWorld : MonoBehaviour
         Vector3Int point = Vector3Int.zero;
         terrain = new Generator(seed, noise, scale, offset);
 
-        byte dirt  = _blocks.IndexOf("dirt");
-        byte grass = _blocks.IndexOf("grass");
-        byte stone = _blocks.IndexOf("stone");
+        byte dirt  = blockManager.IndexOf("dirt");
+        byte grass = blockManager.IndexOf("grass");
+        byte stone = blockManager.IndexOf("stone");
 
-        for (int x = 0; x < _world.size.x; x++)
+        for (int x = 0; x < world.size.x; x++)
         {
             point.x = x;
-            for (int z = 0; z < _world.size.z; z++)
+            for (int z = 0; z < world.size.z; z++)
             {
                 point.z = z;
                 height = terrain.GetHeight(point.x, point.z);
-                for (int y = 0; y < _world.size.y; y++)
+                for (int y = 0; y < world.size.y; y++)
                 {
                     point.y = y;
                     if (point.y == height)
-                        _world.Write(point, grass);
+                        world.Write(point, grass);
                     else if (point.y >= height-3 && point.y <  height)
-                        _world.Write(point, dirt);
+                        world.Write(point, dirt);
                     else if (point.y <  height-3)
-                        _world.Write(point, stone);
+                        world.Write(point, stone);
                 }
             }
         }

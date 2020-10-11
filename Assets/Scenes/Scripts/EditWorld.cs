@@ -10,9 +10,12 @@ using VRoxel.Core.Data;
 using VRoxel.Core.Chunks;
 using VRoxel.Terrain;
 
-[RequireComponent(typeof(World), typeof(BlockManager), typeof(HeightMap))]
 public class EditWorld : MonoBehaviour
 {
+    public World world;
+    public HeightMap heightMap;
+    public BlockManager blockManager;
+
     /// <summary>
     /// The current type of block used to edit the world
     /// </summary>
@@ -39,13 +42,8 @@ public class EditWorld : MonoBehaviour
     [Header("Cursor Prefab")]
     public BlockCursor cursor;
 
-    World _world;
-    BlockManager _blockManager;
-
     RaycastHit _hit;
     Vector3 _hitPosition;
-
-    HeightMap _heightMap;
     Queue<Chunk> m_refreshChunks;
 
     public JobHandle editHandle;
@@ -59,9 +57,13 @@ public class EditWorld : MonoBehaviour
 
     void Awake()
     {
-        _world = GetComponent<World>();
-        _heightMap = GetComponent<HeightMap>();
-        _blockManager = GetComponent<BlockManager>();
+        if (world == null)
+            world = GetComponent<World>();
+        if (heightMap == null)
+            heightMap = GetComponent<HeightMap>();
+        if (blockManager == null)
+            blockManager = GetComponent<BlockManager>();
+
         m_refreshChunks = new Queue<Chunk>();
     }
 
@@ -112,11 +114,11 @@ public class EditWorld : MonoBehaviour
     {
         if (block == null) { return; }
 
-        byte index = (byte)_blockManager.blocks.IndexOf(block);
-        WorldEditor.SetBlock(_world, currentPosition, index);
+        byte index = (byte)blockManager.blocks.IndexOf(block);
+        WorldEditor.SetBlock(world, currentPosition, index);
 
-        _heightMap.Refresh();
-        _world.data.OnEdit.Invoke(editHandle);
+        heightMap.Refresh();
+        world.data.OnEdit.Invoke(editHandle);
     }
 
     void EditRectangle()
@@ -124,9 +126,9 @@ public class EditWorld : MonoBehaviour
         if (block == null) { return; }
         editHandle.Complete();
 
-        byte index = (byte)_blockManager.blocks.IndexOf(block);
-        Vector3Int end = _world.SceneToGrid(currentPosition);
-        Vector3Int start = _world.SceneToGrid(_clickStart);
+        byte index = (byte)blockManager.blocks.IndexOf(block);
+        Vector3Int end = world.SceneToGrid(currentPosition);
+        Vector3Int start = world.SceneToGrid(_clickStart);
 
         // calculate min and delta of the rectangle so the
         // orientation of the start and end positions will not matter
@@ -147,13 +149,13 @@ public class EditWorld : MonoBehaviour
 
         Vector3Int chunkMin = Vector3Int.zero;
         Vector3Int chunkDelta = Vector3Int.zero;
-        Vector3Int chunkEnd   = _world.chunkManager.IndexFrom(end);
-        Vector3Int chunkStart = _world.chunkManager.IndexFrom(start);
-        Vector3Int chunkSize = _world.chunkManager.configuration.size;
+        Vector3Int chunkEnd   = world.chunkManager.IndexFrom(end);
+        Vector3Int chunkStart = world.chunkManager.IndexFrom(start);
+        Vector3Int chunkSize = world.chunkManager.configuration.size;
         Vector3Int chunkMax = new Vector3Int(
-            _world.size.x / chunkSize.x,
-            _world.size.y / chunkSize.y,
-            _world.size.z / chunkSize.z
+            world.size.x / chunkSize.x,
+            world.size.y / chunkSize.y,
+            world.size.z / chunkSize.z
         );
 
         chunkDelta.x = Mathf.Abs(chunkEnd.x - chunkStart.x) + 1;
@@ -180,7 +182,7 @@ public class EditWorld : MonoBehaviour
                 for (int y = chunkMin.y; y < chunkMin.y + chunkDelta.y; y++)
                 {
                     chunkIndex.y = y;
-                    chunk = _world.chunkManager.Get(chunkIndex);
+                    chunk = world.chunkManager.Get(chunkIndex);
                     m_refreshChunks.Enqueue(chunk);
 
                     // update neighboring chunks
@@ -189,7 +191,7 @@ public class EditWorld : MonoBehaviour
                     // and the chunk is not the first chunk on the X axis
                     if (rectMin.x - (chunkIndex.x * chunkSize.x) == 0 && chunkIndex.x != 0)
                     {
-                        nextChunk = _world.chunkManager.Get(chunkIndex + Direction3Int.West);
+                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.West);
                         if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
                     }
 
@@ -197,7 +199,7 @@ public class EditWorld : MonoBehaviour
                     // and the chunk is not the last chunk on the X axis
                     if (rectMin.x + rectDelta.x - (chunkIndex.x * chunkSize.x) == chunkSize.x && chunkIndex.x != chunkMax.x - 1)
                     {
-                        nextChunk = _world.chunkManager.Get(chunkIndex + Direction3Int.East);
+                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.East);
                         if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
                     }
 
@@ -205,7 +207,7 @@ public class EditWorld : MonoBehaviour
                     // and the chunk is not the first chunk on the Y axis
                     if (rectMin.y - (chunkIndex.y * chunkSize.y) == 0 && chunkIndex.y != 0)
                     {
-                        nextChunk = _world.chunkManager.Get(chunkIndex + Direction3Int.Down);
+                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.Down);
                         if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
                     }
 
@@ -213,7 +215,7 @@ public class EditWorld : MonoBehaviour
                     // and the chunk is not the last chunk on the Y axis
                     if (rectMin.y + rectDelta.y - (chunkIndex.y * chunkSize.y) == chunkSize.y && chunkIndex.y != chunkMax.y - 1)
                     {
-                        nextChunk = _world.chunkManager.Get(chunkIndex + Direction3Int.Up);
+                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.Up);
                         if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
                     }
 
@@ -221,7 +223,7 @@ public class EditWorld : MonoBehaviour
                     // and the chunk is not the first chunk on the Z axis
                     if (rectMin.z - (chunkIndex.z * chunkSize.z) == 0 && chunkIndex.z != 0)
                     {
-                        nextChunk = _world.chunkManager.Get(chunkIndex + Direction3Int.South);
+                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.South);
                         if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
                     }
 
@@ -229,7 +231,7 @@ public class EditWorld : MonoBehaviour
                     // and the chunk is not the last chunk on the Z axis
                     if (rectMin.z + rectDelta.z - (chunkIndex.z * chunkSize.z) == chunkSize.z && chunkIndex.z != chunkMax.z - 1)
                     {
-                        nextChunk = _world.chunkManager.Get(chunkIndex + Direction3Int.North);
+                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.North);
                         if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
                     }
 
@@ -252,10 +254,10 @@ public class EditWorld : MonoBehaviour
         // required for agent navigation
         EditVoxelJob navJob = new EditVoxelJob()
         {
-            size = new int3(_world.size.x, _world.size.y, _world.size.z),
+            size = new int3(world.size.x, world.size.y, world.size.z),
             start = new int3(start.x, start.y, start.z),
             end = new int3(end.x, end.y, end.z),
-            voxels = _world.data.voxels,
+            voxels = world.data.voxels,
             block = index
         };
         JobHandle navHandle = navJob.Schedule();
@@ -266,8 +268,8 @@ public class EditWorld : MonoBehaviour
         jobs.Dispose();
 
         // notify listeners
-        heightMapHandle = _heightMap.Refresh(editHandle);
-        _world.data.OnEdit.Invoke(heightMapHandle);
+        heightMapHandle = heightMap.Refresh(editHandle);
+        world.data.OnEdit.Invoke(heightMapHandle);
     }
 
     /// <summary>
@@ -280,10 +282,10 @@ public class EditWorld : MonoBehaviour
         switch (adjustHitPosition)
         {
             case Cube.Point.Inside:     // used when changing existing blocks
-                _hitPosition = _world.AdjustRaycastHit(_hit, Cube.Point.Inside);
+                _hitPosition = world.AdjustRaycastHit(_hit, Cube.Point.Inside);
                 break;
             case Cube.Point.Outside:    // used when adding new blocks to air
-                _hitPosition = _world.AdjustRaycastHit(_hit, Cube.Point.Outside);
+                _hitPosition = world.AdjustRaycastHit(_hit, Cube.Point.Outside);
                 break;
             default:
                 break;
@@ -291,13 +293,13 @@ public class EditWorld : MonoBehaviour
 
         // find and cache the index of the voxel that was hit
         // this can be used later to get/set the voxel data at that position
-        currentIndex = _world.SceneToGrid(_hitPosition);
+        currentIndex = world.SceneToGrid(_hitPosition);
 
         if (snapToGrid)
         {
             // calculate and cache the scene postion of the voxel index
             // this will keep the cursor "stuck" to the current voxel until the mouse moves to another one
-            currentPosition = _world.GridToScene(currentIndex);
+            currentPosition = world.GridToScene(currentIndex);
         }
         else
         {
@@ -319,7 +321,7 @@ public class EditWorld : MonoBehaviour
                 else { DrawCube(); }
                 break;
             case BlockCursor.Shape.Spheroid:
-                cursor.UpdateSpheroid(_world, currentPosition, currentPosition, size);
+                cursor.UpdateSpheroid(world, currentPosition, currentPosition, size);
                 break;
             default:
                 Debug.Log("Shape not recognized");
@@ -327,6 +329,6 @@ public class EditWorld : MonoBehaviour
         }
     }
 
-    void DrawCube() { cursor.UpdateCuboid(_world, currentPosition, currentPosition, size); }
-    void DrawRectangle() { cursor.UpdateCuboid(_world, _clickStart, currentPosition, size); }
+    void DrawCube() { cursor.UpdateCuboid(world, currentPosition, currentPosition, size); }
+    void DrawRectangle() { cursor.UpdateCuboid(world, _clickStart, currentPosition, size); }
 }
