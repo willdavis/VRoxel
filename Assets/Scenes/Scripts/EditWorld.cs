@@ -113,7 +113,7 @@ public class EditWorld : MonoBehaviour
         if (block == null) { return; }
 
         byte index = (byte)_blockManager.blocks.IndexOf(block);
-        WorldEditor.Set(_world, currentPosition, index);
+        WorldEditor.SetBlock(_world, currentPosition, index);
 
         _heightMap.Refresh();
         _world.data.OnEdit.Invoke(editHandle);
@@ -125,8 +125,8 @@ public class EditWorld : MonoBehaviour
         editHandle.Complete();
 
         byte index = (byte)_blockManager.blocks.IndexOf(block);
-        Vector3Int start = WorldEditor.Get(_world, _clickStart);
-        Vector3Int end = WorldEditor.Get(_world, currentPosition);
+        Vector3Int end = _world.SceneToGrid(currentPosition);
+        Vector3Int start = _world.SceneToGrid(_clickStart);
 
         // calculate min and delta of the rectangle so the
         // orientation of the start and end positions will not matter
@@ -279,11 +279,11 @@ public class EditWorld : MonoBehaviour
         // We need to offset the position either inside or outside of the voxel.
         switch (adjustHitPosition)
         {
-            case Cube.Point.Inside:     // used when changing blocks to air
-                _hitPosition = WorldEditor.Adjust(_world, _hit, Cube.Point.Inside);
+            case Cube.Point.Inside:     // used when changing existing blocks
+                _hitPosition = _world.AdjustRaycastHit(_hit, Cube.Point.Inside);
                 break;
-            case Cube.Point.Outside:    // used when adding blocks to air
-                _hitPosition = WorldEditor.Adjust(_world, _hit, Cube.Point.Outside);
+            case Cube.Point.Outside:    // used when adding new blocks to air
+                _hitPosition = _world.AdjustRaycastHit(_hit, Cube.Point.Outside);
                 break;
             default:
                 break;
@@ -291,13 +291,13 @@ public class EditWorld : MonoBehaviour
 
         // find and cache the index of the voxel that was hit
         // this can be used later to get/set the voxel data at that position
-        currentIndex = WorldEditor.Get(_world, _hitPosition);
+        currentIndex = _world.SceneToGrid(_hitPosition);
 
         if (snapToGrid)
         {
             // calculate and cache the scene postion of the voxel index
-            // this will keep the cursor "stuck" to the current voxel until the mouse moves to another
-            currentPosition = WorldEditor.Get(_world, currentIndex);
+            // this will keep the cursor "stuck" to the current voxel until the mouse moves to another one
+            currentPosition = _world.GridToScene(currentIndex);
         }
         else
         {

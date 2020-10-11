@@ -70,11 +70,11 @@ public class LoadWorld : MonoBehaviour
                 {
                     point.y = y;
                     if (point.y == height)
-                        WorldEditor.Set(_world, point, grass);
+                        _world.Write(point, grass);
                     else if (point.y >= height-3 && point.y <  height)
-                        WorldEditor.Set(_world, point, dirt);
+                        _world.Write(point, dirt);
                     else if (point.y <  height-3)
-                        WorldEditor.Set(_world, point, stone);
+                        _world.Write(point, stone);
                 }
             }
         }

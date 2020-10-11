@@ -1,192 +1,71 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace VRoxel.Core
 {
+    /// <summary>
+    /// A collection of functions to help with editing a voxel world
+    /// </summary>
     public class WorldEditor
     {
         /// <summary>
-        /// Set the block adjacent to the hit position in the world.
+        /// Set the block adjacent to the hit position in the voxel world.
         /// </summary>
         /// <param name="world">A reference to the World</param>
         /// <param name="hit">The RaycastHit to be adjusted</param>
-        /// <param name="block">The block index</param>
-        public static void Add(World world, RaycastHit hit, byte block)
+        /// <param name="block">The new block index to set</param>
+        public static void AddBlock(World world, RaycastHit hit, byte block)
         {
-            Vector3 position = Adjust(world, hit, Cube.Point.Outside);
-            Vector3Int point = Get(world, position);
-            Set(world, point, block);
+            Vector3 position = world.AdjustRaycastHit(hit, Cube.Point.Outside);
+            Vector3Int point = world.SceneToGrid(position);
+            world.Write(point, block);
         }
 
         /// <summary>
-        /// Update the block at the hit position in the world
+        /// Update the block at the hit position in the voxel world
         /// </summary>
-        /// <param name="world">A reference to the World</param>
+        /// <param name="world">A reference to the voxel world</param>
         /// <param name="hit">The RaycastHit to be adjusted</param>
-        /// <param name="block">The block index</param>
-        public static void Replace(World world, RaycastHit hit, byte block)
+        /// <param name="block">The new block index to set</param>
+        public static void ReplaceBlock(World world, RaycastHit hit, byte block)
         {
-            Vector3 position = Adjust(world, hit, Cube.Point.Inside);
-            Vector3Int point = Get(world, position);
-            Set(world, point, block);
+            Vector3 position = world.AdjustRaycastHit(hit, Cube.Point.Inside);
+            Vector3Int point = world.SceneToGrid(position);
+            world.Write(point, block);
         }
 
         /// <summary>
-        /// Adjusts a RaycastHit point to be inside or outside of the block that it hit
+        /// Updates a block in the voxel world and flags the chunk as modified
         /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="hit">The RaycastHit to be adjusted</param>
-        /// <param name="dir">choose inside or outside the cube</param>
-        public static Vector3 Adjust(World world, RaycastHit hit, Cube.Point dir)
-        {
-            Vector3 position = hit.point;
-            switch (dir)
-            {
-                case Cube.Point.Inside:
-                    position += hit.normal * (world.scale / -2f);
-                    break;
-                case Cube.Point.Outside:
-                    position += hit.normal * (world.scale / 2f);
-                    break;
-            }
-            return position;
-        }
-
-        /// <summary>
-        /// Calculates the voxel grid point for a position in the scene
-        /// </summary>
-        /// <param name="world">A reference to the World</param>
+        /// <param name="world">A reference to the voxel world</param>
         /// <param name="position">A position in the scene</param>
-        public static Vector3Int Get(World world, Vector3 position)
+        /// <param name="block">The new block index to set</param>
+        public static void SetBlock(World world, Vector3 position, byte block)
         {
-            Vector3 adjusted = position;
-            Vector3Int point = Vector3Int.zero;
-            Quaternion rotation = Quaternion.Inverse(world.transform.rotation);
-
-            adjusted += world.transform.position * -1f;         // adjust for the worlds position
-            adjusted *= 1 / world.scale;                        // adjust for the worlds scale
-            adjusted = rotation * adjusted;                     // adjust for the worlds rotation
-            adjusted += world.data.center;                      // adjust for the worlds center
-
-            point.x = Mathf.FloorToInt(adjusted.x);
-            point.y = Mathf.FloorToInt(adjusted.y);
-            point.z = Mathf.FloorToInt(adjusted.z);
-
-            return point;
+            Vector3Int point = world.SceneToGrid(position);
+            world.Write(point, block);
         }
 
         /// <summary>
-        /// Calculates the scene position for a point in the voxel grid
+        /// Updates a rectangle of blocks in the voxel world and flags the affected chunks as modified
         /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="point">A point in the voxel grid</param>
-        public static Vector3 Get(World world, Vector3Int point)
+        /// <param name="world">A reference to the voxel world</param>
+        /// <param name="start">The start position of the rectangle in the scene</param>
+        /// <param name="end">The end position of the rectangle in the scene</param>
+        /// <param name="block">The new block index to set</param>
+        public static void SetRectangle(World world, Vector3 start, Vector3 end, byte block)
         {
-            Vector3 position = point;
-            position += Vector3.one * 0.5f;                    // adjust for the chunks center
-            position += world.data.center * -1f;               // adjust for the worlds center
-            position = world.transform.rotation * position;    // adjust for the worlds rotation
-            position *= world.scale;                           // adjust for the worlds scale
-            position += world.transform.position;              // adjust for the worlds position
-            return position;
-        }
+            Vector3Int startPoint = world.SceneToGrid(start);
+            Vector3Int endPoint = world.SceneToGrid(end);
 
-        /// <summary>
-        /// Safely set a block in the world and flag it's Chunk as stale.
-        /// If the block is on the edge of a Chunk, the adjacent Chunk will also be set as stale
-        /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="position">A position in the scene</param>
-        /// <param name="block">The block index</param>
-        public static void Set(World world, Vector3 position, byte block)
-        {
-            Vector3Int point = Get(world, position);
-            Set(world, point, block);
-        }
-
-        /// <summary>
-        /// Safely set a range of blocks in the world using two positions in the scene.
-        /// Any chunks that were modified will be flagged as stale.
-        /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="start">A position in the scene</param>
-        /// <param name="end">A position in the scene</param>
-        /// <param name="block">The block index to set</param>
-        public static void Set(World world, Vector3 start, Vector3 end, byte block)
-        {
-            Vector3Int startPoint = Get(world, start);
-            Vector3Int endPoint = Get(world, end);
-            Set(world, startPoint, endPoint, block);
-        }
-
-        /// <summary>
-        /// Safely set a Moore neighborhood of blocks in the world.
-        /// Any chunks that were modified will be flagged as stale.
-        /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="position">A position in the scene</param>
-        /// <param name="range">The Moore neighborhood size</param>
-        /// <param name="block">The block index to set</param>
-        public static void Set(World world, Vector3 position, int range, byte block)
-        {
-            Vector3Int point = Get(world, position);
-            Set(world, point, range, block);
-        }
-
-        /// <summary>
-        /// Safely set a sphere of blocks in the world.
-        /// Any chunks that were modified will be flagged as stale.
-        /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="position">A position in the scene</param>
-        /// <param name="radius">The radius of the sphere</param>
-        /// <param name="block">The block index to set</param>
-        public static void Set(World world, Vector3 position, float radius, byte block)
-        {
-            Vector3Int point = Get(world, position);
-            Set(world, point, radius, block);
-        }
-
-        /// <summary>
-        /// Safely set a block in the World and flag it's Chunk as stale.
-        /// If the block is on the edge of a Chunk, the adjacent Chunk will also be set as stale
-        /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="point">A point in the voxel grid</param>
-        /// <param name="block">The block index</param>
-        public static void Set(World world, Vector3Int point, byte block)
-        {
-            if (!world.data.Contains(point)) { return; }
-            if (world.data.Get(point.x, point.y, point.z) == block) { return; }
-
-            Vector3Int chunkIndex = world.chunkManager.IndexFrom(point);
-            Chunk chunk = world.chunkManager.Get(chunkIndex);
-            Vector3Int localPos = point - chunk.offset;
-            chunk.Write(localPos, block);
-
-            world.data.Set(point.x, point.y, point.z, block);
-            world.chunkManager.UpdateFrom(point);
-        }
-
-        /// <summary>
-        /// Safely set a range of blocks in the World between a start and end point
-        /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="start">A point in the voxel grid</param>
-        /// <param name="end">A point in the voxel grid</param>
-        /// <param name="block">The block index to set</param>
-        public static void Set(World world, Vector3Int start, Vector3Int end, byte block)
-        {
             Vector3Int delta = Vector3Int.zero;
-            delta.x = Mathf.Abs(end.x - start.x) + 1;
-            delta.y = Mathf.Abs(end.y - start.y) + 1;
-            delta.z = Mathf.Abs(end.z - start.z) + 1;
+            delta.x = Mathf.Abs(endPoint.x - startPoint.x) + 1;
+            delta.y = Mathf.Abs(endPoint.y - startPoint.y) + 1;
+            delta.z = Mathf.Abs(endPoint.z - startPoint.z) + 1;
 
             Vector3Int min = Vector3Int.zero;
-            min.x = Mathf.Min(start.x, end.x);
-            min.y = Mathf.Min(start.y, end.y);
-            min.z = Mathf.Min(start.z, end.z);
+            min.x = Mathf.Min(startPoint.x, endPoint.x);
+            min.y = Mathf.Min(startPoint.y, endPoint.y);
+            min.z = Mathf.Min(startPoint.z, endPoint.z);
 
             Vector3Int point = Vector3Int.zero;
             for (int x = min.x; x < min.x + delta.x; x++)
@@ -198,23 +77,25 @@ namespace VRoxel.Core
                     for (int y = min.y; y < min.y + delta.y; y++)
                     {
                         point.y = y;
-                        Set(world, point, block);
+                        world.Write(point, block);
                     }
                 }
             }
         }
 
         /// <summary>
-        /// Safely set a Moore neighborhood of blocks in the voxel grid
+        /// Updates blocks in the voxel world using Moore neighborhoods and flags the affected chunks as modified
         /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="point">A point in the voxel grid</param>
-        /// <param name="range">The Moore neighborhood range</param>
-        /// <param name="block">The block index to set</param>
-        public static void Set(World world, Vector3Int point, int range, byte block)
+        /// <param name="world">A reference to the voxel world</param>
+        /// <param name="position">The center of the neighborhood</param>
+        /// <param name="range">The Moore neighborhood size</param>
+        /// <param name="block">The new block index to set</param>
+        public static void SetNeighborhood(World world, Vector3 position, int range, byte block)
         {
             int neighborhood = 2 * range + 1;
             Vector3Int offset = Vector3Int.zero;
+            Vector3Int point = world.SceneToGrid(position);
+
             for (int i = 0; i < neighborhood; i++) // x-axis
             {
                 offset.x = point.x + i - range;
@@ -224,23 +105,24 @@ namespace VRoxel.Core
                     for (int k = 0; k < neighborhood; k++) // y-axis
                     {
                         offset.y = point.y + k - range;
-                        Set(world, offset, block);
+                        world.Write(offset, block);
                     }
                 }
             }
         }
 
         /// <summary>
-        /// Safely set a sphere of blocks in the voxel grid
+        /// Updates a sphere of blocks in the voxel world and flags the affected chunks as modified
         /// </summary>
         /// <param name="world">A reference to the World</param>
-        /// <param name="point">A point in the voxel grid</param>
-        /// <param name="radius">The radius in the voxel grid</param>
-        /// <param name="block">The block index to set</param>
-        public static void Set(World world, Vector3Int point, float radius, byte block)
+        /// <param name="position">The center of the sphere</param>
+        /// <param name="radius">The radius of the sphere</param>
+        /// <param name="block">The new block index to set</param>
+        public static void SetSphere(World world, Vector3 position, float radius, byte block)
         {
             int size = Mathf.CeilToInt(radius);
             Vector3Int offset = Vector3Int.zero;
+            Vector3Int point = world.SceneToGrid(position);
 
             for (int x = point.x - size; x <= point.x + size; x++)
             {
@@ -253,7 +135,7 @@ namespace VRoxel.Core
                         offset.y = y;
                         if (Vector3Int.Distance(point, offset) <= radius)
                         {
-                            Set(world, offset, block);
+                            world.Write(offset, block);
                         }
                     }
                 }

@@ -29,8 +29,8 @@ public class BlockCursor : MonoBehaviour
         else
         {
             // draw a rectangle
-            Vector3Int v1 = WorldEditor.Get(world, p1);
-            Vector3Int v2 = WorldEditor.Get(world, p2);
+            Vector3Int v1 = world.SceneToGrid(p1);
+            Vector3Int v2 = world.SceneToGrid(p2);
 
             float lengthX = Mathf.Abs(v1.x - v2.x);
             float lengthY = Mathf.Abs(v1.y - v2.y);

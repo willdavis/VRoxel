@@ -104,8 +104,6 @@ namespace VRoxel.Core
             m_uvs = new NativeList<Vector2>(Allocator.Persistent);
 
             m_buildChunkMesh = new BuildChunkMesh();
-            m_meshRenderer.material = material;
-
             stale = true;
         }
 
@@ -167,6 +165,11 @@ namespace VRoxel.Core
             m_meshFilter = GetComponent<MeshFilter>();
             m_meshCollider = GetComponent<MeshCollider>();
             m_meshRenderer = GetComponent<MeshRenderer>();
+        }
+
+        protected virtual void Start()
+        {
+            m_meshRenderer.material = material;
         }
 
         protected virtual void Update()
