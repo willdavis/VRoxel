@@ -8,9 +8,9 @@ public class BlockCursor : MonoBehaviour
 {
     GameObject cube, sphere;
 
-    public enum Shape { Cuboid, Spheroid }
+    public enum Shape { Rectangle, Sphere }
 
-    public void UpdateCuboid(World world, Vector3 p1, Vector3 p2, float size = 1f)
+    public void UpdateRectangle(World world, Vector3 p1, Vector3 p2, float size = 1f)
     {
         if (!cube.activeSelf) { cube.SetActive(true); sphere.SetActive(false); }
 
@@ -48,7 +48,7 @@ public class BlockCursor : MonoBehaviour
         }
     }
 
-    public void UpdateSpheroid(World world, Vector3 p1, Vector3 p2, float radius = 1f)
+    public void UpdateSphere(World world, Vector3 p1, Vector3 p2, float radius = 1f)
     {
         if (!sphere.activeSelf) { sphere.SetActive(true); cube.SetActive(false); }
 

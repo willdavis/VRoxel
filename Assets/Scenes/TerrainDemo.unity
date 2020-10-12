@@ -382,7 +382,7 @@ MonoBehaviour:
   blockManager: {fileID: 2065986739}
   block: {fileID: 11400000, guid: cea5cd229a5856c4ea4047d285c45e0e, type: 2}
   refreshPerFrame: 1
-  size: 1
+  radius: 4.5
   snapToGrid: 1
   clickAndDrag: 1
   shape: 0
