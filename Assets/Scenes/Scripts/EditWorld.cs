@@ -118,7 +118,6 @@ public class EditWorld : MonoBehaviour
     void EditBlock()
     {
         if (block == null) { return; }
-
         byte index = (byte)blockManager.blocks.IndexOf(block);
         WorldEditor.SetBlock(world, currentPosition, index);
 
@@ -129,130 +128,11 @@ public class EditWorld : MonoBehaviour
     void EditSphere()
     {
         if (block == null) { return; }
-        editHandle.Complete();
-
         byte index = (byte)blockManager.blocks.IndexOf(block);
-        Vector3Int center = world.SceneToGrid(currentPosition);
-
-        // calculate min and delta of a rectangle that encloses the sphere
-
-        Vector3Int rectDelta = new Vector3Int();
-        Vector3Int rectMin = new Vector3Int();
-
-        rectDelta.x = Mathf.RoundToInt(sphereRadius * 2f);
-        rectDelta.y = Mathf.RoundToInt(sphereRadius * 2f);
-        rectDelta.z = Mathf.RoundToInt(sphereRadius * 2f);
-
-        rectMin.x = center.x - Mathf.RoundToInt(sphereRadius);
-        rectMin.y = center.y - Mathf.RoundToInt(sphereRadius);
-        rectMin.z = center.z - Mathf.RoundToInt(sphereRadius);
-
-        // find the chunks that the rectangle intersects
-        // and schedule jobs to update their voxel data
-
-        Vector3Int chunkMin = Vector3Int.zero;
-        Vector3Int chunkDelta = Vector3Int.zero;
-        Vector3Int chunkStart = world.chunkManager.IndexFrom(rectMin);
-        Vector3Int chunkEnd   = world.chunkManager.IndexFrom(rectMin + rectDelta);
-        Vector3Int chunkSize = world.chunkManager.configuration.size;
-        Vector3Int chunkMax = new Vector3Int(
-            world.size.x / chunkSize.x,
-            world.size.y / chunkSize.y,
-            world.size.z / chunkSize.z
-        );
-
-        chunkDelta.x = Mathf.Abs(chunkEnd.x - chunkStart.x) + 1;
-        chunkDelta.y = Mathf.Abs(chunkEnd.y - chunkStart.y) + 1;
-        chunkDelta.z = Mathf.Abs(chunkEnd.z - chunkStart.z) + 1;
-
-        chunkMin.x = Mathf.Min(chunkStart.x, chunkEnd.x);
-        chunkMin.y = Mathf.Min(chunkStart.y, chunkEnd.y);
-        chunkMin.z = Mathf.Min(chunkStart.z, chunkEnd.z);
-
-        Chunk chunk;
-        int jobIndex = 0;
-        Vector3Int chunkIndex = Vector3Int.zero;
-        int chunkCount = chunkDelta.x * chunkDelta.y * chunkDelta.z;
-        NativeArray<JobHandle> jobs = new NativeArray<JobHandle>(chunkCount, Allocator.Temp);
-
-        for (int x = chunkMin.x; x < chunkMin.x + chunkDelta.x; x++)
-        {
-            chunkIndex.x = x;
-            for (int z = chunkMin.z; z < chunkMin.z + chunkDelta.z; z++)
-            {
-                chunkIndex.z = z;
-                for (int y = chunkMin.y; y < chunkMin.y + chunkDelta.y; y++)
-                {
-                    chunkIndex.y = y;
-                    chunk = world.chunkManager.Get(chunkIndex);
-                    world.chunkManager.Refresh(chunkIndex);
-
-                    // update neighboring chunks
-                    //
-                    // check if the rectangles minimum x is a local minimum for the chunk
-                    // and the chunk is not the first chunk on the X axis
-                    if (rectMin.x - (chunkIndex.x * chunkSize.x) == 0 && chunkIndex.x != 0)
-                        world.chunkManager.Refresh(chunkIndex + Direction3Int.West);
-
-                    // check if the rectangles maximum x is a local maximum for the chunk
-                    // and the chunk is not the last chunk on the X axis
-                    if (rectMin.x + rectDelta.x - (chunkIndex.x * chunkSize.x) == chunkSize.x && chunkIndex.x != chunkMax.x - 1)
-                        world.chunkManager.Refresh(chunkIndex + Direction3Int.East);
-
-                    // check if the rectangles minimum y is a local minimum for the chunk
-                    // and the chunk is not the first chunk on the Y axis
-                    if (rectMin.y - (chunkIndex.y * chunkSize.y) == 0 && chunkIndex.y != 0)
-                        world.chunkManager.Refresh(chunkIndex + Direction3Int.Down);
-
-                    // check if the rectangles maximum y is a local maximum for the chunk
-                    // and the chunk is not the last chunk on the Y axis
-                    if (rectMin.y + rectDelta.y - (chunkIndex.y * chunkSize.y) == chunkSize.y && chunkIndex.y != chunkMax.y - 1)
-                        world.chunkManager.Refresh(chunkIndex + Direction3Int.Up);
-
-                    // check if the rectangles minimum z is a local minimum for the chunk
-                    // and the chunk is not the first chunk on the Z axis
-                    if (rectMin.z - (chunkIndex.z * chunkSize.z) == 0 && chunkIndex.z != 0)
-                        world.chunkManager.Refresh(chunkIndex + Direction3Int.South);
-
-                    // check if the rectangles maximum z is a local maximum for the chunk
-                    // and the chunk is not the last chunk on the Z axis
-                    if (rectMin.z + rectDelta.z - (chunkIndex.z * chunkSize.z) == chunkSize.z && chunkIndex.z != chunkMax.z - 1)
-                        world.chunkManager.Refresh(chunkIndex + Direction3Int.North);
-
-                    // schedule a background job to update the chunks voxel data
-
-                    ModifySphere job = new ModifySphere();
-                    job.chunkOffset = new int3(chunk.offset.x, chunk.offset.y, chunk.offset.z);
-                    job.chunkSize = new int3(chunkSize.x, chunkSize.y, chunkSize.z);
-                    job.center = new int3(center.x, center.y, center.z);
-                    job.voxels = chunk.voxels;
-                    job.radius = sphereRadius;
-                    job.block = index;
-
-                    jobs[jobIndex] = job.Schedule();
-                    jobIndex++;
-                }
-            }
-        }
-
-        // deprecated but still required for agent navigation
-        EditVoxelSphereJob navJob = new EditVoxelSphereJob()
-        {
-            worldSize = new int3(world.size.x, world.size.y, world.size.z),
-            position = new int3(center.x, center.y, center.z),
-            voxels = world.data.voxels,
-            radius = sphereRadius,
-            block = index
-        };
-        JobHandle navHandle = navJob.Schedule();
-
-        // combine dependencies and refresh the chunks
-        editHandle = JobHandle.CombineDependencies(jobs);
-        editHandle = JobHandle.CombineDependencies(editHandle, navHandle);
-        jobs.Dispose();
+        WorldEditor.SetSphere(world, currentPosition,
+            sphereRadius, index, ref editHandle);
 
         // notify listeners
-        world.chunkManager.refreshDependsOn = editHandle;
         heightMapHandle = heightMap.Refresh(editHandle);
         world.data.OnEdit.Invoke(heightMapHandle);
     }
@@ -260,132 +140,11 @@ public class EditWorld : MonoBehaviour
     void EditRectangle()
     {
         if (block == null) { return; }
-        editHandle.Complete();
-
         byte index = (byte)blockManager.blocks.IndexOf(block);
-        Vector3Int end = world.SceneToGrid(currentPosition);
-        Vector3Int start = world.SceneToGrid(_clickStart);
-
-        // calculate min and delta of the rectangle so the
-        // orientation of the start and end positions will not matter
-
-        Vector3Int rectDelta = new Vector3Int();
-        Vector3Int rectMin = new Vector3Int();
-
-        rectDelta.x = Mathf.Abs(end.x - start.x) + 1;
-        rectDelta.y = Mathf.Abs(end.y - start.y) + 1;
-        rectDelta.z = Mathf.Abs(end.z - start.z) + 1;
-
-        rectMin.x = Mathf.Min(start.x, end.x);
-        rectMin.y = Mathf.Min(start.y, end.y);
-        rectMin.z = Mathf.Min(start.z, end.z);
-
-        // find the chunks that the rectangle intersects
-        // and schedule jobs to update their voxel data
-
-        Vector3Int chunkMin = Vector3Int.zero;
-        Vector3Int chunkDelta = Vector3Int.zero;
-        Vector3Int chunkEnd   = world.chunkManager.IndexFrom(end);
-        Vector3Int chunkStart = world.chunkManager.IndexFrom(start);
-        Vector3Int chunkSize = world.chunkManager.configuration.size;
-        Vector3Int chunkMax = new Vector3Int(
-            world.size.x / chunkSize.x,
-            world.size.y / chunkSize.y,
-            world.size.z / chunkSize.z
-        );
-
-        chunkDelta.x = Mathf.Abs(chunkEnd.x - chunkStart.x) + 1;
-        chunkDelta.y = Mathf.Abs(chunkEnd.y - chunkStart.y) + 1;
-        chunkDelta.z = Mathf.Abs(chunkEnd.z - chunkStart.z) + 1;
-
-        chunkMin.x = Mathf.Min(chunkStart.x, chunkEnd.x);
-        chunkMin.y = Mathf.Min(chunkStart.y, chunkEnd.y);
-        chunkMin.z = Mathf.Min(chunkStart.z, chunkEnd.z);
-
-        Chunk chunk;
-        int jobIndex = 0;
-        Vector3Int chunkIndex = Vector3Int.zero;
-        int chunkCount = chunkDelta.x * chunkDelta.y * chunkDelta.z;
-        NativeArray<JobHandle> jobs = new NativeArray<JobHandle>(chunkCount, Allocator.Temp);
-
-        for (int x = chunkMin.x; x < chunkMin.x + chunkDelta.x; x++)
-        {
-            chunkIndex.x = x;
-            for (int z = chunkMin.z; z < chunkMin.z + chunkDelta.z; z++)
-            {
-                chunkIndex.z = z;
-                for (int y = chunkMin.y; y < chunkMin.y + chunkDelta.y; y++)
-                {
-                    chunkIndex.y = y;
-                    chunk = world.chunkManager.Get(chunkIndex);
-                    world.chunkManager.Refresh(chunkIndex);
-
-                    // update neighboring chunks
-                    //
-                    // check if the rectangles minimum x is a local minimum for the chunk
-                    // and the chunk is not the first chunk on the X axis
-                    if (rectMin.x - (chunkIndex.x * chunkSize.x) == 0 && chunkIndex.x != 0)
-                        world.chunkManager.Refresh(chunkIndex + Direction3Int.West);
-
-                    // check if the rectangles maximum x is a local maximum for the chunk
-                    // and the chunk is not the last chunk on the X axis
-                    if (rectMin.x + rectDelta.x - (chunkIndex.x * chunkSize.x) == chunkSize.x && chunkIndex.x != chunkMax.x - 1)
-                        world.chunkManager.Refresh(chunkIndex + Direction3Int.East);
-
-                    // check if the rectangles minimum y is a local minimum for the chunk
-                    // and the chunk is not the first chunk on the Y axis
-                    if (rectMin.y - (chunkIndex.y * chunkSize.y) == 0 && chunkIndex.y != 0)
-                        world.chunkManager.Refresh(chunkIndex + Direction3Int.Down);
-
-                    // check if the rectangles maximum y is a local maximum for the chunk
-                    // and the chunk is not the last chunk on the Y axis
-                    if (rectMin.y + rectDelta.y - (chunkIndex.y * chunkSize.y) == chunkSize.y && chunkIndex.y != chunkMax.y - 1)
-                        world.chunkManager.Refresh(chunkIndex + Direction3Int.Up);
-
-                    // check if the rectangles minimum z is a local minimum for the chunk
-                    // and the chunk is not the first chunk on the Z axis
-                    if (rectMin.z - (chunkIndex.z * chunkSize.z) == 0 && chunkIndex.z != 0)
-                        world.chunkManager.Refresh(chunkIndex + Direction3Int.South);
-
-                    // check if the rectangles maximum z is a local maximum for the chunk
-                    // and the chunk is not the last chunk on the Z axis
-                    if (rectMin.z + rectDelta.z - (chunkIndex.z * chunkSize.z) == chunkSize.z && chunkIndex.z != chunkMax.z - 1)
-                        world.chunkManager.Refresh(chunkIndex + Direction3Int.North);
-
-                    // schedule a background job to update the chunks voxel data
-
-                    ModifyRectangle job = new ModifyRectangle();
-                    job.chunkOffset = new int3(chunk.offset.x, chunk.offset.y, chunk.offset.z);
-                    job.chunkSize = new int3(chunkSize.x, chunkSize.y, chunkSize.z);
-                    job.start = new int3(start.x, start.y, start.z);
-                    job.end = new int3(end.x, end.y, end.z);
-                    job.voxels = chunk.voxels;
-                    job.block = index;
-
-                    jobs[jobIndex] = job.Schedule();
-                    jobIndex++;
-                }
-            }
-        }
-
-        // required for agent navigation
-        EditVoxelJob navJob = new EditVoxelJob()
-        {
-            size = new int3(world.size.x, world.size.y, world.size.z),
-            start = new int3(start.x, start.y, start.z),
-            end = new int3(end.x, end.y, end.z),
-            voxels = world.data.voxels,
-            block = index
-        };
-        JobHandle navHandle = navJob.Schedule();
-
-        // combine dependencies and refresh the chunks
-        editHandle = JobHandle.CombineDependencies(jobs);
-        editHandle = JobHandle.CombineDependencies(editHandle, navHandle);
-        jobs.Dispose();
+        WorldEditor.SetRectangle(world, currentPosition,
+            _clickStart, index, ref editHandle);
 
         // notify listeners
-        world.chunkManager.refreshDependsOn = editHandle;
         heightMapHandle = heightMap.Refresh(editHandle);
         world.data.OnEdit.Invoke(heightMapHandle);
     }
