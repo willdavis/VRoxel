@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 1211646852778975801}
   - component: {fileID: 2606290161755354775}
   m_Layer: 0
-  m_Name: World
+  m_Name: VoxelWorld
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -80,6 +80,7 @@ MonoBehaviour:
   chunkPrefab: {fileID: 994700121345750081, guid: 809834db6e9c17f46ab0b36c5080775b,
     type: 3}
   configuration: {fileID: 11400000, guid: 54d8b36803b655846a8bedcea784fdab, type: 2}
+  refreshPerFrame: 1
 --- !u!114 &2606290161755354775
 MonoBehaviour:
   m_ObjectHideFlags: 0

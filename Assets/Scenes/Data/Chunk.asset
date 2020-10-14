@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7281d3f6765a3549a28bcce90575027, type: 3}
   m_Name: Chunk
   m_EditorClassIdentifier: 
-  size: {x: 16, y: 32, z: 16}
+  size: {x: 16, y: 64, z: 16}
   sizeScale: 1
   material: {fileID: 2100000, guid: 7c8819ba9885214409d65f8fdb2753b0, type: 2}
   textureScale: 0.0625

@@ -44,7 +44,6 @@ public class EditWorld : MonoBehaviour
 
     RaycastHit _hit;
     Vector3 _hitPosition;
-    Queue<Chunk> m_refreshChunks;
 
     public JobHandle editHandle;
     public JobHandle heightMapHandle;
@@ -63,20 +62,11 @@ public class EditWorld : MonoBehaviour
             heightMap = GetComponent<HeightMap>();
         if (blockManager == null)
             blockManager = GetComponent<BlockManager>();
-
-        m_refreshChunks = new Queue<Chunk>();
     }
 
     void Update()
     {
-        int refreshCount = refreshPerFrame;
-        while (m_refreshChunks.Count != 0 && refreshCount > 0)
-        {
-            m_refreshChunks.Dequeue().Refresh(editHandle);
-            refreshCount--;
-        }
-
-        Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast (ray, out _hit))
         {
             CacheHitVoxelData();
@@ -180,7 +170,6 @@ public class EditWorld : MonoBehaviour
         chunkMin.z = Mathf.Min(chunkStart.z, chunkEnd.z);
 
         Chunk chunk;
-        Chunk nextChunk;
         int jobIndex = 0;
         Vector3Int chunkIndex = Vector3Int.zero;
         int chunkCount = chunkDelta.x * chunkDelta.y * chunkDelta.z;
@@ -196,59 +185,39 @@ public class EditWorld : MonoBehaviour
                 {
                     chunkIndex.y = y;
                     chunk = world.chunkManager.Get(chunkIndex);
-                    if (chunk == null) { continue; }
-
-                    m_refreshChunks.Enqueue(chunk);
+                    world.chunkManager.Refresh(chunkIndex);
 
                     // update neighboring chunks
                     //
                     // check if the rectangles minimum x is a local minimum for the chunk
                     // and the chunk is not the first chunk on the X axis
                     if (rectMin.x - (chunkIndex.x * chunkSize.x) == 0 && chunkIndex.x != 0)
-                    {
-                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.West);
-                        if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
-                    }
+                        world.chunkManager.Refresh(chunkIndex + Direction3Int.West);
 
                     // check if the rectangles maximum x is a local maximum for the chunk
                     // and the chunk is not the last chunk on the X axis
                     if (rectMin.x + rectDelta.x - (chunkIndex.x * chunkSize.x) == chunkSize.x && chunkIndex.x != chunkMax.x - 1)
-                    {
-                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.East);
-                        if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
-                    }
+                        world.chunkManager.Refresh(chunkIndex + Direction3Int.East);
 
                     // check if the rectangles minimum y is a local minimum for the chunk
                     // and the chunk is not the first chunk on the Y axis
                     if (rectMin.y - (chunkIndex.y * chunkSize.y) == 0 && chunkIndex.y != 0)
-                    {
-                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.Down);
-                        if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
-                    }
+                        world.chunkManager.Refresh(chunkIndex + Direction3Int.Down);
 
                     // check if the rectangles maximum y is a local maximum for the chunk
                     // and the chunk is not the last chunk on the Y axis
                     if (rectMin.y + rectDelta.y - (chunkIndex.y * chunkSize.y) == chunkSize.y && chunkIndex.y != chunkMax.y - 1)
-                    {
-                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.Up);
-                        if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
-                    }
+                        world.chunkManager.Refresh(chunkIndex + Direction3Int.Up);
 
                     // check if the rectangles minimum z is a local minimum for the chunk
                     // and the chunk is not the first chunk on the Z axis
                     if (rectMin.z - (chunkIndex.z * chunkSize.z) == 0 && chunkIndex.z != 0)
-                    {
-                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.South);
-                        if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
-                    }
+                        world.chunkManager.Refresh(chunkIndex + Direction3Int.South);
 
                     // check if the rectangles maximum z is a local maximum for the chunk
                     // and the chunk is not the last chunk on the Z axis
                     if (rectMin.z + rectDelta.z - (chunkIndex.z * chunkSize.z) == chunkSize.z && chunkIndex.z != chunkMax.z - 1)
-                    {
-                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.North);
-                        if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
-                    }
+                        world.chunkManager.Refresh(chunkIndex + Direction3Int.North);
 
                     // schedule a background job to update the chunks voxel data
 
@@ -283,6 +252,7 @@ public class EditWorld : MonoBehaviour
         jobs.Dispose();
 
         // notify listeners
+        world.chunkManager.refreshDependsOn = editHandle;
         heightMapHandle = heightMap.Refresh(editHandle);
         world.data.OnEdit.Invoke(heightMapHandle);
     }
@@ -333,7 +303,6 @@ public class EditWorld : MonoBehaviour
         chunkMin.z = Mathf.Min(chunkStart.z, chunkEnd.z);
 
         Chunk chunk;
-        Chunk nextChunk;
         int jobIndex = 0;
         Vector3Int chunkIndex = Vector3Int.zero;
         int chunkCount = chunkDelta.x * chunkDelta.y * chunkDelta.z;
@@ -349,57 +318,39 @@ public class EditWorld : MonoBehaviour
                 {
                     chunkIndex.y = y;
                     chunk = world.chunkManager.Get(chunkIndex);
-                    m_refreshChunks.Enqueue(chunk);
+                    world.chunkManager.Refresh(chunkIndex);
 
                     // update neighboring chunks
                     //
                     // check if the rectangles minimum x is a local minimum for the chunk
                     // and the chunk is not the first chunk on the X axis
                     if (rectMin.x - (chunkIndex.x * chunkSize.x) == 0 && chunkIndex.x != 0)
-                    {
-                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.West);
-                        if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
-                    }
+                        world.chunkManager.Refresh(chunkIndex + Direction3Int.West);
 
                     // check if the rectangles maximum x is a local maximum for the chunk
                     // and the chunk is not the last chunk on the X axis
                     if (rectMin.x + rectDelta.x - (chunkIndex.x * chunkSize.x) == chunkSize.x && chunkIndex.x != chunkMax.x - 1)
-                    {
-                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.East);
-                        if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
-                    }
+                        world.chunkManager.Refresh(chunkIndex + Direction3Int.East);
 
                     // check if the rectangles minimum y is a local minimum for the chunk
                     // and the chunk is not the first chunk on the Y axis
                     if (rectMin.y - (chunkIndex.y * chunkSize.y) == 0 && chunkIndex.y != 0)
-                    {
-                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.Down);
-                        if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
-                    }
+                        world.chunkManager.Refresh(chunkIndex + Direction3Int.Down);
 
                     // check if the rectangles maximum y is a local maximum for the chunk
                     // and the chunk is not the last chunk on the Y axis
                     if (rectMin.y + rectDelta.y - (chunkIndex.y * chunkSize.y) == chunkSize.y && chunkIndex.y != chunkMax.y - 1)
-                    {
-                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.Up);
-                        if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
-                    }
+                        world.chunkManager.Refresh(chunkIndex + Direction3Int.Up);
 
                     // check if the rectangles minimum z is a local minimum for the chunk
                     // and the chunk is not the first chunk on the Z axis
                     if (rectMin.z - (chunkIndex.z * chunkSize.z) == 0 && chunkIndex.z != 0)
-                    {
-                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.South);
-                        if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
-                    }
+                        world.chunkManager.Refresh(chunkIndex + Direction3Int.South);
 
                     // check if the rectangles maximum z is a local maximum for the chunk
                     // and the chunk is not the last chunk on the Z axis
                     if (rectMin.z + rectDelta.z - (chunkIndex.z * chunkSize.z) == chunkSize.z && chunkIndex.z != chunkMax.z - 1)
-                    {
-                        nextChunk = world.chunkManager.Get(chunkIndex + Direction3Int.North);
-                        if (nextChunk) { m_refreshChunks.Enqueue(nextChunk); }
-                    }
+                        world.chunkManager.Refresh(chunkIndex + Direction3Int.North);
 
                     // schedule a background job to update the chunks voxel data
 
@@ -434,6 +385,7 @@ public class EditWorld : MonoBehaviour
         jobs.Dispose();
 
         // notify listeners
+        world.chunkManager.refreshDependsOn = editHandle;
         heightMapHandle = heightMap.Refresh(editHandle);
         world.data.OnEdit.Invoke(heightMapHandle);
     }

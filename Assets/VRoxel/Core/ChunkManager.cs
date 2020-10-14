@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using VRoxel.Core.Data;
+using Unity.Jobs;
 using UnityEngine;
 
 namespace VRoxel.Core
@@ -24,6 +25,23 @@ namespace VRoxel.Core
         /// </summary>
         public ChunkConfiguration configuration;
 
+        /// <summary>
+        /// The number of chunks that can be rendered each frame
+        /// </summary>
+        [Min(1)]
+        public int refreshPerFrame = 1;
+
+        /// <summary>
+        /// The job(s) that must be complete before chunks can be refreshed
+        /// </summary>
+        public JobHandle refreshDependsOn { get; set; }
+
+        /// <summary>
+        /// References the chunks that are waiting to be refreshed
+        /// </summary>
+        protected Queue<Vector3Int> m_chunksToRefresh;
+
+
         public MeshGenerator meshGenerator;
 
         private Dictionary<Vector3Int, Chunk> m_cache;
@@ -40,12 +58,24 @@ namespace VRoxel.Core
 
         protected void Start()
         {
+            m_chunksToRefresh = new Queue<Vector3Int>();
             m_cache = new Dictionary<Vector3Int, Chunk>();
             m_maxChunks = new Vector3Int(
                 world.size.x / configuration.size.x,
                 world.size.y / configuration.size.y,
                 world.size.z / configuration.size.z
             );
+        }
+
+        protected void Update()
+        {
+            int refreshCount = refreshPerFrame;
+            while (m_chunksToRefresh.Count != 0 && refreshCount > 0)
+            {
+                refreshCount--;
+                Get(m_chunksToRefresh.Dequeue())
+                    .Refresh(refreshDependsOn);
+            }
         }
 
         protected void OnDestroy()
@@ -109,7 +139,7 @@ namespace VRoxel.Core
         }
 
         /// <summary>
-        /// Fetch a Chunk from the cache.
+        /// Returns the Chunk (if present) at the given chunk index
         /// </summary>
         /// <param name="index">The Chunk index</param>
         public Chunk Get(Vector3Int index)
@@ -120,14 +150,14 @@ namespace VRoxel.Core
         }
 
         /// <summary>
-        /// Flags a Chunk as stale so it updates on the next frame
+        /// Add a Chunk (if present) to the queue to be refreshed
         /// </summary>
         /// <param name="index">The Chunk index</param>
         public void Refresh(Vector3Int index)
         {
             if (!Contains(index)) { return; }
             if (!HasIndex(index)) { return; }
-            m_cache[index].stale = true;
+            m_chunksToRefresh.Enqueue(index);
         }
 
         /// <summary>
@@ -181,10 +211,10 @@ namespace VRoxel.Core
         }
 
         /// <summary>
-        /// Updates the Chunk containing the given grid point.
-        /// Any adjacent Chunks will be updated if the point is on an edge.
+        /// Refreshes the Chunk that contains the given global position.
+        /// Any adjacent Chunks will be refreshed if the point is on an edge.
         /// </summary>
-        /// <param name="index">A point in the voxel grid</param>
+        /// <param name="point">A global position in the voxel world</param>
         public void UpdateFrom(Vector3Int point)
         {
             Vector3Int index = IndexFrom(point);

@@ -45,6 +45,7 @@ public class LoadWorld : MonoBehaviour
         world.chunkManager.LoadAll(); // initialize all chunks in the world
 
         GenerateTerrainData();
+        world.chunkManager.LoadAll(); // refresh all chunks in the world
 
         heightMap.voxels = world.data.voxels;
         heightMap.Initialize(); // initialize the height map
@@ -72,11 +73,11 @@ public class LoadWorld : MonoBehaviour
                 {
                     point.y = y;
                     if (point.y == height)
-                        world.Write(point, grass);
+                        world.Write(point, grass, false);
                     else if (point.y >= height-3 && point.y <  height)
-                        world.Write(point, dirt);
+                        world.Write(point, dirt, false);
                     else if (point.y <  height-3)
-                        world.Write(point, stone);
+                        world.Write(point, stone, false);
                 }
             }
         }

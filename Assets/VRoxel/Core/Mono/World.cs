@@ -141,11 +141,11 @@ namespace VRoxel.Core
         }
 
         /// <summary>
-        /// Updates the voxel at a grid position in the world
+        /// Updates a single voxel at a position in the world
         /// </summary>
-        /// <param name="point">A grid position in the voxel world</param>
+        /// <param name="point">A global position in the voxel world</param>
         /// <param name="voxel">The block index that will be added</param>
-        public void Write(Vector3Int point, byte voxel)
+        public void Write(Vector3Int point, byte voxel, bool refresh = true)
         {
             if (!Contains(point)) { return; }   // point is out of bounds
 
@@ -161,7 +161,7 @@ namespace VRoxel.Core
             if (!originalBlock.editable) { return; } // block can not be changed
 
             chunk.Write(localPos, voxel);
-            chunkManager.UpdateFrom(point);
+            if (refresh) { chunkManager.UpdateFrom(point); }
 
             // deprecated but still needed for navigation
             data.Set(point.x, point.y, point.z, voxel);

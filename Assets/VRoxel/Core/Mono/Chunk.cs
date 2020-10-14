@@ -96,15 +96,13 @@ namespace VRoxel.Core
         public void Initialize()
         {
             Dispose(); // clear any existing data
+            m_buildChunkMesh = new BuildChunkMesh();
             int size1D = size.x * size.y * size.z;
-            m_voxels = new NativeArray<byte>(size1D, Allocator.Persistent);
 
+            m_voxels = new NativeArray<byte>(size1D, Allocator.Persistent);
             m_vertices = new NativeList<Vector3>(Allocator.Persistent);
             m_triangles = new NativeList<int>(Allocator.Persistent);
             m_uvs = new NativeList<Vector2>(Allocator.Persistent);
-
-            m_buildChunkMesh = new BuildChunkMesh();
-            stale = true;
         }
 
         /// <summary>
