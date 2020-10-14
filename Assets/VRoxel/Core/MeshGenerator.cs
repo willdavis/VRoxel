@@ -20,6 +20,11 @@ namespace VRoxel.Core
         private NativeArray<int3> m_directions;
         private NativeArray<Block> m_blocks;
 
+        public NativeArray<Block> blockLibrary
+        {
+            get { return m_blocks; }
+        }
+
         public MeshGenerator(World world)
         {
             m_chunkConfig = world.chunkManager.configuration;
@@ -45,6 +50,7 @@ namespace VRoxel.Core
                 BlockConfiguration blockConfig = m_blockManager.blocks[i];
                 m_blocks[i] = new Block()
                 {
+                    editable = blockConfig.editable,
                     collidable = blockConfig.collidable,
                     texturesUp = blockConfig.texture,
                     texturesDown = blockConfig.texture,

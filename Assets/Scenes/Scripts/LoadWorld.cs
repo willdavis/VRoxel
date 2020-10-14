@@ -61,6 +61,7 @@ public class LoadWorld : MonoBehaviour
         byte dirt  = blockManager.IndexOf("dirt");
         byte grass = blockManager.IndexOf("grass");
         byte stone = blockManager.IndexOf("stone");
+        byte bedrock = blockManager.IndexOf("bedrock");
 
         for (int x = 0; x < world.size.x; x++)
         {
@@ -74,10 +75,12 @@ public class LoadWorld : MonoBehaviour
                     point.y = y;
                     if (point.y == height)
                         world.Write(point, grass, false);
-                    else if (point.y >= height-3 && point.y <  height)
+                    if (point.y >= height-3 && point.y <  height)
                         world.Write(point, dirt, false);
-                    else if (point.y <  height-3)
+                    if (point.y <  height-3)
                         world.Write(point, stone, false);
+                    if (point.y == 0)
+                        world.Write(point, bedrock, false);
                 }
             }
         }

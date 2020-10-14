@@ -182,6 +182,7 @@ namespace VRoxel.Core
                         // schedule a background job to update the chunks voxel data
 
                         ModifyRectangle job = new ModifyRectangle();
+                        job.blockLibrary = world.chunkManager.meshGenerator.blockLibrary;
                         job.chunkOffset = new int3(chunk.offset.x, chunk.offset.y, chunk.offset.z);
                         job.chunkSize = new int3(chunkSize.x, chunkSize.y, chunkSize.z);
                         job.start = new int3(startGrid.x, startGrid.y, startGrid.z);
@@ -315,6 +316,7 @@ namespace VRoxel.Core
                         // schedule a background job to update the chunks voxel data
 
                         ModifySphere job = new ModifySphere();
+                        job.blockLibrary = world.chunkManager.meshGenerator.blockLibrary;
                         job.chunkOffset = new int3(chunk.offset.x, chunk.offset.y, chunk.offset.z);
                         job.chunkSize = new int3(chunkSize.x, chunkSize.y, chunkSize.z);
                         job.center = new int3(center.x, center.y, center.z);

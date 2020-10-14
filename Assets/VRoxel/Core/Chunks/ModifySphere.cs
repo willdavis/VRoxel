@@ -39,7 +39,12 @@ namespace VRoxel.Core.Chunks
         /// <summary>
         /// The chunks voxel data that will be modified
         /// </summary>
-        [WriteOnly] public NativeArray<byte> voxels;
+        public NativeArray<byte> voxels;
+
+        /// <summary>
+        /// A reference to the block settings for the world
+        /// </summary>
+        [ReadOnly] public NativeArray<Block> blockLibrary;
 
 
         /// <summary>
@@ -61,6 +66,7 @@ namespace VRoxel.Core.Chunks
             min.y = center.y - (int)math.round(radius);
             min.z = center.z - (int)math.round(radius);
 
+            int index = 0;
             for (int x = 0; x < chunkSize.x; x++)
             {
                 localPos.x = x;
@@ -77,7 +83,11 @@ namespace VRoxel.Core.Chunks
                         if (OutOfSphere(globalPos, center, radius))
                             continue;
 
-                        voxels[Flatten(localPos)] = block;
+                        index = Flatten(localPos);
+                        if (NotEditable(voxels[index]))
+                            continue;
+
+                        voxels[index] = block;
                     }
                 }
             }
@@ -93,6 +103,15 @@ namespace VRoxel.Core.Chunks
             return (point.x * chunkSize.y * chunkSize.z)
                 + (point.y * chunkSize.z)
                 + point.z;
+        }
+
+        /// <summary>
+        /// Checks if a voxel is not editable
+        /// </summary>
+        /// <param name="voxel">The voxel to test</param>
+        public bool NotEditable(byte voxel)
+        {
+            return !blockLibrary[voxel].editable;
         }
 
         /// <summary>

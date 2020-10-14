@@ -371,6 +371,7 @@ namespace VRoxel.Core.Chunks
     [Serializable]
     public struct Block
     {
+        public bool editable;
         public bool collidable;
         public float2 texturesUp;
         public float2 texturesDown;
