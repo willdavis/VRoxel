@@ -145,8 +145,9 @@ namespace VRoxel.Core
                     {
                         chunkIndex.y = y;
                         chunk = world.chunkManager.Get(chunkIndex);
-                        world.chunkManager.Refresh(chunkIndex);
+                        if (chunk == null) { continue; }
 
+                        world.chunkManager.Refresh(chunkIndex);
                         // update neighboring chunks
                         //
                         // check if the rectangles minimum x is a local minimum for the chunk
@@ -279,8 +280,9 @@ namespace VRoxel.Core
                     {
                         chunkIndex.y = y;
                         chunk = world.chunkManager.Get(chunkIndex);
-                        world.chunkManager.Refresh(chunkIndex);
+                        if (chunk == null) { continue; }
 
+                        world.chunkManager.Refresh(chunkIndex);
                         // update neighboring chunks
                         //
                         // check if the rectangles minimum x is a local minimum for the chunk
