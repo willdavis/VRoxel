@@ -35,11 +35,6 @@ namespace VRoxel.Core
         /// </summary>
         [HideInInspector] public ChunkNeighbors neighbors;
 
-        /// <summary>
-        /// Flags if the Chunk needs to be updated
-        /// </summary>
-        [HideInInspector] public bool stale;
-
         protected Mesh m_mesh;
         protected MeshFilter m_meshFilter;
         protected MeshCollider m_meshCollider;
@@ -51,7 +46,6 @@ namespace VRoxel.Core
         public NativeArray<byte> voxels { get { return m_voxels; } }
         protected NativeArray<byte> m_voxels;
 
-        public JobHandle dependsOn { get; private set; }
         public JobHandle buildingMesh { get; private set; }
         protected BuildChunkMesh m_buildChunkMesh;
         protected bool m_buildingMesh;
@@ -86,9 +80,44 @@ namespace VRoxel.Core
         #endregion
         //-------------------------------------------------
 
-
         //-------------------------------------------------
-        #region Public API
+        #region Monobehaviors
+
+        protected virtual void Awake()
+        {
+            m_mesh = new Mesh();
+            m_meshFilter = GetComponent<MeshFilter>();
+            m_meshCollider = GetComponent<MeshCollider>();
+            m_meshRenderer = GetComponent<MeshRenderer>();
+        }
+
+        protected virtual void Start()
+        {
+            m_meshRenderer.material = material;
+        }
+
+        protected virtual void Update()
+        {
+            if (m_buildingMesh)
+                UpdateMesh();
+        }
+
+        protected virtual void OnDestroy()
+        {
+            Dispose();
+        }
+
+        protected virtual void OnDrawGizmos()
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.matrix = transform.localToWorldMatrix;
+            Gizmos.DrawWireCube(Vector3.zero, new Vector3(
+                size.x * scale, size.y * scale, size.z * scale
+            ));
+        }
+
+        #endregion
+        //-------------------------------------------------
 
         /// <summary>
         /// Initializes the Chunk's mesh and voxel data
@@ -106,30 +135,32 @@ namespace VRoxel.Core
         }
 
         /// <summary>
-        /// Read the voxel at a position in the Chunk
+        /// Read the voxel from a local position in the Chunk
         /// </summary>
-        public byte Read(Vector3Int point)
+        public byte Read(Vector3Int localPos)
         {
-            if (!Contains(point)) { return byte.MaxValue; }
-            return m_voxels[Flatten(point)];
+            if (!Contains(localPos)) { return byte.MaxValue; }
+            return m_voxels[Flatten(localPos)];
         }
 
         /// <summary>
-        /// Write voxel data to a position in the Chunk
+        /// Write voxel data to a local position in the Chunk
         /// </summary>
-        public void Write(Vector3Int point, byte block)
+        public void Write(Vector3Int localPos, byte block)
         {
-            if (!Contains(point)) { return; }
-            m_voxels[Flatten(point)] = block;
+            if (!Contains(localPos)) { return; }
+            m_voxels[Flatten(localPos)] = block;
         }
 
         /// <summary>
-        /// Flag the chunk as modifed so it is refreshed next frame
+        /// Schedules a background job to refresh the Chunk's mesh
         /// </summary>
-        public void Refresh(JobHandle handle = default)
+        public void Refresh(JobHandle dependsOn = default)
         {
-            dependsOn = handle;
-            stale = true;
+            m_buildingMesh = true;
+            buildingMesh = meshGenerator.BuildMesh(
+                this, ref m_buildChunkMesh, ref m_vertices,
+                ref m_triangles, ref m_uvs, dependsOn);
         }
 
         /// <summary>
@@ -150,64 +181,10 @@ namespace VRoxel.Core
                 m_uvs.Dispose();
         }
 
-        #endregion
-        //-------------------------------------------------
-
-
-        //-------------------------------------------------
-        #region Monobehaviors
-
-        protected virtual void Awake()
-        {
-            m_mesh = new Mesh();
-            m_meshFilter = GetComponent<MeshFilter>();
-            m_meshCollider = GetComponent<MeshCollider>();
-            m_meshRenderer = GetComponent<MeshRenderer>();
-        }
-
-        protected virtual void Start()
-        {
-            m_meshRenderer.material = material;
-        }
-
-        protected virtual void Update()
-        {
-            if (stale) { GenerateMesh(); }
-            if (m_buildingMesh) { UpdateMesh(); }
-        }
-
-        protected virtual void OnDestroy()
-        {
-            Dispose();
-        }
-
-        protected virtual void OnDrawGizmos()
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.matrix = transform.localToWorldMatrix;
-            Gizmos.DrawWireCube(Vector3.zero, new Vector3(
-                size.x * scale, size.y * scale, size.z * scale
-            ));
-        }
-
-        #endregion
-        //-------------------------------------------------
-
 
         /// <summary>
-        /// Generates the render and collision mesh for the Chunk
+        /// Updates the render and collision mesh for the Chunk
         /// </summary>
-        protected void GenerateMesh()
-        {
-            dependsOn.Complete();
-
-            stale = false;
-            m_buildingMesh = true;
-            buildingMesh = meshGenerator.BuildMesh(
-                this, ref m_buildChunkMesh, ref m_vertices,
-                ref m_triangles, ref m_uvs);
-        }
-
         protected void UpdateMesh()
         {
             buildingMesh.Complete();
@@ -225,7 +202,7 @@ namespace VRoxel.Core
         }
 
         /// <summary>
-        /// Test if a point is inside the voxel array
+        /// Checks if a local position is inside the Chunks boundary
         /// </summary>
         protected bool Contains(Vector3Int point)
         {
@@ -236,7 +213,7 @@ namespace VRoxel.Core
         }
 
         /// <summary>
-        /// Calculate an array index from a Vector3Int point
+        /// Calculate an array index from a local Vector3Int position
         /// </summary>
         protected int Flatten(Vector3Int point)
         {

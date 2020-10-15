@@ -30,11 +30,11 @@ public class EditWorld : MonoBehaviour
 
 
     [Header("Cursor Settings")]
+    public Cube.Point adjustHitPosition = Cube.Point.Outside;
     public BlockCursor.Shape shape = BlockCursor.Shape.Rectangle;
     public float sphereRadius = 2.5f;
     public bool snapToGrid = true;
     public bool clickAndDrag = true;
-    public Cube.Point adjustHitPosition = Cube.Point.Outside;
 
     bool _isDragging = false;
     Vector3 _clickStart = Vector3.zero;
@@ -86,7 +86,7 @@ public class EditWorld : MonoBehaviour
     /// </summary>
     void HandlePlayerInput()
     {
-        if (Input.GetMouseButtonDown(0)) // left click - down
+        if (Input.GetMouseButtonDown(0)) // left mouse button - down
         {
             switch (shape)
             {
@@ -99,8 +99,7 @@ public class EditWorld : MonoBehaviour
                     break;
             }
         }
-
-        if (Input.GetMouseButtonUp(0)) // left click - up
+        else if (Input.GetMouseButtonUp(0)) // left mouse button - up
         {
             switch (shape)
             {
@@ -113,6 +112,17 @@ public class EditWorld : MonoBehaviour
                     break;
             }
         }
+        else if (Input.GetMouseButton(0) && clickAndDrag) // left mouse button - hold
+        {
+            switch (shape)
+            {
+                case BlockCursor.Shape.Rectangle:
+                    break;
+                case BlockCursor.Shape.Sphere:
+                    EditSphere();
+                    break;
+            }
+        }
     }
 
     void EditBlock()
@@ -121,8 +131,8 @@ public class EditWorld : MonoBehaviour
         byte index = (byte)blockManager.blocks.IndexOf(block);
         WorldEditor.SetBlock(world, currentPosition, index);
 
-        heightMap.Refresh();
-        world.data.OnEdit.Invoke(editHandle);
+        heightMapHandle = heightMap.Refresh(editHandle);
+        world.data.OnEdit.Invoke(heightMapHandle);
     }
 
     void EditSphere()

@@ -94,7 +94,8 @@ namespace VRoxel.Core
         /// <param name="uv">References the chunk's cached uv data</param>
         public JobHandle BuildMesh(Chunk chunk,
             ref BuildChunkMesh job, ref NativeList<Vector3> verts,
-            ref NativeList<int> tris, ref NativeList<Vector2> uv)
+            ref NativeList<int> tris, ref NativeList<Vector2> uv,
+            JobHandle dependsOn = default)
         {
             job.chunkSize = new int3(chunk.size.x, chunk.size.y, chunk.size.z);
             job.chunkOffset = new int3(chunk.offset.x, chunk.offset.y, chunk.offset.z);
@@ -137,7 +138,7 @@ namespace VRoxel.Core
                 job.voxelsWest = chunk.neighbors.west.voxels;
             else { job.voxelsWest = m_emptyChunk; }
 
-            return job.Schedule();
+            return job.Schedule(dependsOn);
         }
     }
 }

@@ -282,6 +282,14 @@ namespace VRoxel.Core
                         chunk = world.chunkManager.Get(chunkIndex);
                         if (chunk == null) { continue; }
 
+                        chunk.buildingMesh.Complete();
+                        if (chunk.neighbors.up)    { chunk.neighbors.up.buildingMesh.Complete(); }
+                        if (chunk.neighbors.down)  { chunk.neighbors.down.buildingMesh.Complete(); }
+                        if (chunk.neighbors.north) { chunk.neighbors.north.buildingMesh.Complete(); }
+                        if (chunk.neighbors.south) { chunk.neighbors.south.buildingMesh.Complete(); }
+                        if (chunk.neighbors.east)  { chunk.neighbors.east.buildingMesh.Complete(); }
+                        if (chunk.neighbors.west)  { chunk.neighbors.west.buildingMesh.Complete(); }
+
                         world.chunkManager.Refresh(chunkIndex);
                         // update neighboring chunks
                         //

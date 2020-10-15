@@ -157,6 +157,10 @@ namespace VRoxel.Core
         {
             if (!Contains(index)) { return; }
             if (!HasIndex(index)) { return; }
+
+            if (m_chunksToRefresh.Contains(index))
+                return;
+
             m_chunksToRefresh.Enqueue(index);
         }
 
