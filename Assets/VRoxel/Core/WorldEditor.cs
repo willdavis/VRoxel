@@ -88,32 +88,42 @@ namespace VRoxel.Core
         /// <param name="handle">The job handle(s) for updating the world</param>
         public static void SetRectangle(World world, Vector3 start, Vector3 end, byte block, ref JobHandle handle)
         {
-            handle.Complete();
-
             Vector3Int endGrid = world.SceneToGrid(end);
             Vector3Int startGrid = world.SceneToGrid(start);
+            SetRectangle(world, startGrid, endGrid, block, ref handle);
+        }
 
+        /// <summary>
+        /// Updates a rectangle of blocks in the voxel world and flags the affected chunks as modified
+        /// </summary>
+        /// <param name="world">A reference to the voxel world</param>
+        /// <param name="start">The starting global position in the voxel world</param>
+        /// <param name="end">The end global position in the voxel world</param>
+        /// <param name="block">The new block index to set</param>
+        /// <param name="handle">The job handle(s) for updating the world</param>
+        public static void SetRectangle(World world, Vector3Int start, Vector3Int end, byte block, ref JobHandle handle)
+        {
             // calculate min and delta of the rectangle so the
             // orientation of the start and end positions will not matter
 
             Vector3Int rectDelta = new Vector3Int();
             Vector3Int rectMin = new Vector3Int();
 
-            rectDelta.x = Mathf.Abs(endGrid.x - startGrid.x) + 1;
-            rectDelta.y = Mathf.Abs(endGrid.y - startGrid.y) + 1;
-            rectDelta.z = Mathf.Abs(endGrid.z - startGrid.z) + 1;
+            rectDelta.x = Mathf.Abs(end.x - start.x) + 1;
+            rectDelta.y = Mathf.Abs(end.y - start.y) + 1;
+            rectDelta.z = Mathf.Abs(end.z - start.z) + 1;
 
-            rectMin.x = Mathf.Min(startGrid.x, endGrid.x);
-            rectMin.y = Mathf.Min(startGrid.y, endGrid.y);
-            rectMin.z = Mathf.Min(startGrid.z, endGrid.z);
+            rectMin.x = Mathf.Min(start.x, end.x);
+            rectMin.y = Mathf.Min(start.y, end.y);
+            rectMin.z = Mathf.Min(start.z, end.z);
 
             // find the chunks that the rectangle intersects
             // and schedule jobs to update their voxel data
 
             Vector3Int chunkMin = Vector3Int.zero;
             Vector3Int chunkDelta = Vector3Int.zero;
-            Vector3Int chunkEnd   = world.chunkManager.IndexFrom(endGrid);
-            Vector3Int chunkStart = world.chunkManager.IndexFrom(startGrid);
+            Vector3Int chunkEnd   = world.chunkManager.IndexFrom(end);
+            Vector3Int chunkStart = world.chunkManager.IndexFrom(start);
             Vector3Int chunkSize = world.chunkManager.configuration.size;
             Vector3Int chunkMax = new Vector3Int(
                 world.size.x / chunkSize.x,
@@ -146,6 +156,14 @@ namespace VRoxel.Core
                         chunkIndex.y = y;
                         chunk = world.chunkManager.Get(chunkIndex);
                         if (chunk == null) { continue; }
+
+                        chunk.buildingMesh.Complete();
+                        if (chunk.neighbors.up)    { chunk.neighbors.up.buildingMesh.Complete(); }
+                        if (chunk.neighbors.down)  { chunk.neighbors.down.buildingMesh.Complete(); }
+                        if (chunk.neighbors.north) { chunk.neighbors.north.buildingMesh.Complete(); }
+                        if (chunk.neighbors.south) { chunk.neighbors.south.buildingMesh.Complete(); }
+                        if (chunk.neighbors.east)  { chunk.neighbors.east.buildingMesh.Complete(); }
+                        if (chunk.neighbors.west)  { chunk.neighbors.west.buildingMesh.Complete(); }
 
                         world.chunkManager.Refresh(chunkIndex);
                         // update neighboring chunks
@@ -181,13 +199,12 @@ namespace VRoxel.Core
                             world.chunkManager.Refresh(chunkIndex + Direction3Int.North);
 
                         // schedule a background job to update the chunks voxel data
-
                         ModifyRectangle job = new ModifyRectangle();
                         job.blockLibrary = world.chunkManager.meshGenerator.blockLibrary;
                         job.chunkOffset = new int3(chunk.offset.x, chunk.offset.y, chunk.offset.z);
                         job.chunkSize = new int3(chunkSize.x, chunkSize.y, chunkSize.z);
-                        job.start = new int3(startGrid.x, startGrid.y, startGrid.z);
-                        job.end = new int3(endGrid.x, endGrid.y, endGrid.z);
+                        job.start = new int3(start.x, start.y, start.z);
+                        job.end = new int3(end.x, end.y, end.z);
                         job.voxels = chunk.voxels;
                         job.block = block;
 
@@ -201,8 +218,8 @@ namespace VRoxel.Core
             EditVoxelJob navJob = new EditVoxelJob()
             {
                 size = new int3(world.size.x, world.size.y, world.size.z),
-                start = new int3(startGrid.x, startGrid.y, startGrid.z),
-                end = new int3(endGrid.x, endGrid.y, endGrid.z),
+                start = new int3(start.x, start.y, start.z),
+                end = new int3(end.x, end.y, end.z),
                 voxels = world.data.voxels,
                 block = block
             };
@@ -224,13 +241,21 @@ namespace VRoxel.Core
         /// <param name="block">The new block index to set</param>
         public static void SetSphere(World world, Vector3 position, float radius, byte block, ref JobHandle handle)
         {
-            handle.Complete();
-
-            int size = Mathf.CeilToInt(radius);
             Vector3Int center = world.SceneToGrid(position);
+            SetSphere(world, center, radius, block, ref handle);
+        }
 
+        /// <summary>
+        /// Updates a sphere of blocks in the voxel world and flags the affected chunks as modified
+        /// </summary>
+        /// <param name="world">A reference to the World</param>
+        /// <param name="position">The center of the sphere</param>
+        /// <param name="radius">The radius of the sphere</param>
+        /// <param name="block">The new block index to set</param>
+        public static void SetSphere(World world, Vector3Int position, float radius, byte block, ref JobHandle handle)
+        {
             // calculate min and delta of a rectangle that encloses the sphere
-
+            int size = Mathf.CeilToInt(radius);
             Vector3Int rectDelta = new Vector3Int();
             Vector3Int rectMin = new Vector3Int();
 
@@ -238,9 +263,9 @@ namespace VRoxel.Core
             rectDelta.y = size * 2;
             rectDelta.z = size * 2;
 
-            rectMin.x = center.x - size;
-            rectMin.y = center.y - size;
-            rectMin.z = center.z - size;
+            rectMin.x = position.x - size;
+            rectMin.y = position.y - size;
+            rectMin.z = position.z - size;
 
             // find the chunks that the rectangle intersects
             // and schedule jobs to update their voxel data
@@ -329,7 +354,7 @@ namespace VRoxel.Core
                         job.blockLibrary = world.chunkManager.meshGenerator.blockLibrary;
                         job.chunkOffset = new int3(chunk.offset.x, chunk.offset.y, chunk.offset.z);
                         job.chunkSize = new int3(chunkSize.x, chunkSize.y, chunkSize.z);
-                        job.center = new int3(center.x, center.y, center.z);
+                        job.center = new int3(position.x, position.y, position.z);
                         job.voxels = chunk.voxels;
                         job.radius = radius;
                         job.block = block;
@@ -344,7 +369,7 @@ namespace VRoxel.Core
             EditVoxelSphereJob navJob = new EditVoxelSphereJob()
             {
                 worldSize = new int3(world.size.x, world.size.y, world.size.z),
-                position = new int3(center.x, center.y, center.z),
+                position = new int3(position.x, position.y, position.z),
                 voxels = world.data.voxels,
                 radius = radius,
                 block = block
