@@ -16,31 +16,40 @@ public class EditWorld : MonoBehaviour
     public HeightMap heightMap;
     public BlockManager blockManager;
 
+    [Header("Block Settings")]
+
     /// <summary>
     /// The current type of block used to edit the world
     /// </summary>
+    [Tooltip("The block to set when modifying the world")]
     public BlockConfiguration block;
 
     /// <summary>
-    /// The maximum number of chunks that can be refreshed each frame
+    /// The blocks to ignore when modifying the world
     /// </summary>
-    [Min(1)]
-    [Tooltip("Limit the number of chunks that can be refreshed each frame")]
-    public int refreshPerFrame = 1;
+    [Tooltip("These blocks will be ignored when modifying the world")]
+    public List<BlockConfiguration> blocksToIgnore;
+    protected NativeArray<byte> m_blocksToIgnore;
+    protected int m_ignoreCount;
 
 
     [Header("Cursor Settings")]
+
+    [Tooltip("The reference to the block cursor in the scene")]
+    public BlockCursor cursor;
+
+    [Tooltip("Choose the shape of how you want to edit the world")]
+    public BlockCursor.Shape cursorShape = BlockCursor.Shape.Rectangle;
+
+    [Tooltip("Moves the cursor position either inside or outside the block that was hit")]
     public Cube.Point adjustHitPosition = Cube.Point.Outside;
-    public BlockCursor.Shape shape = BlockCursor.Shape.Rectangle;
+
     public float sphereRadius = 2.5f;
     public bool snapToGrid = true;
     public bool clickAndDrag = true;
 
     bool _isDragging = false;
     Vector3 _clickStart = Vector3.zero;
-
-    [Header("Cursor Prefab")]
-    public BlockCursor cursor;
 
     RaycastHit _hit;
     Vector3 _hitPosition;
@@ -81,6 +90,39 @@ public class EditWorld : MonoBehaviour
         heightMapHandle.Complete();
     }
 
+    void OnDestroy()
+    {
+        if (m_blocksToIgnore.IsCreated)
+            m_blocksToIgnore.Dispose();
+    }
+
+    /// <summary>
+    /// Lazy load a native array of blocks to ignore for background jobs
+    /// </summary>
+    void LazyLoadReferences()
+    {
+        int ignoreCount = blocksToIgnore.Count;
+        if (m_blocksToIgnore.IsCreated && m_ignoreCount == ignoreCount)
+            return; // nothing has changed
+
+        if (m_blocksToIgnore.IsCreated && m_ignoreCount != ignoreCount)
+            m_blocksToIgnore.Dispose(); // clear any existing data
+
+        m_ignoreCount = ignoreCount;
+        m_blocksToIgnore = new NativeArray<byte>(
+            ignoreCount, Allocator.Persistent);
+
+        // update native array with current blocks to ignore
+        for (int i = 0; i < ignoreCount; i++)
+        {
+            if (!world.blockManager.blocks.Contains(blocksToIgnore[i]))
+                continue; // skip if not in the library
+
+            m_blocksToIgnore[i] = (byte)world.blockManager
+                .blocks.IndexOf(blocksToIgnore[i]);
+        }
+    }
+
     /// <summary>
     /// Respond to mouse input from the player
     /// </summary>
@@ -88,7 +130,7 @@ public class EditWorld : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0)) // left mouse button - down
         {
-            switch (shape)
+            switch (cursorShape)
             {
                 case BlockCursor.Shape.Rectangle:
                     _clickStart = currentPosition;
@@ -101,7 +143,7 @@ public class EditWorld : MonoBehaviour
         }
         else if (Input.GetMouseButtonUp(0)) // left mouse button - up
         {
-            switch (shape)
+            switch (cursorShape)
             {
                 case BlockCursor.Shape.Rectangle:
                     _isDragging = false;
@@ -114,7 +156,7 @@ public class EditWorld : MonoBehaviour
         }
         else if (Input.GetMouseButton(0) && clickAndDrag) // left mouse button - hold
         {
-            switch (shape)
+            switch (cursorShape)
             {
                 case BlockCursor.Shape.Rectangle:
                     break;
@@ -138,9 +180,11 @@ public class EditWorld : MonoBehaviour
     void EditSphere()
     {
         if (block == null) { return; }
+
+        LazyLoadReferences();
         byte index = (byte)blockManager.blocks.IndexOf(block);
-        WorldEditor.SetSphere(world, currentPosition,
-            sphereRadius, index, ref editHandle);
+        WorldEditor.SetSphere(world, currentPosition, sphereRadius,
+            index, ref editHandle, m_blocksToIgnore);
 
         // notify listeners
         heightMapHandle = heightMap.Refresh(editHandle);
@@ -150,9 +194,11 @@ public class EditWorld : MonoBehaviour
     void EditRectangle()
     {
         if (block == null) { return; }
+
+        LazyLoadReferences();
         byte index = (byte)blockManager.blocks.IndexOf(block);
-        WorldEditor.SetRectangle(world, currentPosition,
-            _clickStart, index, ref editHandle);
+        WorldEditor.SetRectangle(world, currentPosition, _clickStart,
+            index, ref editHandle, m_blocksToIgnore);
 
         // notify listeners
         heightMapHandle = heightMap.Refresh(editHandle);
@@ -201,7 +247,7 @@ public class EditWorld : MonoBehaviour
     /// </summary>
     void DrawCursor()
     {
-        switch (shape)
+        switch (cursorShape)
         {
             case BlockCursor.Shape.Rectangle:
                 if (clickAndDrag && _isDragging) { DrawRectangle(); }

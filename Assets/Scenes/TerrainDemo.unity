@@ -381,13 +381,14 @@ MonoBehaviour:
   heightMap: {fileID: 2065986740}
   blockManager: {fileID: 2065986739}
   block: {fileID: 11400000, guid: cea5cd229a5856c4ea4047d285c45e0e, type: 2}
-  refreshPerFrame: 1
+  blocksToIgnore:
+  - {fileID: 11400000, guid: e2cacd518c46bae4bb669899d2840688, type: 2}
+  cursor: {fileID: 2000491504}
+  adjustHitPosition: 1
   shape: 0
   sphereRadius: 2.5
   snapToGrid: 1
   clickAndDrag: 1
-  adjustHitPosition: 1
-  cursor: {fileID: 2000491504}
   currentIndex: {x: 0, y: 0, z: 0}
   currentPosition: {x: 0, y: 0, z: 0}
 --- !u!1001 &2000491503
