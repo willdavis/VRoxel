@@ -86,11 +86,12 @@ namespace VRoxel.Core
         /// <param name="end">The end position of the rectangle in the scene</param>
         /// <param name="block">The new block index to set</param>
         /// <param name="handle">The job handle(s) for updating the world</param>
-        public static void SetRectangle(World world, Vector3 start, Vector3 end, byte block, ref JobHandle handle)
+        public static void SetRectangle(World world, Vector3 start, Vector3 end,
+            byte block, ref JobHandle handle, NativeArray<byte> blocksToIgnore = default)
         {
             Vector3Int endGrid = world.SceneToGrid(end);
             Vector3Int startGrid = world.SceneToGrid(start);
-            SetRectangle(world, startGrid, endGrid, block, ref handle);
+            SetRectangle(world, startGrid, endGrid, block, ref handle, blocksToIgnore);
         }
 
         /// <summary>
@@ -101,7 +102,8 @@ namespace VRoxel.Core
         /// <param name="end">The end global position in the voxel world</param>
         /// <param name="block">The new block index to set</param>
         /// <param name="handle">The job handle(s) for updating the world</param>
-        public static void SetRectangle(World world, Vector3Int start, Vector3Int end, byte block, ref JobHandle handle)
+        public static void SetRectangle(World world, Vector3Int start, Vector3Int end,
+            byte block, ref JobHandle handle, NativeArray<byte> blocksToIgnore = default)
         {
             // calculate min and delta of the rectangle so the
             // orientation of the start and end positions will not matter
@@ -200,6 +202,7 @@ namespace VRoxel.Core
 
                         // schedule a background job to update the chunks voxel data
                         ModifyRectangle job = new ModifyRectangle();
+                        job.blocksToIgnore = blocksToIgnore == default ? world.blockManager.emptyIgnoreList : blocksToIgnore;
                         job.blockLibrary = world.chunkManager.meshGenerator.blockLibrary;
                         job.chunkOffset = new int3(chunk.offset.x, chunk.offset.y, chunk.offset.z);
                         job.chunkSize = new int3(chunkSize.x, chunkSize.y, chunkSize.z);
@@ -217,6 +220,8 @@ namespace VRoxel.Core
             // required for agent navigation
             EditVoxelJob navJob = new EditVoxelJob()
             {
+                blocksToIgnore = blocksToIgnore == default ? world.blockManager.emptyIgnoreList : blocksToIgnore,
+                blockLibrary = world.chunkManager.meshGenerator.blockLibrary,
                 size = new int3(world.size.x, world.size.y, world.size.z),
                 start = new int3(start.x, start.y, start.z),
                 end = new int3(end.x, end.y, end.z),
@@ -239,10 +244,11 @@ namespace VRoxel.Core
         /// <param name="position">The center of the sphere</param>
         /// <param name="radius">The radius of the sphere</param>
         /// <param name="block">The new block index to set</param>
-        public static void SetSphere(World world, Vector3 position, float radius, byte block, ref JobHandle handle)
+        public static void SetSphere(World world, Vector3 position, float radius,
+            byte block, ref JobHandle handle, NativeArray<byte> blocksToIgnore = default)
         {
             Vector3Int center = world.SceneToGrid(position);
-            SetSphere(world, center, radius, block, ref handle);
+            SetSphere(world, center, radius, block, ref handle, blocksToIgnore);
         }
 
         /// <summary>
@@ -252,7 +258,8 @@ namespace VRoxel.Core
         /// <param name="position">The center of the sphere</param>
         /// <param name="radius">The radius of the sphere</param>
         /// <param name="block">The new block index to set</param>
-        public static void SetSphere(World world, Vector3Int position, float radius, byte block, ref JobHandle handle)
+        public static void SetSphere(World world, Vector3Int position, float radius,
+            byte block, ref JobHandle handle, NativeArray<byte> blocksToIgnore = default)
         {
             // calculate min and delta of a rectangle that encloses the sphere
             int size = Mathf.CeilToInt(radius);
@@ -293,7 +300,7 @@ namespace VRoxel.Core
             int jobIndex = 0;
             Vector3Int chunkIndex = Vector3Int.zero;
             int chunkCount = chunkDelta.x * chunkDelta.y * chunkDelta.z;
-            NativeArray<JobHandle> jobs = new NativeArray<JobHandle>(chunkCount, Allocator.Temp);
+            NativeArray<JobHandle> jobHandles = new NativeArray<JobHandle>(chunkCount, Allocator.Temp);
 
             for (int x = chunkMin.x; x < chunkMin.x + chunkDelta.x; x++)
             {
@@ -351,6 +358,7 @@ namespace VRoxel.Core
                         // schedule a background job to update the chunks voxel data
 
                         ModifySphere job = new ModifySphere();
+                        job.blocksToIgnore = blocksToIgnore == default ? world.blockManager.emptyIgnoreList : blocksToIgnore;
                         job.blockLibrary = world.chunkManager.meshGenerator.blockLibrary;
                         job.chunkOffset = new int3(chunk.offset.x, chunk.offset.y, chunk.offset.z);
                         job.chunkSize = new int3(chunkSize.x, chunkSize.y, chunkSize.z);
@@ -359,7 +367,7 @@ namespace VRoxel.Core
                         job.radius = radius;
                         job.block = block;
 
-                        jobs[jobIndex] = job.Schedule();
+                        jobHandles[jobIndex] = job.Schedule();
                         jobIndex++;
                     }
                 }
@@ -368,6 +376,8 @@ namespace VRoxel.Core
             // deprecated but still required for agent navigation
             EditVoxelSphereJob navJob = new EditVoxelSphereJob()
             {
+                blocksToIgnore = blocksToIgnore == default ? world.blockManager.emptyIgnoreList : blocksToIgnore,
+                blockLibrary = world.chunkManager.meshGenerator.blockLibrary,
                 worldSize = new int3(world.size.x, world.size.y, world.size.z),
                 position = new int3(position.x, position.y, position.z),
                 voxels = world.data.voxels,
@@ -377,10 +387,10 @@ namespace VRoxel.Core
             JobHandle navHandle = navJob.Schedule();
 
             // combine dependencies and refresh the chunks
-            handle = JobHandle.CombineDependencies(jobs);
+            handle = JobHandle.CombineDependencies(jobHandles);
             handle = JobHandle.CombineDependencies(handle, navHandle);
             world.chunkManager.refreshDependsOn = handle;
-            jobs.Dispose();
+            jobHandles.Dispose();
         }
     }
 }

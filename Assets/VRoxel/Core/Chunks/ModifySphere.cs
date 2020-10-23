@@ -46,6 +46,11 @@ namespace VRoxel.Core.Chunks
         /// </summary>
         [ReadOnly] public NativeArray<Block> blockLibrary;
 
+        /// <summary>
+        /// A reference to block indexes in the library that
+        /// should be ignored when updating voxel data
+        /// </summary>
+        [ReadOnly] public NativeArray<byte> blocksToIgnore;
 
         /// <summary>
         /// Iterate over the chunk and update voxels
@@ -106,12 +111,14 @@ namespace VRoxel.Core.Chunks
         }
 
         /// <summary>
-        /// Checks if a voxel is not editable
+        /// Checks if a voxel is static or should be ignored
         /// </summary>
         /// <param name="voxel">The voxel to test</param>
         public bool NotEditable(byte voxel)
         {
-            return !blockLibrary[voxel].editable;
+            if (!blockLibrary[voxel].editable)  { return true; }
+            if (blocksToIgnore.Contains(voxel)) { return true; }
+            return false;
         }
 
         /// <summary>
