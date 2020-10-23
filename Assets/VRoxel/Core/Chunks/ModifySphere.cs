@@ -63,9 +63,9 @@ namespace VRoxel.Core.Chunks
             int3 localPos = int3.zero;
             int3 globalPos = int3.zero;
 
-            delta.x = (int)math.round(radius * radius) + 1;
-            delta.y = (int)math.round(radius * radius) + 1;
-            delta.z = (int)math.round(radius * radius) + 1;
+            delta.x = (int)math.round(radius * 2f) + 1;
+            delta.y = (int)math.round(radius * 2f) + 1;
+            delta.z = (int)math.round(radius * 2f) + 1;
 
             min.x = center.x - (int)math.round(radius);
             min.y = center.y - (int)math.round(radius);
