@@ -15,5 +15,5 @@ MonoBehaviour:
   archetype: {fileID: 11400000, guid: 1eadd636634247f4ba284b58acea92f3, type: 2}
   movement:
     mass: 10
-    topSpeed: 1
+    topSpeed: 4
     turnSpeed: 1

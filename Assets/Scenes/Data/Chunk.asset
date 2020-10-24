@@ -9,11 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4ac10723d54dd8b4a8ac6f16a7c148f3, type: 3}
-  m_Name: RedHumanoid
+  m_Script: {fileID: 11500000, guid: f7281d3f6765a3549a28bcce90575027, type: 3}
+  m_Name: Chunk
   m_EditorClassIdentifier: 
-  archetype: {fileID: 11400000, guid: b483c28a62480df4d8363e6dddaf36b8, type: 2}
-  movement:
-    mass: 1
-    topSpeed: 6
-    turnSpeed: 1
+  size: {x: 16, y: 64, z: 16}
+  sizeScale: 1
+  material: {fileID: 2100000, guid: 7c8819ba9885214409d65f8fdb2753b0, type: 2}
+  textureScale: 0.0625
+  collidable: 1

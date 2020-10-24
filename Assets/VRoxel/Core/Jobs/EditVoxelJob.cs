@@ -3,6 +3,8 @@ using Unity.Mathematics;
 using Unity.Burst;
 using Unity.Jobs;
 
+using VRoxel.Core.Chunks;
+
 namespace VRoxel.Core
 {
     [BurstCompile]
@@ -13,8 +15,21 @@ namespace VRoxel.Core
         public int3 start;
         public int3 end;
 
-        [WriteOnly]
+        /// <summary>
+        /// The voxel data that will be modified
+        /// </summary>
         public NativeArray<byte> voxels;
+
+        /// <summary>
+        /// A reference to the block properties for this world
+        /// </summary>
+        [ReadOnly] public NativeArray<Block> blockLibrary;
+
+        /// <summary>
+        /// A reference to block indexes in the library that
+        /// should be ignored when updating voxel data
+        /// </summary>
+        [ReadOnly] public NativeArray<byte> blocksToIgnore;
 
         public void Execute()
         {
@@ -28,6 +43,7 @@ namespace VRoxel.Core
             min.y = math.min(start.y, end.y);
             min.z = math.min(start.z, end.z);
 
+            int index;
             int3 point = int3.zero;
             for (int x = min.x; x < min.x + delta.x; x++)
             {
@@ -38,8 +54,14 @@ namespace VRoxel.Core
                     for (int y = min.y; y < min.y + delta.y; y++)
                     {
                         point.y = y;
-                        if (OutOfBounds(point)) { continue; }
-                        voxels[Flatten(point)] = block;
+                        if (OutOfBounds(point))
+                            continue;
+
+                        index = Flatten(point);
+                        if (NotEditable(voxels[index]))
+                            continue;
+
+                        voxels[index] = block;
                     }
                 }
             }
@@ -52,6 +74,18 @@ namespace VRoxel.Core
         {
             /// A[x,y,z] = A[ x * height * depth + y * depth + z ]
             return (point.x * size.y * size.z) + (point.y * size.z) + point.z;
+        }
+
+        /// <summary>
+        /// Checks if a voxel is static or should be ignored
+        /// </summary>
+        /// <param name="voxel">The voxel to test</param>
+        public bool NotEditable(byte voxel)
+        {
+            if (voxel == block) { return true; } // skip duplicates
+            if (!blockLibrary[voxel].editable)  { return true; }
+            if (blocksToIgnore.Contains(voxel)) { return true; }
+            return false;
         }
 
         /// <summary>

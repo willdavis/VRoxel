@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c71adcbc7b06a1c48aad45305b642466, type: 3}
-  m_Name: Grass
+  m_Name: Bedrock
   m_EditorClassIdentifier: 
-  name: Grass
-  description: 
+  name: bedrock
+  description: Can not be edited
   collidable: 1
-  editable: 1
-  textureUp: {x: 0, y: 15}
-  textureDown: {x: 0, y: 15}
-  textureFront: {x: 0, y: 15}
-  textureBack: {x: 0, y: 15}
-  textureLeft: {x: 0, y: 15}
-  textureRight: {x: 0, y: 15}
+  editable: 0
+  textureUp: {x: 5, y: 13}
+  textureDown: {x: 5, y: 13}
+  textureFront: {x: 5, y: 13}
+  textureBack: {x: 5, y: 13}
+  textureLeft: {x: 5, y: 13}
+  textureRight: {x: 5, y: 13}

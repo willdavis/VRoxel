@@ -1,215 +1,68 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using Unity.Collections;
+using Unity.Mathematics;
+using Unity.Jobs;
 using UnityEngine;
+
+using VRoxel.Core.Chunks;
 
 namespace VRoxel.Core
 {
+    /// <summary>
+    /// A collection of functions to help with editing a voxel world
+    /// </summary>
     public class WorldEditor
     {
         /// <summary>
-        /// Set the block adjacent to the hit position in the world.
+        /// Set the block adjacent to the hit position in the voxel world.
         /// </summary>
         /// <param name="world">A reference to the World</param>
         /// <param name="hit">The RaycastHit to be adjusted</param>
-        /// <param name="block">The block index</param>
-        public static void Add(World world, RaycastHit hit, byte block)
+        /// <param name="block">The new block index to set</param>
+        public static void AddBlock(World world, RaycastHit hit, byte block)
         {
-            Vector3 position = Adjust(world, hit, Cube.Point.Outside);
-            Vector3Int point = Get(world, position);
-            Set(world, point, block);
+            Vector3 position = world.AdjustRaycastHit(hit, Cube.Point.Outside);
+            Vector3Int point = world.SceneToGrid(position);
+            world.Write(point, block);
         }
 
         /// <summary>
-        /// Update the block at the hit position in the world
+        /// Update the block at the hit position in the voxel world
         /// </summary>
-        /// <param name="world">A reference to the World</param>
+        /// <param name="world">A reference to the voxel world</param>
         /// <param name="hit">The RaycastHit to be adjusted</param>
-        /// <param name="block">The block index</param>
-        public static void Replace(World world, RaycastHit hit, byte block)
+        /// <param name="block">The new block index to set</param>
+        public static void ReplaceBlock(World world, RaycastHit hit, byte block)
         {
-            Vector3 position = Adjust(world, hit, Cube.Point.Inside);
-            Vector3Int point = Get(world, position);
-            Set(world, point, block);
+            Vector3 position = world.AdjustRaycastHit(hit, Cube.Point.Inside);
+            Vector3Int point = world.SceneToGrid(position);
+            world.Write(point, block);
         }
 
         /// <summary>
-        /// Adjusts a RaycastHit point to be inside or outside of the block that it hit
+        /// Updates a single block in the voxel world and flags the chunk as modified
         /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="hit">The RaycastHit to be adjusted</param>
-        /// <param name="dir">choose inside or outside the cube</param>
-        public static Vector3 Adjust(World world, RaycastHit hit, Cube.Point dir)
-        {
-            Vector3 position = hit.point;
-            switch (dir)
-            {
-                case Cube.Point.Inside:
-                    position += hit.normal * (world.scale / -2f);
-                    break;
-                case Cube.Point.Outside:
-                    position += hit.normal * (world.scale / 2f);
-                    break;
-            }
-            return position;
-        }
-
-        /// <summary>
-        /// Calculates the voxel grid point for a position in the scene
-        /// </summary>
-        /// <param name="world">A reference to the World</param>
+        /// <param name="world">A reference to the voxel world</param>
         /// <param name="position">A position in the scene</param>
-        public static Vector3Int Get(World world, Vector3 position)
+        /// <param name="block">The new block index to set</param>
+        public static void SetBlock(World world, Vector3 position, byte block)
         {
-            Vector3 adjusted = position;
-            Vector3Int point = Vector3Int.zero;
-            Quaternion rotation = Quaternion.Inverse(world.transform.rotation);
-
-            adjusted += world.transform.position * -1f;         // adjust for the worlds position
-            adjusted *= 1 / world.scale;                        // adjust for the worlds scale
-            adjusted = rotation * adjusted;                     // adjust for the worlds rotation
-            adjusted += world.data.center;                      // adjust for the worlds center
-
-            point.x = Mathf.FloorToInt(adjusted.x);
-            point.y = Mathf.FloorToInt(adjusted.y);
-            point.z = Mathf.FloorToInt(adjusted.z);
-
-            return point;
+            Vector3Int point = world.SceneToGrid(position);
+            world.Write(point, block);
         }
 
         /// <summary>
-        /// Calculates the scene position for a point in the voxel grid
+        /// Updates blocks in the voxel world using Moore neighborhoods and flags the affected chunks as modified
         /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="point">A point in the voxel grid</param>
-        public static Vector3 Get(World world, Vector3Int point)
-        {
-            Vector3 position = point;
-            position += Vector3.one * 0.5f;                    // adjust for the chunks center
-            position += world.data.center * -1f;               // adjust for the worlds center
-            position = world.transform.rotation * position;    // adjust for the worlds rotation
-            position *= world.scale;                           // adjust for the worlds scale
-            position += world.transform.position;              // adjust for the worlds position
-            return position;
-        }
-
-        /// <summary>
-        /// Safely set a block in the world and flag it's Chunk as stale.
-        /// If the block is on the edge of a Chunk, the adjacent Chunk will also be set as stale
-        /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="position">A position in the scene</param>
-        /// <param name="block">The block index</param>
-        public static void Set(World world, Vector3 position, byte block)
-        {
-            Vector3Int point = Get(world, position);
-            Set(world, point, block);
-        }
-
-        /// <summary>
-        /// Safely set a range of blocks in the world using two positions in the scene.
-        /// Any chunks that were modified will be flagged as stale.
-        /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="start">A position in the scene</param>
-        /// <param name="end">A position in the scene</param>
-        /// <param name="block">The block index to set</param>
-        public static void Set(World world, Vector3 start, Vector3 end, byte block)
-        {
-            Vector3Int startPoint = Get(world, start);
-            Vector3Int endPoint = Get(world, end);
-            Set(world, startPoint, endPoint, block);
-        }
-
-        /// <summary>
-        /// Safely set a Moore neighborhood of blocks in the world.
-        /// Any chunks that were modified will be flagged as stale.
-        /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="position">A position in the scene</param>
+        /// <param name="world">A reference to the voxel world</param>
+        /// <param name="position">The center of the neighborhood</param>
         /// <param name="range">The Moore neighborhood size</param>
-        /// <param name="block">The block index to set</param>
-        public static void Set(World world, Vector3 position, int range, byte block)
-        {
-            Vector3Int point = Get(world, position);
-            Set(world, point, range, block);
-        }
-
-        /// <summary>
-        /// Safely set a sphere of blocks in the world.
-        /// Any chunks that were modified will be flagged as stale.
-        /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="position">A position in the scene</param>
-        /// <param name="radius">The radius of the sphere</param>
-        /// <param name="block">The block index to set</param>
-        public static void Set(World world, Vector3 position, float radius, byte block)
-        {
-            Vector3Int point = Get(world, position);
-            Set(world, point, radius, block);
-        }
-
-        /// <summary>
-        /// Safely set a block in the World and flag it's Chunk as stale.
-        /// If the block is on the edge of a Chunk, the adjacent Chunk will also be set as stale
-        /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="point">A point in the voxel grid</param>
-        /// <param name="block">The block index</param>
-        public static void Set(World world, Vector3Int point, byte block)
-        {
-            if (!world.data.Contains(point)) { return; }
-            if (world.data.Get(point.x, point.y, point.z) == block) { return; }
-
-            world.data.Set(point.x, point.y, point.z, block);
-            world.chunks.UpdateFrom(point);
-        }
-
-        /// <summary>
-        /// Safely set a range of blocks in the World between a start and end point
-        /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="start">A point in the voxel grid</param>
-        /// <param name="end">A point in the voxel grid</param>
-        /// <param name="block">The block index to set</param>
-        public static void Set(World world, Vector3Int start, Vector3Int end, byte block)
-        {
-            Vector3Int delta = Vector3Int.zero;
-            delta.x = Mathf.Abs(end.x - start.x) + 1;
-            delta.y = Mathf.Abs(end.y - start.y) + 1;
-            delta.z = Mathf.Abs(end.z - start.z) + 1;
-
-            Vector3Int min = Vector3Int.zero;
-            min.x = Mathf.Min(start.x, end.x);
-            min.y = Mathf.Min(start.y, end.y);
-            min.z = Mathf.Min(start.z, end.z);
-
-            Vector3Int point = Vector3Int.zero;
-            for (int x = min.x; x < min.x + delta.x; x++)
-            {
-                point.x = x;
-                for (int z = min.z; z < min.z + delta.z; z++)
-                {
-                    point.z = z;
-                    for (int y = min.y; y < min.y + delta.y; y++)
-                    {
-                        point.y = y;
-                        Set(world, point, block);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Safely set a Moore neighborhood of blocks in the voxel grid
-        /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="point">A point in the voxel grid</param>
-        /// <param name="range">The Moore neighborhood range</param>
-        /// <param name="block">The block index to set</param>
-        public static void Set(World world, Vector3Int point, int range, byte block)
+        /// <param name="block">The new block index to set</param>
+        public static void SetNeighborhood(World world, Vector3 position, int range, byte block)
         {
             int neighborhood = 2 * range + 1;
             Vector3Int offset = Vector3Int.zero;
+            Vector3Int point = world.SceneToGrid(position);
+
             for (int i = 0; i < neighborhood; i++) // x-axis
             {
                 offset.x = point.x + i - range;
@@ -219,40 +72,325 @@ namespace VRoxel.Core
                     for (int k = 0; k < neighborhood; k++) // y-axis
                     {
                         offset.y = point.y + k - range;
-                        Set(world, offset, block);
+                        world.Write(offset, block);
                     }
                 }
             }
         }
 
         /// <summary>
-        /// Safely set a sphere of blocks in the voxel grid
+        /// Updates a rectangle of blocks in the voxel world and flags the affected chunks as modified
         /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="point">A point in the voxel grid</param>
-        /// <param name="radius">The radius in the voxel grid</param>
-        /// <param name="block">The block index to set</param>
-        public static void Set(World world, Vector3Int point, float radius, byte block)
+        /// <param name="world">A reference to the voxel world</param>
+        /// <param name="start">The start position of the rectangle in the scene</param>
+        /// <param name="end">The end position of the rectangle in the scene</param>
+        /// <param name="block">The new block index to set</param>
+        /// <param name="handle">The job handle(s) for updating the world</param>
+        public static void SetRectangle(World world, Vector3 start, Vector3 end,
+            byte block, ref JobHandle handle, NativeArray<byte> blocksToIgnore = default)
         {
-            int size = Mathf.CeilToInt(radius);
-            Vector3Int offset = Vector3Int.zero;
+            Vector3Int endGrid = world.SceneToGrid(end);
+            Vector3Int startGrid = world.SceneToGrid(start);
+            SetRectangle(world, startGrid, endGrid, block, ref handle, blocksToIgnore);
+        }
 
-            for (int x = point.x - size; x <= point.x + size; x++)
+        /// <summary>
+        /// Updates a rectangle of blocks in the voxel world and flags the affected chunks as modified
+        /// </summary>
+        /// <param name="world">A reference to the voxel world</param>
+        /// <param name="start">The starting global position in the voxel world</param>
+        /// <param name="end">The end global position in the voxel world</param>
+        /// <param name="block">The new block index to set</param>
+        /// <param name="handle">The job handle(s) for updating the world</param>
+        public static void SetRectangle(World world, Vector3Int start, Vector3Int end,
+            byte block, ref JobHandle handle, NativeArray<byte> blocksToIgnore = default)
+        {
+            // calculate min and delta of the rectangle so the
+            // orientation of the start and end positions will not matter
+
+            Vector3Int rectDelta = new Vector3Int();
+            Vector3Int rectMin = new Vector3Int();
+
+            rectDelta.x = Mathf.Abs(end.x - start.x) + 1;
+            rectDelta.y = Mathf.Abs(end.y - start.y) + 1;
+            rectDelta.z = Mathf.Abs(end.z - start.z) + 1;
+
+            rectMin.x = Mathf.Min(start.x, end.x);
+            rectMin.y = Mathf.Min(start.y, end.y);
+            rectMin.z = Mathf.Min(start.z, end.z);
+
+            // find the chunks that the rectangle intersects
+            // and schedule jobs to update their voxel data
+
+            Vector3Int chunkMin = Vector3Int.zero;
+            Vector3Int chunkDelta = Vector3Int.zero;
+            Vector3Int chunkEnd   = world.chunkManager.IndexFrom(end);
+            Vector3Int chunkStart = world.chunkManager.IndexFrom(start);
+            Vector3Int chunkSize = world.chunkManager.configuration.size;
+            Vector3Int chunkMax = new Vector3Int(
+                world.size.x / chunkSize.x,
+                world.size.y / chunkSize.y,
+                world.size.z / chunkSize.z
+            );
+
+            chunkDelta.x = Mathf.Abs(chunkEnd.x - chunkStart.x) + 1;
+            chunkDelta.y = Mathf.Abs(chunkEnd.y - chunkStart.y) + 1;
+            chunkDelta.z = Mathf.Abs(chunkEnd.z - chunkStart.z) + 1;
+
+            chunkMin.x = Mathf.Min(chunkStart.x, chunkEnd.x);
+            chunkMin.y = Mathf.Min(chunkStart.y, chunkEnd.y);
+            chunkMin.z = Mathf.Min(chunkStart.z, chunkEnd.z);
+
+            Chunk chunk;
+            int jobIndex = 0;
+            Vector3Int chunkIndex = Vector3Int.zero;
+            int chunkCount = chunkDelta.x * chunkDelta.y * chunkDelta.z;
+            NativeArray<JobHandle> jobs = new NativeArray<JobHandle>(chunkCount, Allocator.Temp);
+
+            for (int x = chunkMin.x; x < chunkMin.x + chunkDelta.x; x++)
             {
-                offset.x = x;
-                for (int z = point.z - size; z <= point.z + size; z++)
+                chunkIndex.x = x;
+                for (int z = chunkMin.z; z < chunkMin.z + chunkDelta.z; z++)
                 {
-                    offset.z = z;
-                    for (int y = point.y - size; y <= point.y + size; y++)
+                    chunkIndex.z = z;
+                    for (int y = chunkMin.y; y < chunkMin.y + chunkDelta.y; y++)
                     {
-                        offset.y = y;
-                        if (Vector3Int.Distance(point, offset) <= radius)
-                        {
-                            Set(world, offset, block);
-                        }
+                        chunkIndex.y = y;
+                        chunk = world.chunkManager.Get(chunkIndex);
+                        if (chunk == null) { continue; }
+
+                        chunk.buildingMesh.Complete();
+                        if (chunk.neighbors.up)    { chunk.neighbors.up.buildingMesh.Complete(); }
+                        if (chunk.neighbors.down)  { chunk.neighbors.down.buildingMesh.Complete(); }
+                        if (chunk.neighbors.north) { chunk.neighbors.north.buildingMesh.Complete(); }
+                        if (chunk.neighbors.south) { chunk.neighbors.south.buildingMesh.Complete(); }
+                        if (chunk.neighbors.east)  { chunk.neighbors.east.buildingMesh.Complete(); }
+                        if (chunk.neighbors.west)  { chunk.neighbors.west.buildingMesh.Complete(); }
+
+                        world.chunkManager.Refresh(chunkIndex);
+                        // update neighboring chunks
+                        //
+                        // check if the rectangles minimum x is a local minimum for the chunk
+                        // and the chunk is not the first chunk on the X axis
+                        if (rectMin.x - (chunkIndex.x * chunkSize.x) == 0 && chunkIndex.x != 0)
+                            world.chunkManager.Refresh(chunkIndex + Direction3Int.West);
+
+                        // check if the rectangles maximum x is a local maximum for the chunk
+                        // and the chunk is not the last chunk on the X axis
+                        if (rectMin.x + rectDelta.x - (chunkIndex.x * chunkSize.x) == chunkSize.x && chunkIndex.x != chunkMax.x - 1)
+                            world.chunkManager.Refresh(chunkIndex + Direction3Int.East);
+
+                        // check if the rectangles minimum y is a local minimum for the chunk
+                        // and the chunk is not the first chunk on the Y axis
+                        if (rectMin.y - (chunkIndex.y * chunkSize.y) == 0 && chunkIndex.y != 0)
+                            world.chunkManager.Refresh(chunkIndex + Direction3Int.Down);
+
+                        // check if the rectangles maximum y is a local maximum for the chunk
+                        // and the chunk is not the last chunk on the Y axis
+                        if (rectMin.y + rectDelta.y - (chunkIndex.y * chunkSize.y) == chunkSize.y && chunkIndex.y != chunkMax.y - 1)
+                            world.chunkManager.Refresh(chunkIndex + Direction3Int.Up);
+
+                        // check if the rectangles minimum z is a local minimum for the chunk
+                        // and the chunk is not the first chunk on the Z axis
+                        if (rectMin.z - (chunkIndex.z * chunkSize.z) == 0 && chunkIndex.z != 0)
+                            world.chunkManager.Refresh(chunkIndex + Direction3Int.South);
+
+                        // check if the rectangles maximum z is a local maximum for the chunk
+                        // and the chunk is not the last chunk on the Z axis
+                        if (rectMin.z + rectDelta.z - (chunkIndex.z * chunkSize.z) == chunkSize.z && chunkIndex.z != chunkMax.z - 1)
+                            world.chunkManager.Refresh(chunkIndex + Direction3Int.North);
+
+                        // schedule a background job to update the chunks voxel data
+                        ModifyRectangle job = new ModifyRectangle();
+                        job.blocksToIgnore = blocksToIgnore == default ? world.blockManager.emptyIgnoreList : blocksToIgnore;
+                        job.blockLibrary = world.chunkManager.meshGenerator.blockLibrary;
+                        job.chunkOffset = new int3(chunk.offset.x, chunk.offset.y, chunk.offset.z);
+                        job.chunkSize = new int3(chunkSize.x, chunkSize.y, chunkSize.z);
+                        job.start = new int3(start.x, start.y, start.z);
+                        job.end = new int3(end.x, end.y, end.z);
+                        job.voxels = chunk.voxels;
+                        job.block = block;
+
+                        jobs[jobIndex] = job.Schedule();
+                        jobIndex++;
                     }
                 }
             }
+
+            // required for agent navigation
+            EditVoxelJob navJob = new EditVoxelJob()
+            {
+                blocksToIgnore = blocksToIgnore == default ? world.blockManager.emptyIgnoreList : blocksToIgnore,
+                blockLibrary = world.chunkManager.meshGenerator.blockLibrary,
+                size = new int3(world.size.x, world.size.y, world.size.z),
+                start = new int3(start.x, start.y, start.z),
+                end = new int3(end.x, end.y, end.z),
+                voxels = world.data.voxels,
+                block = block
+            };
+            JobHandle navHandle = navJob.Schedule();
+
+            // combine dependencies
+            handle = JobHandle.CombineDependencies(jobs);
+            handle = JobHandle.CombineDependencies(handle, navHandle);
+            world.chunkManager.refreshDependsOn = handle;
+            jobs.Dispose();
+        }
+
+        /// <summary>
+        /// Updates a sphere of blocks in the voxel world and flags the affected chunks as modified
+        /// </summary>
+        /// <param name="world">A reference to the World</param>
+        /// <param name="position">The center of the sphere</param>
+        /// <param name="radius">The radius of the sphere</param>
+        /// <param name="block">The new block index to set</param>
+        public static void SetSphere(World world, Vector3 position, float radius,
+            byte block, ref JobHandle handle, NativeArray<byte> blocksToIgnore = default)
+        {
+            Vector3Int center = world.SceneToGrid(position);
+            SetSphere(world, center, radius, block, ref handle, blocksToIgnore);
+        }
+
+        /// <summary>
+        /// Updates a sphere of blocks in the voxel world and flags the affected chunks as modified
+        /// </summary>
+        /// <param name="world">A reference to the World</param>
+        /// <param name="position">The center of the sphere</param>
+        /// <param name="radius">The radius of the sphere</param>
+        /// <param name="block">The new block index to set</param>
+        public static void SetSphere(World world, Vector3Int position, float radius,
+            byte block, ref JobHandle handle, NativeArray<byte> blocksToIgnore = default)
+        {
+            // calculate min and delta of a rectangle that encloses the sphere
+            int size = Mathf.CeilToInt(radius);
+            Vector3Int rectDelta = new Vector3Int();
+            Vector3Int rectMin = new Vector3Int();
+
+            rectDelta.x = size * 2;
+            rectDelta.y = size * 2;
+            rectDelta.z = size * 2;
+
+            rectMin.x = position.x - size;
+            rectMin.y = position.y - size;
+            rectMin.z = position.z - size;
+
+            // find the chunks that the rectangle intersects
+            // and schedule jobs to update their voxel data
+
+            Vector3Int chunkMin = Vector3Int.zero;
+            Vector3Int chunkDelta = Vector3Int.zero;
+            Vector3Int chunkStart = world.chunkManager.IndexFrom(rectMin);
+            Vector3Int chunkEnd   = world.chunkManager.IndexFrom(rectMin + rectDelta);
+            Vector3Int chunkSize = world.chunkManager.configuration.size;
+            Vector3Int chunkMax = new Vector3Int(
+                world.size.x / chunkSize.x,
+                world.size.y / chunkSize.y,
+                world.size.z / chunkSize.z
+            );
+
+            chunkDelta.x = Mathf.Abs(chunkEnd.x - chunkStart.x) + 1;
+            chunkDelta.y = Mathf.Abs(chunkEnd.y - chunkStart.y) + 1;
+            chunkDelta.z = Mathf.Abs(chunkEnd.z - chunkStart.z) + 1;
+
+            chunkMin.x = Mathf.Min(chunkStart.x, chunkEnd.x);
+            chunkMin.y = Mathf.Min(chunkStart.y, chunkEnd.y);
+            chunkMin.z = Mathf.Min(chunkStart.z, chunkEnd.z);
+
+            Chunk chunk;
+            int jobIndex = 0;
+            Vector3Int chunkIndex = Vector3Int.zero;
+            int chunkCount = chunkDelta.x * chunkDelta.y * chunkDelta.z;
+            NativeArray<JobHandle> jobHandles = new NativeArray<JobHandle>(chunkCount, Allocator.Temp);
+
+            for (int x = chunkMin.x; x < chunkMin.x + chunkDelta.x; x++)
+            {
+                chunkIndex.x = x;
+                for (int z = chunkMin.z; z < chunkMin.z + chunkDelta.z; z++)
+                {
+                    chunkIndex.z = z;
+                    for (int y = chunkMin.y; y < chunkMin.y + chunkDelta.y; y++)
+                    {
+                        chunkIndex.y = y;
+                        chunk = world.chunkManager.Get(chunkIndex);
+                        if (chunk == null) { continue; }
+
+                        chunk.buildingMesh.Complete();
+                        if (chunk.neighbors.up)    { chunk.neighbors.up.buildingMesh.Complete(); }
+                        if (chunk.neighbors.down)  { chunk.neighbors.down.buildingMesh.Complete(); }
+                        if (chunk.neighbors.north) { chunk.neighbors.north.buildingMesh.Complete(); }
+                        if (chunk.neighbors.south) { chunk.neighbors.south.buildingMesh.Complete(); }
+                        if (chunk.neighbors.east)  { chunk.neighbors.east.buildingMesh.Complete(); }
+                        if (chunk.neighbors.west)  { chunk.neighbors.west.buildingMesh.Complete(); }
+
+                        world.chunkManager.Refresh(chunkIndex);
+                        // update neighboring chunks
+                        //
+                        // check if the rectangles minimum x is a local minimum for the chunk
+                        // and the chunk is not the first chunk on the X axis
+                        if (rectMin.x - (chunkIndex.x * chunkSize.x) == 0 && chunkIndex.x != 0)
+                            world.chunkManager.Refresh(chunkIndex + Direction3Int.West);
+
+                        // check if the rectangles maximum x is a local maximum for the chunk
+                        // and the chunk is not the last chunk on the X axis
+                        if (rectMin.x + rectDelta.x - (chunkIndex.x * chunkSize.x) == chunkSize.x && chunkIndex.x != chunkMax.x - 1)
+                            world.chunkManager.Refresh(chunkIndex + Direction3Int.East);
+
+                        // check if the rectangles minimum y is a local minimum for the chunk
+                        // and the chunk is not the first chunk on the Y axis
+                        if (rectMin.y - (chunkIndex.y * chunkSize.y) == 0 && chunkIndex.y != 0)
+                            world.chunkManager.Refresh(chunkIndex + Direction3Int.Down);
+
+                        // check if the rectangles maximum y is a local maximum for the chunk
+                        // and the chunk is not the last chunk on the Y axis
+                        if (rectMin.y + rectDelta.y - (chunkIndex.y * chunkSize.y) == chunkSize.y && chunkIndex.y != chunkMax.y - 1)
+                            world.chunkManager.Refresh(chunkIndex + Direction3Int.Up);
+
+                        // check if the rectangles minimum z is a local minimum for the chunk
+                        // and the chunk is not the first chunk on the Z axis
+                        if (rectMin.z - (chunkIndex.z * chunkSize.z) == 0 && chunkIndex.z != 0)
+                            world.chunkManager.Refresh(chunkIndex + Direction3Int.South);
+
+                        // check if the rectangles maximum z is a local maximum for the chunk
+                        // and the chunk is not the last chunk on the Z axis
+                        if (rectMin.z + rectDelta.z - (chunkIndex.z * chunkSize.z) == chunkSize.z && chunkIndex.z != chunkMax.z - 1)
+                            world.chunkManager.Refresh(chunkIndex + Direction3Int.North);
+
+                        // schedule a background job to update the chunks voxel data
+
+                        ModifySphere job = new ModifySphere();
+                        job.blocksToIgnore = blocksToIgnore == default ? world.blockManager.emptyIgnoreList : blocksToIgnore;
+                        job.blockLibrary = world.chunkManager.meshGenerator.blockLibrary;
+                        job.chunkOffset = new int3(chunk.offset.x, chunk.offset.y, chunk.offset.z);
+                        job.chunkSize = new int3(chunkSize.x, chunkSize.y, chunkSize.z);
+                        job.center = new int3(position.x, position.y, position.z);
+                        job.voxels = chunk.voxels;
+                        job.radius = radius;
+                        job.block = block;
+
+                        jobHandles[jobIndex] = job.Schedule();
+                        jobIndex++;
+                    }
+                }
+            }
+
+            // deprecated but still required for agent navigation
+            EditVoxelSphereJob navJob = new EditVoxelSphereJob()
+            {
+                blocksToIgnore = blocksToIgnore == default ? world.blockManager.emptyIgnoreList : blocksToIgnore,
+                blockLibrary = world.chunkManager.meshGenerator.blockLibrary,
+                worldSize = new int3(world.size.x, world.size.y, world.size.z),
+                position = new int3(position.x, position.y, position.z),
+                voxels = world.data.voxels,
+                radius = radius,
+                block = block
+            };
+            JobHandle navHandle = navJob.Schedule();
+
+            // combine dependencies and refresh the chunks
+            handle = JobHandle.CombineDependencies(jobHandles);
+            handle = JobHandle.CombineDependencies(handle, navHandle);
+            world.chunkManager.refreshDependsOn = handle;
+            jobHandles.Dispose();
         }
     }
 }

@@ -157,7 +157,7 @@ public class Navigation : MonoBehaviour
     Vector3 GetGoalScenePosition()
     {
         Vector3Int grid = GetGoalGridPosition();
-        Vector3 position = WorldEditor.Get(world, grid);
+        Vector3 position = world.GridToScene(grid);
         position += Vector3.down * 0.5f * world.scale;
         return position;
     }
@@ -223,7 +223,7 @@ public class Navigation : MonoBehaviour
             // convert the grid position to world space
             grid.x = (int)randomXZ.x; grid.z = (int)randomXZ.y;
             grid.y = heightMap.Read(grid.x, grid.z) + 1;
-            position = WorldEditor.Get(world, grid);
+            position = world.GridToScene(grid);
 
             // spawn the new enemy agent
             int index = Random.Range(0, agentsToSpawn.Count);

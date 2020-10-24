@@ -1,140 +1,144 @@
-﻿using System.Collections.Generic;
+﻿using VRoxel.Core.Chunks;
 using VRoxel.Core.Data;
+
+using Unity.Collections;
+using Unity.Mathematics;
+using Unity.Jobs;
 using UnityEngine;
 
 namespace VRoxel.Core
 {
     public class MeshGenerator
     {
-        private VoxelGrid _data;
-        private BlockManager _manager;
-        private float _scale;
-        private float _halfScale;
+        private World m_world;
+        private BlockManager m_blockManager;
+        private ChunkConfiguration m_chunkConfig;
 
-        private List<Vector3> _meshVert = new List<Vector3>();
-        private List<int> _meshTri = new List<int>();
-        private List<Vector2> _meshUV = new List<Vector2>();
-        private Vector3[] _face = new Vector3[4];
-        private Vector2[] _faceUV = new Vector2[4];
-        private int _faceCount = 0;
+        private NativeArray<byte> m_emptyChunk;
+        private NativeArray<int> m_cubeFaces;
+        private NativeArray<float3> m_cubeVertices;
+        private NativeArray<int3> m_directions;
+        private NativeArray<Block> m_blocks;
 
-        public MeshGenerator(VoxelGrid data, BlockManager blocks, float scale)
+        public NativeArray<Block> blockLibrary
         {
-            _data = data;
-            _manager = blocks;
-
-            _scale = scale;
-            _halfScale = scale * 0.5f;
+            get { return m_blocks; }
         }
 
-        /// <summary>
-        /// Updates the mesh for a section of the voxel grid
-        /// </summary>
-        /// <param name="size">The size of the voxel mesh to render</param>
-        /// <param name="offset">The offset for the voxel data</param>
-        /// <param name="mesh">The referenced Mesh to update</param>
-        public void BuildMesh(Vector3Int size, Vector3Int offset, ref Mesh mesh)
+        public MeshGenerator(World world)
         {
-            Vector3Int voxel = Vector3Int.zero;
-            Vector3 position = Vector3.zero;
-            BlockConfiguration block;
-            int blockCount;
-            byte index;
+            m_chunkConfig = world.chunkManager.configuration;
+            m_blockManager = world.blockManager;
+            m_world = world;
 
-            mesh.Clear();
-            blockCount = _manager.blocks.Count;
+            /// create lookup tables for cube rendering data
+            int size1D = m_chunkConfig.size.x * m_chunkConfig.size.y * m_chunkConfig.size.z;
+            m_emptyChunk = new NativeArray<byte>(size1D, Allocator.Persistent);
+            m_cubeFaces = new NativeArray<int>(Cube.Faces.Length, Allocator.Persistent);
+            m_cubeVertices = new NativeArray<float3>(Cube.Vectors.Length, Allocator.Persistent);
+            m_directions = new NativeArray<int3>(Cube.Directions.Length, Allocator.Persistent);
+            m_blocks = new NativeArray<Block>(m_blockManager.blocks.Count, Allocator.Persistent);
 
-            // generate faces (adjacent to air) for all solid blocks
-            for (int x = 0; x < size.x; x++)
+            m_cubeFaces.CopyFrom(Cube.Faces);
+            m_cubeVertices.CopyFrom(Cube.Vectors);
+            m_directions.CopyFrom(Cube.Directions);
+
+            /// convert block configurations to a block structure
+            /// of material and texture data for rendering
+            for (int i = 0; i < m_blockManager.blocks.Count; i++)
             {
-                for (int z = 0; z < size.z; z++)
+                BlockConfiguration blockConfig = m_blockManager.blocks[i];
+                m_blocks[i] = new Block()
                 {
-                    for (int y = 0; y < size.y; y++)
-                    {
-                        voxel.x = x;
-                        voxel.y = y;
-                        voxel.z = z;
-                        voxel += offset;
-
-                        index = _data.Get(voxel);
-                        if (index == 0) { continue; }   // skip if the block is air
-
-                        position.x = (float)x * _scale;
-                        position.y = (float)y * _scale;
-                        position.z = (float)z * _scale;
-
-                        position.x -= 0.5f * ((float)size.x - 1f) * _scale;
-                        position.y -= 0.5f * ((float)size.y - 1f) * _scale;
-                        position.z -= 0.5f * ((float)size.z - 1f) * _scale;
-
-                        // if no block data is present, exit and do not render the mesh
-                        if(index >= blockCount)
-                        {
-                            Debug.LogAssertion("Chunk failed to render: no block found with index:" + index);
-                            ClearCache();
-                            return;
-                        }
-
-                        block = _manager.blocks[index];
-                        if (_data.Get(voxel + Direction3Int.Up) == 0)    { AddFace(position, block, Cube.Direction.Top);    }
-                        if (_data.Get(voxel + Direction3Int.Down) == 0)  { AddFace(position, block, Cube.Direction.Bottom); }
-                        if (_data.Get(voxel + Direction3Int.North) == 0) { AddFace(position, block, Cube.Direction.North);  }
-                        if (_data.Get(voxel + Direction3Int.East) == 0)  { AddFace(position, block, Cube.Direction.East);   }
-                        if (_data.Get(voxel + Direction3Int.South) == 0) { AddFace(position, block, Cube.Direction.South);  }
-                        if (_data.Get(voxel + Direction3Int.West) == 0)  { AddFace(position, block, Cube.Direction.West);   }
-                    }
-                }
+                    editable = blockConfig.editable,
+                    collidable = blockConfig.collidable,
+                    texturesUp = blockConfig.textureUp,
+                    texturesDown = blockConfig.textureDown,
+                    texturesBack = blockConfig.textureBack,
+                    texturesFront = blockConfig.textureFront,
+                    texturesRight = blockConfig.textureRight,
+                    texturesLeft = blockConfig.textureLeft,
+                };
             }
-
-            mesh.vertices = _meshVert.ToArray();
-            mesh.triangles = _meshTri.ToArray();
-            mesh.uv = _meshUV.ToArray();
-            mesh.RecalculateNormals();
-            ClearCache();
-        }
-
-        private void ClearCache()
-        {
-            _meshVert.Clear();
-            _meshTri.Clear();
-            _meshUV.Clear();
-            _faceCount = 0;
         }
 
         /// <summary>
-        /// Add cube face vertices, triangles, and UVs to the cache
+        /// Disposes all unmanaged memory
         /// </summary>
-        /// <param name="position">The position of the cube</param>
-        /// <param name="block">The block data for the cube</param>
-        /// <param name="dir">The direction of the cube to render</param>
-        private void AddFace(Vector3 position, BlockConfiguration block, Cube.Direction dir)
+        public void Dispose()
         {
-            float tScale = _manager.textureAtlas.scale;
-            Vector2 texture = block.texture;
+            if (m_emptyChunk.IsCreated)
+                m_emptyChunk.Dispose();
 
-            // add vertices for the face
-            Cube.Face((int)dir, position, _halfScale, ref _face);
-            _meshVert.AddRange(_face);
+            if (m_cubeFaces.IsCreated)
+                m_cubeFaces.Dispose();
 
-            // add uv coordinates for the face
-            _faceUV[0].x = tScale * texture.x + tScale;
-            _faceUV[0].y = tScale * texture.y;
-            _faceUV[1].x = tScale * texture.x + tScale;
-            _faceUV[1].y = tScale * texture.y + tScale;
-            _faceUV[2].x = tScale * texture.x;
-            _faceUV[2].y = tScale * texture.y + tScale;
-            _faceUV[3].x = tScale * texture.x;
-            _faceUV[3].y = tScale * texture.y;
-            _meshUV.AddRange(_faceUV);
+            if (m_cubeVertices.IsCreated)
+                m_cubeVertices.Dispose();
 
-            // add triangles for the face
-            _meshTri.Add(_faceCount * 4);      // 1
-            _meshTri.Add(_faceCount * 4 + 1);  // 2
-            _meshTri.Add(_faceCount * 4 + 2);  // 3
-            _meshTri.Add(_faceCount * 4);      // 1
-            _meshTri.Add(_faceCount * 4 + 2);  // 3
-            _meshTri.Add(_faceCount * 4 + 3);  // 4
-            _faceCount++;
+            if (m_directions.IsCreated)
+                m_directions.Dispose();
+
+            if (m_blocks.IsCreated)
+                m_blocks.Dispose();
+        }
+
+        /// <summary>
+        /// Schedules a background job to build the vertices, 
+        /// triangles, and uv data for a chunk's mesh
+        /// </summary>
+        /// <param name="chunk">The Chunk to generate a mesh for</param>
+        /// <param name="job">References the chunk's cached background job</param>
+        /// <param name="verts">References the chunk's cached vertices</param>
+        /// <param name="tris">References the chunk's cached triangles</param>
+        /// <param name="uv">References the chunk's cached uv data</param>
+        public JobHandle BuildMesh(Chunk chunk,
+            ref BuildChunkMesh job, ref NativeList<Vector3> verts,
+            ref NativeList<int> tris, ref NativeList<Vector2> uv,
+            JobHandle dependsOn = default)
+        {
+            job.chunkSize = new int3(chunk.size.x, chunk.size.y, chunk.size.z);
+            job.chunkOffset = new int3(chunk.offset.x, chunk.offset.y, chunk.offset.z);
+            job.worldSize = new int3(m_world.size.x, m_world.size.y, m_world.size.z);
+            job.textureScale = chunk.configuration.textureScale;
+            job.renderWorldEdges = m_world.renderWorldEdges;
+            job.worldScale = m_world.scale;
+
+            job.cubeFaces = m_cubeFaces;
+            job.cubeVertices = m_cubeVertices;
+            job.directions = m_directions;
+            job.blocks = m_blocks;
+
+            job.vertices = verts;
+            job.triangles = tris;
+            job.uvs = uv;
+
+            job.voxels = chunk.voxels;
+            if (chunk.neighbors.up)
+                job.voxelsUp = chunk.neighbors.up.voxels;
+            else { job.voxelsUp = m_emptyChunk; }
+
+            if (chunk.neighbors.down)
+                job.voxelsDown = chunk.neighbors.down.voxels;
+            else { job.voxelsDown = m_emptyChunk; }
+
+            if (chunk.neighbors.north)
+                job.voxelsNorth = chunk.neighbors.north.voxels;
+            else { job.voxelsNorth = m_emptyChunk; }
+
+            if (chunk.neighbors.south)
+                job.voxelsSouth = chunk.neighbors.south.voxels;
+            else { job.voxelsSouth = m_emptyChunk; }
+
+            if (chunk.neighbors.east)
+                job.voxelsEast = chunk.neighbors.east.voxels;
+            else { job.voxelsEast = m_emptyChunk; }
+
+            if (chunk.neighbors.west)
+                job.voxelsWest = chunk.neighbors.west.voxels;
+            else { job.voxelsWest = m_emptyChunk; }
+
+            return job.Schedule(dependsOn);
         }
     }
 }

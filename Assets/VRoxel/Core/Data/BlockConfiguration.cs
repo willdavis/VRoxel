@@ -31,11 +31,12 @@ namespace VRoxel.Core.Data
         public bool editable;
 
 
-        /// <summary>
-        /// The texture coordinates to use
-        /// for all sides of the block
-        /// </summary>
         [Header("Texture Coordinates")]
-        public Vector2 texture;
+        public Vector2 textureUp;
+        public Vector2 textureDown;
+        public Vector2 textureFront;
+        public Vector2 textureBack;
+        public Vector2 textureLeft;
+        public Vector2 textureRight;
     }
 }

@@ -1,55 +1,103 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using VRoxel.Core.Data;
+using Unity.Jobs;
 using UnityEngine;
 
 namespace VRoxel.Core
 {
-    public class ChunkManager
+    /// <summary>
+    /// A component to help manage the chunks of a voxel world
+    /// </summary>
+    public class ChunkManager : MonoBehaviour
     {
-        private World _world;
-        private Chunk _prefab;
-        private Vector3Int _max;
-        private Dictionary<Vector3Int, Chunk> _cache;
+        /// <summary>
+        /// A reference to the voxel world
+        /// </summary>
+        public World world;
 
-        public Data.ChunkConfiguration configuration;
+        /// <summary>
+        /// The prefab to use when creating Chunks
+        /// </summary>
+        public Chunk chunkPrefab;
+
+        /// <summary>
+        /// The data container for chunk settings
+        /// </summary>
+        public ChunkConfiguration configuration;
+
+        /// <summary>
+        /// The number of chunks that can be rendered each frame
+        /// </summary>
+        [Min(1)]
+        public int refreshPerFrame = 1;
+
+        /// <summary>
+        /// The job(s) that must be complete before chunks can be refreshed
+        /// </summary>
+        public JobHandle refreshDependsOn { get; set; }
+
+        /// <summary>
+        /// References the chunks that are waiting to be refreshed
+        /// </summary>
+        protected Queue<Vector3Int> m_chunksToRefresh;
+
+
         public MeshGenerator meshGenerator;
 
-        /// <summary>
-        /// Flag if all the chunks should have a collision mesh
-        /// </summary>
-        public bool collidable = true;
+        private Dictionary<Vector3Int, Chunk> m_cache;
+        private Vector3Int m_maxChunks;
 
-        public ChunkManager(World world, Chunk prefab)
+        //-------------------------------------------------
+        #region Monobehaviors
+
+        protected void Awake()
         {
-            _cache = new Dictionary<Vector3Int, Chunk>();
+            if (world == null)
+                world = GetComponent<World>();
+        }
 
-            _max = new Vector3Int(
-                world.size.x / world.chunkSize.x,
-                world.size.y / world.chunkSize.y,
-                world.size.z / world.chunkSize.z
+        protected void Start()
+        {
+            m_chunksToRefresh = new Queue<Vector3Int>();
+            m_cache = new Dictionary<Vector3Int, Chunk>();
+            m_maxChunks = new Vector3Int(
+                world.size.x / configuration.size.x,
+                world.size.y / configuration.size.y,
+                world.size.z / configuration.size.z
             );
-
-            _prefab = prefab;
-            _world = world;
         }
 
-        /// <summary>
-        /// An enumeration of all Chunks in the cache.
-        /// </summary>
-        public IEnumerable<Chunk> all {
-            get { foreach (Chunk chunk in _cache.Values) { yield return chunk; } }
+        protected void Update()
+        {
+            int refreshCount = refreshPerFrame;
+            while (m_chunksToRefresh.Count != 0 && refreshCount > 0)
+            {
+                refreshCount--;
+                Get(m_chunksToRefresh.Dequeue())
+                    .Refresh(refreshDependsOn);
+            }
         }
 
+        protected void OnDestroy()
+        {
+            meshGenerator.Dispose();
+        }
+
+        #endregion
+        //-------------------------------------------------
+
         /// <summary>
-        /// The maximum number of Chunks this World can have in each dimension.
+        /// An enumeration of all managed chunks
         /// </summary>
-        public Vector3Int max { get { return _max; } }
+        public IEnumerable<Chunk> allChunks {
+            get { foreach (Chunk chunk in m_cache.Values) { yield return chunk; } }
+        }
 
         /// <summary>
         /// Test if the Chunk index already exists in the cache
         /// </summary>
         /// <param name="index">The Chunk index</param>
-        public bool HasIndex(Vector3Int index) { return _cache.ContainsKey(index); }
+        public bool HasIndex(Vector3Int index) { return m_cache.ContainsKey(index); }
 
         /// <summary>
         /// Test if the Chunk index is valid
@@ -57,9 +105,9 @@ namespace VRoxel.Core
         /// <param name="index">The Chunk index</param>
         public bool Contains(Vector3Int index)
         {
-            if (index.x < 0 || index.x >= _max.x) { return false; }
-            if (index.y < 0 || index.y >= _max.y) { return false; }
-            if (index.z < 0 || index.z >= _max.z) { return false; }
+            if (index.x < 0 || index.x >= m_maxChunks.x) { return false; }
+            if (index.y < 0 || index.y >= m_maxChunks.y) { return false; }
+            if (index.z < 0 || index.z >= m_maxChunks.z) { return false; }
             return true;
         }
 
@@ -71,46 +119,53 @@ namespace VRoxel.Core
         {
             if (!Contains(index)) { return null; }
 
-            Quaternion rotation = _world.transform.rotation;
-            Chunk chunk = UnityEngine.Object.Instantiate(_prefab, Position(index), rotation) as Chunk;
+            Quaternion rotation = world.transform.rotation;
+            Chunk chunk = UnityEngine.Object.Instantiate(
+                chunkPrefab, Position(index), rotation) as Chunk;
 
             chunk.configuration = configuration;
             chunk.meshGenerator = meshGenerator;
             chunk.offset = new Vector3Int(
-                index.x * _world.chunkSize.x,
-                index.y * _world.chunkSize.y,
-                index.z * _world.chunkSize.z
+                index.x * configuration.size.x,
+                index.y * configuration.size.y,
+                index.z * configuration.size.z
             );
+            chunk.Initialize();
 
-            chunk.transform.parent = _world.transform;
-            _cache.Add(index, chunk);
+            LinkChunkNeighbors(chunk, index);
+            chunk.transform.parent = world.transform;
+            m_cache.Add(index, chunk);
             return chunk;
         }
 
         /// <summary>
-        /// Fetch a Chunk from the cache.
+        /// Returns the Chunk (if present) at the given chunk index
         /// </summary>
         /// <param name="index">The Chunk index</param>
         public Chunk Get(Vector3Int index)
         {
             if (!Contains(index)) { return null; }
             if (!HasIndex(index)) { return null; }
-            return _cache[index];
+            return m_cache[index];
         }
 
         /// <summary>
-        /// Flag a Chunk as stale so it updates on the next frame
+        /// Add a Chunk (if present) to the queue to be refreshed
         /// </summary>
         /// <param name="index">The Chunk index</param>
-        public void Update(Vector3Int index)
+        public void Refresh(Vector3Int index)
         {
             if (!Contains(index)) { return; }
             if (!HasIndex(index)) { return; }
-            _cache[index].stale = true;
+
+            if (m_chunksToRefresh.Contains(index))
+                return;
+
+            m_chunksToRefresh.Enqueue(index);
         }
 
         /// <summary>
-        /// Remove a Chunk from the cache and destroy it
+        /// Remove a Chunk from the manager and destroy it
         /// </summary>
         /// <param name="index">The Chunk index</param>
         public void Destroy(Vector3Int index)
@@ -118,8 +173,9 @@ namespace VRoxel.Core
             if (!Contains(index)) { return; }
             if (!HasIndex(index)) { return; }
 
-            Object.Destroy(_cache[index].gameObject);
-            _cache.Remove(index);
+            UnLinkChunkNeighbors(index);
+            UnityEngine.Object.Destroy(m_cache[index].gameObject);
+            m_cache.Remove(index);
         }
 
         /// <summary>
@@ -129,78 +185,76 @@ namespace VRoxel.Core
         public Vector3 Position(Vector3Int index)
         {
             Vector3 position = index;                           // adjust for the chunks offset
-            position.x *= _world.chunkSize.x;
-            position.y *= _world.chunkSize.y;
-            position.z *= _world.chunkSize.z;
+            position.x *= configuration.size.x;
+            position.y *= configuration.size.y;
+            position.z *= configuration.size.z;
 
-            position.x += _world.chunkSize.x * 0.5f;            // align the chunk with the world
-            position.y += _world.chunkSize.y * 0.5f;
-            position.z += _world.chunkSize.z * 0.5f;
+            position.x += configuration.size.x * 0.5f;          // align the chunk with the world
+            position.y += configuration.size.y * 0.5f;
+            position.z += configuration.size.z * 0.5f;
 
-            position += _world.data.center * -1f;               // adjust for the worlds center
-            position = _world.transform.rotation * position;    // adjust for the worlds rotation
-            position *= _world.scale;                           // adjust for the worlds scale
-            position += _world.transform.position;              // adjust for the worlds position
+            position += world.data.center * -1f;               // adjust for the worlds center
+            position = world.transform.rotation * position;    // adjust for the worlds rotation
+            position *= world.scale;                           // adjust for the worlds scale
+            position += world.transform.position;              // adjust for the worlds position
 
             return position;
         }
 
         /// <summary>
-        /// Calculates a Chunk index from a point in the voxel grid
+        /// Calculates a Chunk index from a global position in the voxel grid
         /// </summary>
-        /// <param name="point">A point in the voxel grid</param>
+        /// <param name="point">A global position in the voxel grid</param>
         public Vector3Int IndexFrom(Vector3Int point)
         {
             Vector3Int index = Vector3Int.zero;
-            index.x = point.x / _world.chunkSize.x;
-            index.y = point.y / _world.chunkSize.y;
-            index.z = point.z / _world.chunkSize.z;
+            index.x = point.x / configuration.size.x;
+            index.y = point.y / configuration.size.y;
+            index.z = point.z / configuration.size.z;
             return index;
         }
 
         /// <summary>
-        /// Updates the Chunk containing the given grid point.
-        /// Any adjacent Chunks will be updated if the point is on an edge.
+        /// Refreshes the Chunk that contains the given global position.
+        /// Any adjacent Chunks will be refreshed if the point is on an edge.
         /// </summary>
-        /// <param name="index">A point in the voxel grid</param>
+        /// <param name="point">A global position in the voxel world</param>
         public void UpdateFrom(Vector3Int point)
         {
-            Vector3Int Vector3Int_front = new Vector3Int(0,0,1);
-            Vector3Int Vector3Int_back = new Vector3Int(0,0,-1);
             Vector3Int index = IndexFrom(point);
-            Update(index);
+            Refresh(index);
 
             // update neighboring chunks
             //
             // check if x is a local minimum for the chunk
             // and the chunk is not the first chunk on the X axis
-            if (point.x - (index.x * _world.chunkSize.x) == 0 && index.x != 0)
-                Update(index + Vector3Int.left);
+            if (point.x - (index.x * configuration.size.x) == 0 && index.x != 0)
+                Refresh(index + Direction3Int.West);
 
             // check if x is a local maximum for the chunk
             // and the chunk is not the last chunk on the X axis
-            if (point.x - (index.x * _world.chunkSize.x) == _world.chunkSize.x - 1 && index.x != _max.x - 1)
-                Update(index + Vector3Int.right);
+            if (point.x - (index.x * configuration.size.x) == configuration.size.x - 1 && index.x != m_maxChunks.x - 1)
+                Refresh(index + Direction3Int.East);
 
             // check if y is a local minimum for the chunk
             // and the chunk is not the first chunk on the Y axis
-            if (point.y - (index.y * _world.chunkSize.y) == 0 && index.y != 0)
-                Update(index + Vector3Int.down);
+            if (point.y - (index.y * configuration.size.y) == 0 && index.y != 0)
+                Refresh(index + Direction3Int.Down);
 
             // check if y is a local maximum for the chunk
             // and the chunk is not the last chunk on the Y axis
-            if (point.y - (index.y * _world.chunkSize.y) == _world.chunkSize.y - 1 && index.y != _max.y - 1)
-                Update(index + Vector3Int.up);
+            if (point.y - (index.y * configuration.size.y) == configuration.size.y - 1 && index.y != m_maxChunks.y - 1)
+                Refresh(index + Direction3Int.Up);
 
             // check if z is a local minimum for the chunk
             // and the chunk is not the first chunk on the Z axis
-            if (point.z - (index.z * _world.chunkSize.z) == 0 && index.z != 0)
-                Update(index + Vector3Int_back);
+            if (point.z - (index.z * configuration.size.z) == 0 && index.z != 0)
+                Refresh(index + Direction3Int.South);
 
             // check if z is a local maximum for the chunk
             // and the chunk is not the last chunk on the Z axis
-            if (point.z - (index.z * _world.chunkSize.z) == _world.chunkSize.z - 1 && index.z != _max.z - 1)
-                Update(index + Vector3Int_front);
+            if (point.z - (index.z * configuration.size.z) == configuration.size.z - 1 && index.z != m_maxChunks.z - 1)
+                Refresh(index + Direction3Int.North);
         }
 
         /// <summary>
@@ -224,7 +278,7 @@ namespace VRoxel.Core
                         index.y = y + offset.y;
                         if (!Contains(index)) { continue; }
                         if (!HasIndex(index)) { Create(index); }
-                        else { Update(index); }
+                        else { Refresh(index); }
                     }
                 }
             }
@@ -237,18 +291,104 @@ namespace VRoxel.Core
         public void LoadAll()
         {
             Vector3Int index = Vector3Int.zero;
-            for (int x = 0; x < _max.x; x++)
+            for (int x = 0; x < m_maxChunks.x; x++)
             {
                 index.x = x;
-                for (int z = 0; z < _max.z; z++)
+                for (int z = 0; z < m_maxChunks.z; z++)
                 {
                     index.z = z;
-                    for (int y = 0; y < _max.y; y++)
+                    for (int y = 0; y < m_maxChunks.y; y++)
                     {
                         index.y = y;
                         if (!HasIndex(index)) { Create(index); }
-                        else { Update(index); }
+                        else { Refresh(index); }
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Link the chunk with the 6 adjacent neighbors
+        /// </summary>
+        protected void LinkChunkNeighbors(Chunk chunk, Vector3Int index)
+        {
+            Vector3Int next = Vector3Int.zero;
+            Chunk nextChunk;
+
+            for (int i = 0; i < Cube.Directions3Int.Length; i++)
+            {
+                next = index + Cube.Directions3Int[i];
+                nextChunk = Get(next);
+
+                if (nextChunk == null)
+                    continue;
+
+                switch (i)
+                {
+                    case 0: // Up
+                        chunk.neighbors.up = nextChunk;
+                        nextChunk.neighbors.down = chunk;
+                        break;
+                    case 1: // Down
+                        chunk.neighbors.down = nextChunk;
+                        nextChunk.neighbors.up = chunk;
+                        break;
+                    case 2: // North (Front)
+                        chunk.neighbors.north = nextChunk;
+                        nextChunk.neighbors.south = chunk;
+                        break;
+                    case 3: // East (Right)
+                        chunk.neighbors.east = nextChunk;
+                        nextChunk.neighbors.west = chunk;
+                        break;
+                    case 4: // South (Back)
+                        chunk.neighbors.south = nextChunk;
+                        nextChunk.neighbors.north = chunk;
+                        break;
+                    case 5: // West (Left)
+                        chunk.neighbors.west = nextChunk;
+                        nextChunk.neighbors.east = chunk;
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Unlink a chunk from the 6 adjacent neighbors
+        /// </summary>
+        protected void UnLinkChunkNeighbors(Vector3Int index)
+        {
+            Vector3Int next = Vector3Int.zero;
+            Chunk nextChunk;
+
+            for (int i = 0; i < Cube.Directions3Int.Length; i++)
+            {
+                next = index + Cube.Directions3Int[i];
+                nextChunk = Get(next);
+
+                if (nextChunk == null)
+                    continue;
+
+                switch (i)
+                {
+                    case 0: // Up
+                        nextChunk.neighbors.down = null;
+                        break;
+                    case 1: // Down
+                        nextChunk.neighbors.up = null;
+                        break;
+                    case 2: // North (Front)
+                        nextChunk.neighbors.south = null;
+                        break;
+                    case 3: // East (Right)
+                        nextChunk.neighbors.west = null;
+                        break;
+                    case 4: // South (Back)
+                        nextChunk.neighbors.north = null;
+                        break;
+                    case 5: // West (Left)
+                        nextChunk.neighbors.east = null;
+                        break;
                 }
             }
         }

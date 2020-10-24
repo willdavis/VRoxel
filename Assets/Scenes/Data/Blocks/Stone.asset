@@ -16,4 +16,9 @@ MonoBehaviour:
   description: 
   collidable: 1
   editable: 1
-  texture: {x: 1, y: 15}
+  textureUp: {x: 1, y: 15}
+  textureDown: {x: 1, y: 15}
+  textureFront: {x: 1, y: 15}
+  textureBack: {x: 1, y: 15}
+  textureLeft: {x: 1, y: 15}
+  textureRight: {x: 1, y: 15}
