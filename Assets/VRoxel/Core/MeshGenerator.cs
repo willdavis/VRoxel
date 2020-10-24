@@ -52,12 +52,12 @@ namespace VRoxel.Core
                 {
                     editable = blockConfig.editable,
                     collidable = blockConfig.collidable,
-                    texturesUp = blockConfig.texture,
-                    texturesDown = blockConfig.texture,
-                    texturesBack = blockConfig.texture,
-                    texturesFront = blockConfig.texture,
-                    texturesLeft = blockConfig.texture,
-                    texturesRight = blockConfig.texture,
+                    texturesUp = blockConfig.textureUp,
+                    texturesDown = blockConfig.textureDown,
+                    texturesBack = blockConfig.textureBack,
+                    texturesFront = blockConfig.textureFront,
+                    texturesRight = blockConfig.textureRight,
+                    texturesLeft = blockConfig.textureLeft,
                 };
             }
         }
