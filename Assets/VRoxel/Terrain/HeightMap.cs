@@ -30,9 +30,9 @@ namespace VRoxel.Terrain
         NativeArray<ushort> m_data;
 
         /// <summary>
-        /// Handle for the background job to refresh the height map
+        /// References the background job that is refreshing the height map
         /// </summary>
-        JobHandle m_refreshing;
+        public JobHandle refreshing { get; private set; }
 
         //-------------------------------------------------
         #region Monobehaviors
@@ -63,7 +63,7 @@ namespace VRoxel.Terrain
         /// </summary>
         public JobHandle Refresh(JobHandle dependsOn = default(JobHandle))
         {
-            m_refreshing.Complete();
+            refreshing.Complete();
 
             int batch = 1;
             int length = size.x * size.z;
@@ -78,8 +78,8 @@ namespace VRoxel.Terrain
                 ),
             };
 
-            m_refreshing = job.Schedule(length, batch, dependsOn);
-            return m_refreshing;
+            refreshing = job.Schedule(length, batch, dependsOn);
+            return refreshing;
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace VRoxel.Terrain
             if (!Contains(x,z))
                 return ushort.MaxValue;
 
-            m_refreshing.Complete();
+            refreshing.Complete();
 
             /// 2D[x,y] = 2D[x * height + y]
             return m_data[x * size.z + z];
@@ -111,7 +111,8 @@ namespace VRoxel.Terrain
         /// </summary>
         public void Dispose()
         {
-            m_data.Dispose();
+            if (m_data.IsCreated)
+                m_data.Dispose();
         }
 
         #endregion
