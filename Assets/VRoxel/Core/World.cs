@@ -1,5 +1,7 @@
-﻿using VRoxel.Core.Data;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.Events;
+using VRoxel.Core.Data;
+using Unity.Jobs;
 
 namespace VRoxel.Core
 {
@@ -33,6 +35,11 @@ namespace VRoxel.Core
         /// Flags if the outer faces of the world should be rendered
         /// </summary>
         public bool renderWorldEdges = true;
+
+        /// <summary>
+        /// Event fired when the world's voxel data is modifed
+        /// </summary>
+        public WorldModifiedEvent modified;
 
         /// <summary>
         /// The voxel data for the World
@@ -162,6 +169,7 @@ namespace VRoxel.Core
 
             chunk.Write(localPos, voxel);
             if (refresh) { chunkManager.UpdateFrom(point); }
+            if (refresh && modified != null) { modified.Invoke(default); }
 
             // deprecated but still needed for navigation
             data.Set(point.x, point.y, point.z, voxel);
@@ -200,4 +208,7 @@ namespace VRoxel.Core
         #endregion
         //-------------------------------------------------
     }
+
+    [System.Serializable]
+    public class WorldModifiedEvent : UnityEvent<JobHandle> { }
 }

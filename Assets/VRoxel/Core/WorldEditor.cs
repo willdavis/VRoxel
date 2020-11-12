@@ -233,8 +233,11 @@ namespace VRoxel.Core
             // combine dependencies
             handle = JobHandle.CombineDependencies(jobs);
             handle = JobHandle.CombineDependencies(handle, navHandle);
-            world.chunkManager.refreshDependsOn = handle;
             jobs.Dispose();
+
+            // notify listeners
+            world.chunkManager.refreshDependsOn = handle;
+            world.modified.Invoke(handle);
         }
 
         /// <summary>
@@ -389,8 +392,11 @@ namespace VRoxel.Core
             // combine dependencies and refresh the chunks
             handle = JobHandle.CombineDependencies(jobHandles);
             handle = JobHandle.CombineDependencies(handle, navHandle);
-            world.chunkManager.refreshDependsOn = handle;
             jobHandles.Dispose();
+
+            // notify listeners
+            world.chunkManager.refreshDependsOn = handle;
+            world.modified.Invoke(handle);
         }
     }
 }
