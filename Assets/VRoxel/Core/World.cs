@@ -152,6 +152,7 @@ namespace VRoxel.Core
         /// </summary>
         /// <param name="point">A global position in the voxel world</param>
         /// <param name="voxel">The block index that will be added</param>
+        /// <param name="refresh">Flags if listeners should be notifed</param>
         public void Write(Vector3Int point, byte voxel, bool refresh = true)
         {
             if (!Contains(point)) { return; }   // point is out of bounds
@@ -167,7 +168,7 @@ namespace VRoxel.Core
             BlockConfiguration originalBlock = blockManager.blocks[original];
             if (!originalBlock.editable) { return; } // block can not be changed
 
-            chunk.Write(localPos, voxel);
+            chunk.Write(localPos, voxel, refresh);
             if (refresh) { chunkManager.UpdateFrom(point); }
             if (refresh && modified != null) { modified.Invoke(default); }
 

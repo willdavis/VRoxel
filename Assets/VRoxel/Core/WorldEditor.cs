@@ -211,8 +211,12 @@ namespace VRoxel.Core
                         job.voxels = chunk.voxels;
                         job.block = block;
 
-                        jobs[jobIndex] = job.Schedule();
+                        JobHandle modifyChunk = job.Schedule();
+                        jobs[jobIndex] = modifyChunk;
                         jobIndex++;
+
+                        if (chunk.modified != null)
+                            chunk.modified.Invoke(modifyChunk);
                     }
                 }
             }
@@ -370,8 +374,12 @@ namespace VRoxel.Core
                         job.radius = radius;
                         job.block = block;
 
-                        jobHandles[jobIndex] = job.Schedule();
+                        JobHandle modifyChunk = job.Schedule();
+                        jobHandles[jobIndex] = modifyChunk;
                         jobIndex++;
+
+                        if (chunk.modified != null)
+                            chunk.modified.Invoke(modifyChunk);
                     }
                 }
             }
