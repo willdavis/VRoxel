@@ -86,12 +86,16 @@ namespace VRoxel.Core
         /// <param name="end">The end position of the rectangle in the scene</param>
         /// <param name="block">The new block index to set</param>
         /// <param name="handle">The job handle(s) for updating the world</param>
+        /// <param name="blocksToIgnore">A list of block indexes that will be ignored when updating the world</param>
+        /// <param name="notifyListeners">Flags if world and chunk listeners should be notified of the change</param>
         public static void SetRectangle(World world, Vector3 start, Vector3 end,
-            byte block, ref JobHandle handle, NativeArray<byte> blocksToIgnore = default)
+            byte block, ref JobHandle handle, NativeArray<byte> blocksToIgnore = default,
+            bool notifyListeners = true)
         {
             Vector3Int endGrid = world.SceneToGrid(end);
             Vector3Int startGrid = world.SceneToGrid(start);
-            SetRectangle(world, startGrid, endGrid, block, ref handle, blocksToIgnore);
+            SetRectangle(world, startGrid, endGrid, block,
+                ref handle, blocksToIgnore, notifyListeners);
         }
 
         /// <summary>
@@ -102,8 +106,11 @@ namespace VRoxel.Core
         /// <param name="end">The end global position in the voxel world</param>
         /// <param name="block">The new block index to set</param>
         /// <param name="handle">The job handle(s) for updating the world</param>
+        /// <param name="blocksToIgnore">A list of block indexes that will be ignored when updating the world</param>
+        /// <param name="notifyListeners">Flags if world and chunk listeners should be notified of the change</param>
         public static void SetRectangle(World world, Vector3Int start, Vector3Int end,
-            byte block, ref JobHandle handle, NativeArray<byte> blocksToIgnore = default)
+            byte block, ref JobHandle handle, NativeArray<byte> blocksToIgnore = default,
+            bool notifyListeners = true)
         {
             // calculate min and delta of the rectangle so the
             // orientation of the start and end positions will not matter
@@ -159,6 +166,7 @@ namespace VRoxel.Core
                         chunk = world.chunkManager.Get(chunkIndex);
                         if (chunk == null) { continue; }
 
+                        // ensure all readers are complete before updating voxel data
                         chunk.buildingMesh.Complete();
                         if (chunk.neighbors.up)    { chunk.neighbors.up.buildingMesh.Complete(); }
                         if (chunk.neighbors.down)  { chunk.neighbors.down.buildingMesh.Complete(); }
@@ -215,13 +223,14 @@ namespace VRoxel.Core
                         jobs[jobIndex] = modifyChunk;
                         jobIndex++;
 
-                        if (chunk.modified != null)
+                        // notify any listeners about the change
+                        if (notifyListeners && chunk.modified != null)
                             chunk.modified.Invoke(modifyChunk);
                     }
                 }
             }
 
-            // required for agent navigation
+            // deprecated but still required for agent navigation
             EditVoxelJob navJob = new EditVoxelJob()
             {
                 blocksToIgnore = blocksToIgnore == default ? world.blockManager.emptyIgnoreList : blocksToIgnore,
@@ -234,39 +243,51 @@ namespace VRoxel.Core
             };
             JobHandle navHandle = navJob.Schedule();
 
-            // combine dependencies
+            // combine job dependencies
             handle = JobHandle.CombineDependencies(jobs);
             handle = JobHandle.CombineDependencies(handle, navHandle);
             jobs.Dispose();
 
-            // notify listeners
+            // update chunk manager and any notify listeners
             world.chunkManager.refreshDependsOn = handle;
-            world.modified.Invoke(handle);
+            if (notifyListeners && world.modified != null)
+                world.modified.Invoke(handle);
         }
 
         /// <summary>
-        /// Updates a sphere of blocks in the voxel world and flags the affected chunks as modified
+        /// Uses a Vector3 scene position to update a sphere of voxels
+        /// in the world and flags the affected chunks as modified.
         /// </summary>
         /// <param name="world">A reference to the World</param>
         /// <param name="position">The center of the sphere</param>
         /// <param name="radius">The radius of the sphere</param>
         /// <param name="block">The new block index to set</param>
+        /// <param name="handle">The job handle(s) for updating the world</param>
+        /// <param name="blocksToIgnore">A list of block indexes that will be ignored when updating the world</param>
+        /// <param name="notifyListeners">Flags if world and chunk listeners should be notified of the change</param>
         public static void SetSphere(World world, Vector3 position, float radius,
-            byte block, ref JobHandle handle, NativeArray<byte> blocksToIgnore = default)
+            byte block, ref JobHandle handle, NativeArray<byte> blocksToIgnore = default,
+            bool notifyListeners = true)
         {
             Vector3Int center = world.SceneToGrid(position);
-            SetSphere(world, center, radius, block, ref handle, blocksToIgnore);
+            SetSphere(world, center, radius, block, ref handle,
+                blocksToIgnore, notifyListeners);
         }
 
         /// <summary>
-        /// Updates a sphere of blocks in the voxel world and flags the affected chunks as modified
+        /// Uses a Vector3Int grid position to update a sphere of voxels
+        /// in the world and flags the affected chunks as modified.
         /// </summary>
-        /// <param name="world">A reference to the World</param>
-        /// <param name="position">The center of the sphere</param>
+        /// <param name="world">A reference to the voxel world</param>
+        /// <param name="position">The grid position for the sphere's center</param>
         /// <param name="radius">The radius of the sphere</param>
-        /// <param name="block">The new block index to set</param>
+        /// <param name="block">The voxel to set at all points in the sphere</param>
+        /// <param name="handle">The job handle(s) for updating the world</param>
+        /// <param name="blocksToIgnore">A list of block indexes that will be ignored when updating the world</param>
+        /// <param name="notifyListeners">Flags if world and chunk listeners should be notified of the change</param>
         public static void SetSphere(World world, Vector3Int position, float radius,
-            byte block, ref JobHandle handle, NativeArray<byte> blocksToIgnore = default)
+            byte block, ref JobHandle handle, NativeArray<byte> blocksToIgnore = default,
+            bool notifyListeners = true)
         {
             // calculate min and delta of a rectangle that encloses the sphere
             int size = Mathf.CeilToInt(radius);
@@ -321,6 +342,7 @@ namespace VRoxel.Core
                         chunk = world.chunkManager.Get(chunkIndex);
                         if (chunk == null) { continue; }
 
+                        // ensure all readers are complete before updating voxel data
                         chunk.buildingMesh.Complete();
                         if (chunk.neighbors.up)    { chunk.neighbors.up.buildingMesh.Complete(); }
                         if (chunk.neighbors.down)  { chunk.neighbors.down.buildingMesh.Complete(); }
@@ -378,7 +400,8 @@ namespace VRoxel.Core
                         jobHandles[jobIndex] = modifyChunk;
                         jobIndex++;
 
-                        if (chunk.modified != null)
+                        // notify any listeners about the change
+                        if (notifyListeners && chunk.modified != null)
                             chunk.modified.Invoke(modifyChunk);
                     }
                 }
@@ -397,14 +420,15 @@ namespace VRoxel.Core
             };
             JobHandle navHandle = navJob.Schedule();
 
-            // combine dependencies and refresh the chunks
+            // combine job dependencies
             handle = JobHandle.CombineDependencies(jobHandles);
             handle = JobHandle.CombineDependencies(handle, navHandle);
             jobHandles.Dispose();
 
-            // notify listeners
+            // update chunk manager and any notify listeners
             world.chunkManager.refreshDependsOn = handle;
-            world.modified.Invoke(handle);
+            if (notifyListeners && world.modified != null)
+                world.modified.Invoke(handle);
         }
     }
 }
