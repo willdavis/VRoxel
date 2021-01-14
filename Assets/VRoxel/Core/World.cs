@@ -1,5 +1,7 @@
-﻿using VRoxel.Core.Data;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.Events;
+using VRoxel.Core.Data;
+using Unity.Jobs;
 
 namespace VRoxel.Core
 {
@@ -33,6 +35,11 @@ namespace VRoxel.Core
         /// Flags if the outer faces of the world should be rendered
         /// </summary>
         public bool renderWorldEdges = true;
+
+        /// <summary>
+        /// Event fired when the world's voxel data is modifed
+        /// </summary>
+        public WorldModifiedEvent modified;
 
         /// <summary>
         /// The voxel data for the World
@@ -145,6 +152,7 @@ namespace VRoxel.Core
         /// </summary>
         /// <param name="point">A global position in the voxel world</param>
         /// <param name="voxel">The block index that will be added</param>
+        /// <param name="refresh">Flags if listeners should be notifed</param>
         public void Write(Vector3Int point, byte voxel, bool refresh = true)
         {
             if (!Contains(point)) { return; }   // point is out of bounds
@@ -160,8 +168,9 @@ namespace VRoxel.Core
             BlockConfiguration originalBlock = blockManager.blocks[original];
             if (!originalBlock.editable) { return; } // block can not be changed
 
-            chunk.Write(localPos, voxel);
+            chunk.Write(localPos, voxel, refresh);
             if (refresh) { chunkManager.UpdateFrom(point); }
+            if (refresh && modified != null) { modified.Invoke(default); }
 
             // deprecated but still needed for navigation
             data.Set(point.x, point.y, point.z, voxel);
@@ -200,4 +209,7 @@ namespace VRoxel.Core
         #endregion
         //-------------------------------------------------
     }
+
+    [System.Serializable]
+    public class WorldModifiedEvent : UnityEvent<JobHandle> { }
 }

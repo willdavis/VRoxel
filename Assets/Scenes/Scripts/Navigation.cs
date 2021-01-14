@@ -64,6 +64,7 @@ public class Navigation : MonoBehaviour
         else if (Input.GetKey(spawnAgents) && CanSpawnAt(editor.currentIndex))
             Spawn(editor.currentPosition);
 
+        editor.editHandle.Complete();
         moveHandle = agentManager.MoveAgents(Time.deltaTime, updateHandle);
     }
 
@@ -111,15 +112,17 @@ public class Navigation : MonoBehaviour
             Poolable.TryPool(agent.gameObject);
         }
 
+        // initialize the agent manager and goal position
         agentManager.Initialize(transforms);
+        world.modified.AddListener(UpdatePathfinding);
         goal.transform.position = GetGoalScenePosition();
 
-        world.data.OnEdit.AddListener(UpdatePathfindingAsync);
+        // generate the flow field
         agentManager.UpdateFlowFields(GetGoalGridPosition(), updateHandle).Complete();
         initialized = true;
     }
 
-    void UpdatePathfindingAsync(JobHandle handle)
+    void UpdatePathfinding(JobHandle handle)
     {
         handle.Complete(); // ensure the height map is updated
         moveHandle.Complete(); // ensure agents are done moving

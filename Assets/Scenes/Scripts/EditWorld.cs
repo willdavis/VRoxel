@@ -1,13 +1,11 @@
 ﻿using System.Collections.Generic;
 
 using UnityEngine;
-using Unity.Mathematics;
 using Unity.Collections;
 using Unity.Jobs;
 
 using VRoxel.Core;
 using VRoxel.Core.Data;
-using VRoxel.Core.Chunks;
 using VRoxel.Terrain;
 
 public class EditWorld : MonoBehaviour
@@ -71,6 +69,8 @@ public class EditWorld : MonoBehaviour
             heightMap = GetComponent<HeightMap>();
         if (blockManager == null)
             blockManager = GetComponent<BlockManager>();
+
+        world.modified.AddListener(UpdateHeightMap);
     }
 
     void Update()
@@ -167,16 +167,27 @@ public class EditWorld : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Refreshes the height map after the world has been modified
+    /// </summary>
+    void UpdateHeightMap(JobHandle handle)
+    {
+        heightMapHandle = heightMap.Refresh(handle);
+    }
+
+    /// <summary>
+    /// Modifies a single voxel block in the world
+    /// </summary>
     void EditBlock()
     {
         if (block == null) { return; }
         byte index = (byte)blockManager.blocks.IndexOf(block);
         WorldEditor.SetBlock(world, currentPosition, index);
-
-        heightMapHandle = heightMap.Refresh(editHandle);
-        world.data.OnEdit.Invoke(heightMapHandle);
     }
 
+    /// <summary>
+    /// Modifies all voxel blocks within a sphere
+    /// </summary>
     void EditSphere()
     {
         if (block == null) { return; }
@@ -185,12 +196,11 @@ public class EditWorld : MonoBehaviour
         byte index = (byte)blockManager.blocks.IndexOf(block);
         WorldEditor.SetSphere(world, currentPosition, sphereRadius,
             index, ref editHandle, m_blocksToIgnore);
-
-        // notify listeners
-        heightMapHandle = heightMap.Refresh(editHandle);
-        world.data.OnEdit.Invoke(heightMapHandle);
     }
 
+    /// <summary>
+    /// Modifies all voxel blocks within a rectangle
+    /// </summary>
     void EditRectangle()
     {
         if (block == null) { return; }
@@ -199,10 +209,6 @@ public class EditWorld : MonoBehaviour
         byte index = (byte)blockManager.blocks.IndexOf(block);
         WorldEditor.SetRectangle(world, currentPosition, _clickStart,
             index, ref editHandle, m_blocksToIgnore);
-
-        // notify listeners
-        heightMapHandle = heightMap.Refresh(editHandle);
-        world.data.OnEdit.Invoke(heightMapHandle);
     }
 
     /// <summary>

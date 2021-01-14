@@ -1,8 +1,11 @@
 ﻿using VRoxel.Core.Chunks;
 using VRoxel.Core.Data;
-using Unity.Collections;
+
 using Unity.Jobs;
+using Unity.Collections;
+
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace VRoxel.Core
 {
@@ -34,6 +37,11 @@ namespace VRoxel.Core
         /// A reference to the 6 adjacent chunks
         /// </summary>
         [HideInInspector] public ChunkNeighbors neighbors;
+
+        /// <summary>
+        /// Event fired when the chunk's voxel data is modifed
+        /// </summary>
+        public ChunkModifiedEvent modified;
 
         protected Mesh m_mesh;
         protected MeshFilter m_meshFilter;
@@ -144,12 +152,18 @@ namespace VRoxel.Core
         }
 
         /// <summary>
-        /// Write voxel data to a local position in the Chunk
+        /// Updates a single voxel at a local position in the chunk
         /// </summary>
-        public void Write(Vector3Int localPos, byte block)
+        /// <param name="localPos">A local position in the chunk</param>
+        /// <param name="voxel">The block index that will be added</param>
+        /// <param name="refresh">Flags if listeners should be notifed</param>
+        public void Write(Vector3Int localPos, byte voxel, bool refresh = true)
         {
             if (!Contains(localPos)) { return; }
-            m_voxels[Flatten(localPos)] = block;
+            m_voxels[Flatten(localPos)] = voxel;
+
+            if (refresh && modified != null)
+                modified.Invoke(default);
         }
 
         /// <summary>
@@ -221,4 +235,7 @@ namespace VRoxel.Core
             return (point.x * size.y * size.z) + (point.y * size.z) + point.z;
         }
     }
+
+    [System.Serializable]
+    public class ChunkModifiedEvent : UnityEvent<JobHandle> { }
 }
