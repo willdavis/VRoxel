@@ -23,6 +23,11 @@ namespace VRoxel.Navigation
         public float minDistance;
 
         /// <summary>
+        /// the minimum collision force required to separate the agents
+        /// </summary>
+        public float minForce;
+
+        /// <summary>
         /// the size of all spatial buckets
         /// </summary>
         public int3 size;
@@ -86,13 +91,39 @@ namespace VRoxel.Navigation
 
         /// <summary>
         /// Checks if there is a collision between two agents
+        /// using their collision radius and height
         /// </summary>
         public bool Collision(AgentKinematics self, SpatialMapData target)
         {
+            // skip if the target agent is the same as the source agent
             if (self.position.Equals(target.position)) { return false; }
 
-            float distance = math.length(self.position - target.position);
-            return distance <= collision.radius + target.radius;
+            // find the distance between the two agents
+            // clamp y-axis to test 2D circle intersection
+
+            float3 delta = self.position - target.position;
+            float deltaY = delta.y;
+            delta.y = 0;
+
+            // use the combined radius of the two agents to
+            // test if their collision radius intersect
+
+            float distance = math.length(delta);
+            float radius = collision.radius + target.radius;
+            bool intersectCircle = distance <= radius;
+
+            // compare the two agent's height and offset for collisions
+            // use delta Y to test that the agents are colliding with each other
+
+            bool intersectHeight;
+            if (deltaY >= 0) // target is above the agent
+                intersectHeight = deltaY - collision.height < 0;
+            else // target is below the agent
+                intersectHeight = -deltaY - target.height < 0;
+
+            // agents must be intersecting the 2D circle
+            // and height to be considered a collision
+            return intersectCircle && intersectHeight;
         }
 
         /// <summary>
@@ -102,6 +133,10 @@ namespace VRoxel.Navigation
         {
             // calculate the distance bewteen the two agents
             float3 direction = agents[i].position - target.position;
+            direction.y = 0; // clamp the y-axis to create a 2D force
+
+            // exit if the agents are within the minimum distance
+            // this helps prevent excessive collision forces
             float distance = math.length(direction);
             if (distance <= minDistance) { return; }
 
@@ -109,12 +144,14 @@ namespace VRoxel.Navigation
             float mass = movementConfigs[movement[i]].mass;
             float massRatio = target.mass / mass;
 
-            // calcuate the collision force for this agent
+            // calcuate the collision force for this agent and skip
+            // if it does not exceed the minForce, creating a deadband
             float combinedRadius = collision.radius + target.radius;
             float penetration = combinedRadius / distance;
             float forceScale = penetration * massRatio;
+            if (forceScale <= minForce) { return; }
 
-            // apply the collision to the agents steering force
+            // apply the collision to this agents steering force
             direction = math.normalizesafe(direction, float3.zero);
             steering[i] += direction * forceScale;
         }

@@ -4,11 +4,12 @@ using Unity.Collections;
 using Unity.Mathematics;
 
 using VRoxel.Core;
+using VRoxel.Core.Chunks;
 using NUnit.Framework;
 
-namespace CoreJobSpecs
+namespace CoreChunksSpecs
 {
-    public class EditVoxelSphereJobSpec
+    public class ModifySphereSpec
     {
         [Test]
         public void CanEditInASphere()
@@ -18,6 +19,11 @@ namespace CoreJobSpecs
             int flatSize = size.x * size.y * size.z;
 
             NativeArray<byte> voxels = new NativeArray<byte>(flatSize, Allocator.Persistent);
+            NativeArray<Block> blockLibrary = new NativeArray<Block>(2, Allocator.Persistent);
+            NativeArray<byte> blocksToIgnore = new NativeArray<byte>(0, Allocator.Persistent);
+
+            blockLibrary[0] = new Block() { editable = true };
+            blockLibrary[1] = new Block() { editable = true };
 
             EditVoxelSphereJob job = new EditVoxelSphereJob()
             {
@@ -25,7 +31,9 @@ namespace CoreJobSpecs
                 radius = 1f,
                 voxels = voxels,
                 worldSize = size,
-                position = center
+                position = center,
+                blockLibrary = blockLibrary,
+                blocksToIgnore = blocksToIgnore,
             };
             JobHandle handle = job.Schedule();
             handle.Complete();
@@ -67,30 +75,8 @@ namespace CoreJobSpecs
             Assert.AreEqual(0, voxels[26]);
 
             voxels.Dispose();
-        }
-
-        [Test]
-        public void SkipsOutOfBoundPositions()
-        {
-            int3 size = new int3(3, 3, 3);
-            int flatSize = size.x * size.y * size.z;
-
-            NativeArray<byte> voxels = new NativeArray<byte>(flatSize, Allocator.Persistent);
-
-            EditVoxelSphereJob job = new EditVoxelSphereJob()
-            {
-                block = 1,
-                radius = 5f,
-                voxels = voxels,
-                worldSize = size,
-                position = int3.zero
-            };
-            JobHandle handle = job.Schedule();
-            handle.Complete();
-
-            Assert.DoesNotThrow(job.Execute);
-
-            voxels.Dispose();
+            blockLibrary.Dispose();
+            blocksToIgnore.Dispose();
         }
     }
 }

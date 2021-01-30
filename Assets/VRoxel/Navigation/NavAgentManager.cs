@@ -52,6 +52,8 @@ namespace VRoxel.Navigation
         [Header("Collision Detection")]
         [Tooltip("The minimum distance required to detect a collision")]
         public float minCollisionDistance = 0.01f;
+        [Tooltip("The minimum force required to separate agents (deadband)")]
+        public float minCollisionForce = 0.01f;
 
         [Tooltip("The maximum number of agents to check when resolving collisions")]
         public int maxCollisionDepth = 100;
@@ -559,6 +561,7 @@ namespace VRoxel.Navigation
                 movement = m_agentMovementTypes[index],
                 collision = archetypes[index].collision,
                 minDistance = minCollisionDistance,
+                minForce = minCollisionForce,
                 maxDepth = maxCollisionDepth,
 
                 world = agentWorld,
