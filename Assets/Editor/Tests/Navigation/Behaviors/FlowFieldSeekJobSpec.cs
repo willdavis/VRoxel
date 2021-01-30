@@ -59,7 +59,6 @@ namespace NavigationBehaviorSpecs
                 flowDirections = flowDirections,
                 flowFieldSize = new int3(1,1,1),
 
-                active = active,
                 agents = agents,
                 steering = directions,
             };

@@ -79,7 +79,6 @@ namespace NavigationSpecs
 
             MoveAgentJob job = new MoveAgentJob()
             {
-                active = active,
                 maxForce = 1f,
 
                 movementTypes = movementTypes,

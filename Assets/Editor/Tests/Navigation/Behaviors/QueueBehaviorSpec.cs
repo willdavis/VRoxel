@@ -113,7 +113,6 @@ namespace NavigationBehaviorSpecs
 
             QueueBehavior job = new QueueBehavior()
             {
-                active = active,
                 maxBrakeForce = 0.8f,
                 maxQueueAhead = 1f,
                 maxQueueRadius = 1f,

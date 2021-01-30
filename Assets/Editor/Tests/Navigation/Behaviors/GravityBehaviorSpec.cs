@@ -47,7 +47,6 @@ namespace NavigationBehaviorSpecs
                 world = world,
                 steering = steering,
                 agents = agents,
-                active = active,
                 blocks = blocks,
                 voxels = voxels,
             };
@@ -95,7 +94,6 @@ namespace NavigationBehaviorSpecs
                 world = world,
                 steering = steering,
                 agents = agents,
-                active = active,
                 blocks = blocks,
                 voxels = voxels,
             };

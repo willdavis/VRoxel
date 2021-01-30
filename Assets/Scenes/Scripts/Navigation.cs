@@ -9,6 +9,7 @@ using VRoxel.Core;
 using VRoxel.Terrain;
 using VRoxel.Navigation;
 using VRoxel.Navigation.Data;
+using VRoxel.Navigation.Agents;
 
 public class Navigation : MonoBehaviour
 {
@@ -190,14 +191,17 @@ public class Navigation : MonoBehaviour
 
         NavAgentArchetype archetype = agent.configuration.archetype;
         int archetypeIndex = agentManager.archetypes.IndexOf(archetype);
-        NativeArray<bool> agents = agentManager.activeAgents[archetypeIndex];
+        NativeArray<AgentBehaviors> behaviors = agentManager.agentBehaviors[archetypeIndex];
 
-        NativeSlice<bool> slice = agents.Slice(agent.index, 1);
-        ActivateAgents activation = new ActivateAgents()
-        {
-            status = true,
-            agents = slice
-        };
+        // set the agent's navigation behaviors
+        AgentBehaviors flags = AgentBehaviors.Active
+                | AgentBehaviors.Queueing
+                | AgentBehaviors.Avoiding
+                | AgentBehaviors.Seeking;
+
+        NativeSlice<AgentBehaviors> slice = behaviors.Slice(agent.index, 1);
+        SetAgentBehaviors activation = new SetAgentBehaviors()
+            { flags = flags, behaviors = slice };
         activation.Schedule(1,1).Complete();
 
         return agent;
@@ -238,17 +242,20 @@ public class Navigation : MonoBehaviour
             agent.transform.position = position;
             agent.gameObject.SetActive(true);
 
+            // enable the agents navigation behaviors to SEEK, QUEUE, and AVOID
+
             NavAgentArchetype archetype = agent.configuration.archetype;
             int archetypeIndex = agentManager.archetypes.IndexOf(archetype);
-            NativeArray<bool> agents = agentManager.activeAgents[archetypeIndex];
+            NativeArray<AgentBehaviors> behaviors = agentManager.agentBehaviors[archetypeIndex];
 
-            // activate the agent's navigation behaviors
-            NativeSlice<bool> slice = agents.Slice(agent.index, 1);
-            ActivateAgents activation = new ActivateAgents()
-            {
-                status = true,
-                agents = slice
-            };
+            AgentBehaviors flags = AgentBehaviors.Active
+                    | AgentBehaviors.Queueing
+                    | AgentBehaviors.Avoiding
+                    | AgentBehaviors.Seeking;
+
+            NativeSlice<AgentBehaviors> slice = behaviors.Slice(agent.index, 1);
+            SetAgentBehaviors activation = new SetAgentBehaviors()
+                { flags = flags, behaviors = slice };
             activation.Schedule(1,1).Complete();
         }
     }
@@ -261,16 +268,16 @@ public class Navigation : MonoBehaviour
         NavAgent agent = enemy.GetComponent<NavAgent>();
         Poolable.TryPool(agent.gameObject);
 
+        // set the agent's navigation behaviors to NONE
+
         NavAgentArchetype archetype = agent.configuration.archetype;
         int archetypeIndex = agentManager.archetypes.IndexOf(archetype);
-        NativeArray<bool> agents = agentManager.activeAgents[archetypeIndex];
+        NativeArray<AgentBehaviors> behaviors = agentManager.agentBehaviors[archetypeIndex];
+        AgentBehaviors flags = AgentBehaviors.None;
 
-        NativeSlice<bool> slice = agents.Slice(agent.index, 1);
-        ActivateAgents activation = new ActivateAgents()
-        {
-            status = false,
-            agents = slice
-        };
+        NativeSlice<AgentBehaviors> slice = behaviors.Slice(agent.index, 1);
+        SetAgentBehaviors activation = new SetAgentBehaviors()
+            { flags = flags, behaviors = slice };
         activation.Schedule(1,1).Complete();
     }
 }

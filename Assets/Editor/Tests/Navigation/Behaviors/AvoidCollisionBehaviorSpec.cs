@@ -174,7 +174,6 @@ namespace NavigationBehaviorSpecs
 
             AvoidCollisionBehavior job = new AvoidCollisionBehavior()
             {
-                active = active,
                 avoidDistance = 1f,
                 avoidRadius = 1f,
                 avoidForce = 1f,

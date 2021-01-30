@@ -30,9 +30,9 @@ namespace VRoxel.Navigation
         public NativeArray<float3> steering;
 
         /// <summary>
-        /// the active agents in the scene
+        /// the navigation behaviors for each agent
         /// </summary>
-        [ReadOnly] public NativeArray<bool> active;
+        [ReadOnly] public NativeArray<AgentBehaviors> behaviors;
 
         /// <summary>
         /// the position and velocity of each agent in the scene
@@ -46,7 +46,8 @@ namespace VRoxel.Navigation
 
         public void Execute(int i)
         {
-            if (!active[i]) { return; }
+            AgentBehaviors mask = AgentBehaviors.Avoiding;
+            if ((behaviors[i] & mask) == 0) { return; }
 
             AgentKinematics agent = agents[i];
             float dynamicLength = math.length(agent.velocity) / avoidDistance;
