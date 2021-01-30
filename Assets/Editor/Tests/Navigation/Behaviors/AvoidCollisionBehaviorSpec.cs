@@ -160,9 +160,11 @@ namespace NavigationBehaviorSpecs
             agents[1] = new AgentKinematics(){ position = position2, velocity = new float3(0, 1, 0) };
 
             NativeArray<float3> steering = new NativeArray<float3>(2, Allocator.Persistent);
-            NativeArray<bool> active = new NativeArray<bool>(2, Allocator.Persistent);
+            NativeArray<AgentBehaviors> active = new NativeArray<AgentBehaviors>(2, Allocator.Persistent);
+            AgentBehaviors flags = AgentBehaviors.Avoiding;
+
             for (int i = 0; i < 2; i++)
-                active[i] = true;
+                active[i] = flags;
 
             AgentWorld world = new AgentWorld()
             {
@@ -183,6 +185,7 @@ namespace NavigationBehaviorSpecs
                 size = new int3(1,1,1),
                 spatialMap = spatialMap,
                 steering = steering,
+                behaviors = active,
                 agents = agents,
             };
 

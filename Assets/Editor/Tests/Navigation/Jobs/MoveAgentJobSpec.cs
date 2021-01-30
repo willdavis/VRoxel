@@ -58,12 +58,10 @@ namespace NavigationSpecs
             directions[1] = Vector3.left;
 
             NativeArray<byte> flowField = new NativeArray<byte>(1, Allocator.Persistent);
-            for (int i = 0; i < 1; i++)
-                flowField[i] = 1;
+            for (int i = 0; i < 1; i++) { flowField[i] = 1; }
 
-            NativeArray<bool> active = new NativeArray<bool>(2, Allocator.Persistent);
-            for (int i = 0; i < 2; i++)
-                active[i] = true;
+            NativeArray<AgentBehaviors> active = new NativeArray<AgentBehaviors>(2, Allocator.Persistent);
+            for (int i = 0; i < 2; i++) { active[i] = AgentBehaviors.Active; }
 
             NativeArray<int> agentMovementTypes = new NativeArray<int>(2, Allocator.Persistent);
             NativeArray<AgentMovement> movementTypes = new NativeArray<AgentMovement>(1, Allocator.Persistent);
@@ -85,6 +83,7 @@ namespace NavigationSpecs
                 agentMovement = agentMovementTypes,
 
                 agents = agents,
+                behaviors = active,
                 steering = directions,
                 deltaTime = Time.deltaTime,
 

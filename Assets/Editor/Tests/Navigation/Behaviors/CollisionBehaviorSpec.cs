@@ -111,6 +111,8 @@ namespace NavigationBehaviorSpecs
 
             agents.Dispose();
             steering.Dispose();
+            movementTypes.Dispose();
+            agentMovementTypes.Dispose();
         }
     }
 }
