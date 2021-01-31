@@ -128,6 +128,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   index: 0
+  agentManager: {fileID: 0}
   configuration: {fileID: 11400000, guid: 8dce531035c75b84fbadbab57cd544e9, type: 2}
 --- !u!114 &6554939492867351560
 MonoBehaviour:
@@ -197,7 +198,7 @@ Transform:
   m_GameObject: {fileID: 9072222740710574610}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 2, z: 0}
-  m_LocalScale: {x: 3, y: 4, z: 3}
+  m_LocalScale: {x: 3, y: 3, z: 3}
   m_Children: []
   m_Father: {fileID: 5234202957037508136}
   m_RootOrder: 1
@@ -209,7 +210,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9072222740710574610}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &6595166403272982851
 MeshRenderer:
   m_ObjectHideFlags: 0
