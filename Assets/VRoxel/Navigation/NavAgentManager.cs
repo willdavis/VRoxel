@@ -70,12 +70,15 @@ namespace VRoxel.Navigation
         public float avoidDistance;
         public int maxAvoidDepth;
 
-        public List<NativeArray<bool>> activeAgents { get { return m_agentActive; } }
+        /// <summary>
+        /// The current navigation behavior flags for each agent, grouped by archetype
+        /// </summary>
+        public List<NativeArray<AgentBehaviors>> agentBehaviors { get { return m_agentBehaviors; } }
 
         /// <summary>
-        /// The current active agents of each archetype
+        /// The current navigation behavior flags for each agent, grouped by archetype
         /// </summary>
-        protected List<NativeArray<bool>> m_agentActive;
+        protected List<NativeArray<AgentBehaviors>> m_agentBehaviors;
 
         /// <summary>
         /// The current kinematic properties for each agent
@@ -158,10 +161,10 @@ namespace VRoxel.Navigation
 
             // initialize the agent properties
             m_agentMovementTypes = new List<NativeArray<int>>(archetypeCount);
+            m_agentBehaviors = new List<NativeArray<AgentBehaviors>>(archetypeCount);
             m_agentKinematics = new List<NativeArray<AgentKinematics>>(archetypeCount);
             m_transformAccess = new List<TransformAccessArray>(archetypeCount);
             m_agentSteering = new List<NativeArray<float3>>(archetypeCount);
-            m_agentActive = new List<NativeArray<bool>>(archetypeCount);
             m_totalAgents = new List<int>(archetypeCount);
 
             // initialize the flow field data structures
@@ -188,7 +191,7 @@ namespace VRoxel.Navigation
                 NativeArray<int> movementTypes = new NativeArray<int>(count, Allocator.Persistent);
                 NativeArray<float3> steering = new NativeArray<float3>(count, Allocator.Persistent);
                 NativeArray<AgentKinematics> kinematics = new NativeArray<AgentKinematics>(count, Allocator.Persistent);
-                NativeArray<bool> active = new NativeArray<bool>(count, Allocator.Persistent);
+                NativeArray<AgentBehaviors> behaviors = new NativeArray<AgentBehaviors>(count, Allocator.Persistent);
 
                 // read agent configuration
                 for (int a = 0; a < count; a++)
@@ -206,8 +209,8 @@ namespace VRoxel.Navigation
                 m_agentMovementTypes.Add(movementTypes);
                 m_transformAccess.Add(transformAccess);
                 m_agentKinematics.Add(kinematics);
+                m_agentBehaviors.Add(behaviors);
                 m_agentSteering.Add(steering);
-                m_agentActive.Add(active);
                 m_totalAgents.Add(count);
             }
 
@@ -376,8 +379,8 @@ namespace VRoxel.Navigation
                     if (item.IsCreated) { item.Dispose(); }
 
             // dispose the agent data
-            if (m_agentActive != null)
-                foreach (var item in m_agentActive)
+            if (m_agentBehaviors != null)
+                foreach (var item in m_agentBehaviors)
                     if (item.IsCreated) { item.Dispose(); }
 
             if (m_agentSteering != null)
@@ -486,8 +489,8 @@ namespace VRoxel.Navigation
                 job.movement = m_agentMovementTypes[i];
                 job.collision = archetypes[i].collision;
                 job.spatialMap = m_spatialMapWriter;
+                job.behaviors = m_agentBehaviors[i];
                 job.agents = m_agentKinematics[i];
-                job.active = m_agentActive[i];
                 job.size = spatialBucketSize;
                 job.world = agentWorld;
 
@@ -515,7 +518,7 @@ namespace VRoxel.Navigation
                 flowDirections = m_directions,
                 flowFieldSize = agentWorld.size,
 
-                active = m_agentActive[index],
+                behaviors = m_agentBehaviors[index],
                 agents = m_agentKinematics[index],
                 steering = m_agentSteering[index],
             };
@@ -529,7 +532,7 @@ namespace VRoxel.Navigation
                 maxDepth = maxAvoidDepth,
 
                 world = agentWorld,
-                active = m_agentActive[index],
+                behaviors = m_agentBehaviors[index],
                 agents = m_agentKinematics[index],
                 steering = m_agentSteering[index],
 
@@ -546,7 +549,7 @@ namespace VRoxel.Navigation
                 maxQueueAhead = queueDistance,
 
                 world = agentWorld,
-                active = m_agentActive[index],
+                behaviors = m_agentBehaviors[index],
                 agents = m_agentKinematics[index],
                 steering = m_agentSteering[index],
 
@@ -565,7 +568,7 @@ namespace VRoxel.Navigation
                 maxDepth = maxCollisionDepth,
 
                 world = agentWorld,
-                active = m_agentActive[index],
+                behaviors = m_agentBehaviors[index],
                 agents = m_agentKinematics[index],
                 steering = m_agentSteering[index],
 
@@ -577,7 +580,7 @@ namespace VRoxel.Navigation
             GravityBehavior gravityJob = new GravityBehavior()
             {
                 world = agentWorld,
-                active = m_agentActive[index],
+                behaviors = m_agentBehaviors[index],
                 agents = m_agentKinematics[index],
                 steering = m_agentSteering[index],
 
@@ -598,7 +601,7 @@ namespace VRoxel.Navigation
                 agentMovement = m_agentMovementTypes[index],
 
                 world = agentWorld,
-                active = m_agentActive[index],
+                behaviors = m_agentBehaviors[index],
                 agents = m_agentKinematics[index],
                 steering = m_agentSteering[index],
                 deltaTime = dt,

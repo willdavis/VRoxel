@@ -24,8 +24,8 @@ namespace NavigationBehaviorSpecs
             NativeArray<float3> steering = new NativeArray<float3>(1, Allocator.Persistent);
             steering[0] = new float3(0,0,0);
 
-            NativeArray<bool> active = new NativeArray<bool>(1, Allocator.Persistent);
-            active[0] = true;
+            NativeArray<AgentBehaviors> active = new NativeArray<AgentBehaviors>(1, Allocator.Persistent);
+            active[0] = AgentBehaviors.Active;
 
             NativeArray<VRoxel.Navigation.Block> blocks = new NativeArray<VRoxel.Navigation.Block>(1, Allocator.Persistent);
             VRoxel.Navigation.Block airBlock = new VRoxel.Navigation.Block();
@@ -46,8 +46,8 @@ namespace NavigationBehaviorSpecs
                 gravity = new float3(0,-9f,0),
                 world = world,
                 steering = steering,
+                behaviors = active,
                 agents = agents,
-                active = active,
                 blocks = blocks,
                 voxels = voxels,
             };
@@ -72,8 +72,8 @@ namespace NavigationBehaviorSpecs
             NativeArray<float3> steering = new NativeArray<float3>(1, Allocator.Persistent);
             steering[0] = new float3(0,0,0);
 
-            NativeArray<bool> active = new NativeArray<bool>(1, Allocator.Persistent);
-            active[0] = true;
+            NativeArray<AgentBehaviors> active = new NativeArray<AgentBehaviors>(1, Allocator.Persistent);
+            active[0] = AgentBehaviors.Active;
 
             NativeArray<VRoxel.Navigation.Block> blocks = new NativeArray<VRoxel.Navigation.Block>(1, Allocator.Persistent);
             VRoxel.Navigation.Block solidBlock = new VRoxel.Navigation.Block();
@@ -94,8 +94,8 @@ namespace NavigationBehaviorSpecs
                 gravity = new float3(0,-4f,0),
                 world = world,
                 steering = steering,
+                behaviors = active,
                 agents = agents,
-                active = active,
                 blocks = blocks,
                 voxels = voxels,
             };

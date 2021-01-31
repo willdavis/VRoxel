@@ -99,9 +99,8 @@ namespace NavigationBehaviorSpecs
             steering[0] = new float3(0, 1, 0);
             steering[1] = new float3(1, 0, 1);
 
-            NativeArray<bool> active = new NativeArray<bool>(2, Allocator.Persistent);
-            for (int i = 0; i < 2; i++)
-                active[i] = true;
+            NativeArray<AgentBehaviors> active = new NativeArray<AgentBehaviors>(2, Allocator.Persistent);
+            for (int i = 0; i < 2; i++) { active[i] = AgentBehaviors.Queueing; }
 
             AgentWorld world = new AgentWorld()
             {
@@ -113,7 +112,6 @@ namespace NavigationBehaviorSpecs
 
             QueueBehavior job = new QueueBehavior()
             {
-                active = active,
                 maxBrakeForce = 0.8f,
                 maxQueueAhead = 1f,
                 maxQueueRadius = 1f,
@@ -123,6 +121,7 @@ namespace NavigationBehaviorSpecs
                 size = new int3(1,1,1),
                 spatialMap = spatialMap,
                 steering = steering,
+                behaviors = active,
                 agents = agents
             };
 

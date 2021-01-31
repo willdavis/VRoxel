@@ -25,6 +25,9 @@ namespace TerrainSpecs
             Assert.AreEqual(1, job.data[3]); // int2(1,1)
             Assert.AreEqual(ushort.MaxValue, job.data[1]); // int2(0,1)
             Assert.AreEqual(ushort.MaxValue, job.data[2]); // int2(1,0)
+
+            job.voxels.Dispose();
+            job.data.Dispose();
         }
 
         [Test]
@@ -66,6 +69,8 @@ namespace TerrainSpecs
 
             Assert.AreEqual(true,  job.Solid(new int3(0,0,0)));
             Assert.AreEqual(false, job.Solid(new int3(0,0,1)));
+
+            job.voxels.Dispose();
         }
     }
 }

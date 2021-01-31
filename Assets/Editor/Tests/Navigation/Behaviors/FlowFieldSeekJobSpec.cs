@@ -22,8 +22,8 @@ namespace NavigationBehaviorSpecs
             NativeArray<AgentKinematics> agents = new NativeArray<AgentKinematics>(1, Allocator.Persistent);
             agents[0] = new AgentKinematics(){ position = Vector3.up };
 
-            NativeArray<bool> active = new NativeArray<bool>(1, Allocator.Persistent);
-            active[0] = true;
+            NativeArray<AgentBehaviors> active = new NativeArray<AgentBehaviors>(1, Allocator.Persistent);
+            active[0] = AgentBehaviors.Seeking;
 
             NativeArray<byte> flowField = new NativeArray<byte>(1, Allocator.Persistent);
             NativeArray<int3> flowDirections = new NativeArray<int3>(27, Allocator.Persistent);
@@ -59,9 +59,9 @@ namespace NavigationBehaviorSpecs
                 flowDirections = flowDirections,
                 flowFieldSize = new int3(1,1,1),
 
-                active = active,
                 agents = agents,
                 steering = directions,
+                behaviors = active,
             };
 
             JobHandle handle = job.Schedule(1,1);
