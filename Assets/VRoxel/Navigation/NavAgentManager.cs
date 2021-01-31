@@ -558,6 +558,15 @@ namespace VRoxel.Navigation
             };
             JobHandle queueHandle = queueJob.Schedule(m_totalAgents[index], 1, avoidHandle);
 
+            StoppingBehavior stopJob = new StoppingBehavior()
+            {
+                maxBrakeForce = brakeForce,
+                agents = m_agentKinematics[index],
+                steering = m_agentSteering[index],
+                behaviors = m_agentBehaviors[index]
+            };
+            JobHandle stopHandle = stopJob.Schedule(m_totalAgents[index], 1, queueHandle);
+
             CollisionBehavior collisionJob = new CollisionBehavior()
             {
                 movementConfigs = m_movementTypes,
@@ -575,7 +584,7 @@ namespace VRoxel.Navigation
                 spatialMap = m_spatialMap,
                 size = spatialBucketSize
             };
-            JobHandle collisionHandle = collisionJob.Schedule(m_totalAgents[index], 1, queueHandle);
+            JobHandle collisionHandle = collisionJob.Schedule(m_totalAgents[index], 1, stopHandle);
 
             GravityBehavior gravityJob = new GravityBehavior()
             {
