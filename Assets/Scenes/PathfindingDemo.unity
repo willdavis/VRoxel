@@ -280,13 +280,13 @@ MonoBehaviour:
   heightMap: {fileID: 1783886831}
   blockManager: {fileID: 1783886829}
   block: {fileID: 11400000, guid: e2cacd518c46bae4bb669899d2840688, type: 2}
-  refreshPerFrame: 1
-  shape: 0
+  blocksToIgnore: []
+  cursor: {fileID: 1442165462}
+  cursorShape: 0
+  adjustHitPosition: 1
   sphereRadius: 2.5
   snapToGrid: 1
   clickAndDrag: 1
-  adjustHitPosition: 1
-  cursor: {fileID: 1442165462}
   currentIndex: {x: 0, y: 0, z: 0}
   currentPosition: {x: 0, y: 0, z: 0}
 --- !u!1 &1201213048
@@ -713,6 +713,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8dce531035c75b84fbadbab57cd544e9, type: 2}
   world: {fileID: 1783886830}
   blockManager: {fileID: 1783886829}
+  minCostDifference: 10
   spatialBucketSize:
     x: 2
     y: 2
@@ -720,6 +721,7 @@ MonoBehaviour:
   gravity: {x: 0, y: -1, z: 0}
   maxForce: 10
   minCollisionDistance: 0.1
+  minCollisionForce: 0.01
   maxCollisionDepth: 200
   brakeForce: 0.25
   queueRadius: 1.5

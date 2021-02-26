@@ -41,6 +41,12 @@ namespace VRoxel.Navigation
         public BlockManager blockManager;
 
         /// <summary>
+        /// the minimum cost difference between two nodes.
+        /// Prevents overlap due to small cost differences
+        /// </summary>
+        public int minCostDifference;
+
+        /// <summary>
         /// The size of the spatial buckets used to parition the map
         /// </summary>
         public int3 spatialBucketSize;
@@ -104,6 +110,11 @@ namespace VRoxel.Navigation
         /// A reference to the different agent movement configurations
         /// </summary>
         protected NativeArray<AgentMovement> m_movementTypes;
+
+        /// <summary>
+        /// Cached reference to the different target positions on the flow field
+        /// </summary>
+        protected NativeList<int3> m_targetPositions;
 
         /// <summary>
         /// Caches the total number of agents per archetype
@@ -173,6 +184,9 @@ namespace VRoxel.Navigation
             m_costFields = new List<NativeArray<byte>>(archetypeCount);
             m_intFields = new List<NativeArray<ushort>>(archetypeCount);
             m_openNodes = new List<NativeQueue<int3>>(archetypeCount);
+
+            // cached data to build the flow fields
+            m_targetPositions = new NativeList<int3>(Allocator.Persistent);
 
             // initialize each archetype
             for (int i = 0; i < archetypeCount; i++)
@@ -296,17 +310,21 @@ namespace VRoxel.Navigation
         }
 
         /// <summary>
-        /// Updates the flow fields for each agent archetype to target the new goal position
+        /// Updates the flow fields for each agent archetype to target the new goal position(s)
         /// </summary>
-        public JobHandle UpdateFlowFields(Vector3Int goal, JobHandle dependsOn = default)
+        public JobHandle UpdateFlowFields(List<Vector3Int> targets, JobHandle dependsOn = default)
         {
-            int3 target = new int3(goal.x, goal.y, goal.z);
-
             if (!updatingFlowFields.IsCompleted)
                 updatingFlowFields.Complete();
 
+            // update the target positions
+            m_targetPositions.Clear();
+            foreach (var t in targets)
+                m_targetPositions.Add(new int3(t.x, t.y, t.z));
+
+            // schedule jobs to update each archetype
             for (int i = 0; i < archetypes.Count; i++)
-                m_updatingHandles[i] = UpdateFlowField(i, target, dependsOn);
+                m_updatingHandles[i] = UpdateFlowField(i, dependsOn);
 
             updatingFlowFields = JobHandle.CombineDependencies(m_updatingHandles);
             return updatingFlowFields;
@@ -355,6 +373,7 @@ namespace VRoxel.Navigation
             if (m_movementTypes.IsCreated) { m_movementTypes.Dispose(); }
 
             // dispose the flow field data
+            if (m_targetPositions.IsCreated) { m_targetPositions.Dispose(); }
             if (m_updatingHandles.IsCreated) { m_updatingHandles.Dispose(); }
             if (m_movingByArchetype.IsCreated) { m_movingByArchetype.Dispose(); }
 
@@ -425,11 +444,11 @@ namespace VRoxel.Navigation
         //-------------------------------------------------
 
         /// <summary>
-        /// Schedules background jobs to update a flow field to target a new goal position
+        /// Schedules background jobs to update the flow field to target the new goal positions
         /// </summary>
-        protected JobHandle UpdateFlowField(int index, int3 target, JobHandle dependsOn = default)
+        protected JobHandle UpdateFlowField(int archetype, JobHandle dependsOn = default)
         {
-            int height = archetypes[index].collision.height;
+            int height = archetypes[archetype].collision.height;
             int length = world.size.x * world.size.y * world.size.z;
             int3 worldSize = new int3(world.size.x, world.size.y, world.size.z);
 
@@ -438,8 +457,8 @@ namespace VRoxel.Navigation
                 voxels = world.data.voxels,
                 directionMask = m_directionsNESW,
                 directions = m_directions,
-                costField = m_costFields[index],
-                blocks = m_blockTypes[index],
+                costField = m_costFields[archetype],
+                blocks = m_blockTypes[archetype],
                 size = worldSize,
                 height = height
             };
@@ -448,7 +467,7 @@ namespace VRoxel.Navigation
 
             ClearIntFieldJob clearJob = new ClearIntFieldJob()
             {
-                intField = m_intFields[index]
+                intField = m_intFields[archetype]
             };
             JobHandle clearHandle = clearJob.Schedule(length, 1, costHandle);
 
@@ -456,11 +475,12 @@ namespace VRoxel.Navigation
             UpdateIntFieldJob intJob = new UpdateIntFieldJob()
             {
                 directions = m_directions,
-                costField = m_costFields[index],
-                intField = m_intFields[index],
-                open = m_openNodes[index],
+                minCostDiff = minCostDifference,
+                costField = m_costFields[archetype],
+                intField = m_intFields[archetype],
+                open = m_openNodes[archetype],
+                targets = m_targetPositions,
                 size = worldSize,
-                goal = target
             };
             JobHandle intHandle = intJob.Schedule(clearHandle);
 
@@ -468,8 +488,8 @@ namespace VRoxel.Navigation
             UpdateFlowFieldJob flowJob = new UpdateFlowFieldJob()
             {
                 directions = m_directions,
-                flowField = m_flowFields[index],
-                intField = m_intFields[index],
+                flowField = m_flowFields[archetype],
+                intField = m_intFields[archetype],
                 size = worldSize,
             };
 
