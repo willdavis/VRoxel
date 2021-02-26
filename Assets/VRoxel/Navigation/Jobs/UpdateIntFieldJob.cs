@@ -18,6 +18,12 @@ namespace VRoxel.Navigation
         public int3 size;
 
         /// <summary>
+        /// the minimum cost difference between two nodes.
+        /// Prevents overlap due to small cost differences
+        /// </summary>
+        public int minCostDiff;
+
+        /// <summary>
         /// a list of target positions the field will point towards
         /// </summary>
         [ReadOnly] public NativeList<int3> targets;
@@ -40,7 +46,7 @@ namespace VRoxel.Navigation
         public NativeArray<ushort> intField;
 
         /// <summary>
-        /// the frontier nodes in a Dijkstra or Breadth First Search
+        /// the frontier nodes in the integration field
         /// </summary>
         public NativeQueue<int3> open;
 
@@ -89,16 +95,17 @@ namespace VRoxel.Navigation
                 position = open.Dequeue();
                 index = Flatten(position);
 
-                for (int i = 0; i < mask.Length; i++)    // check neighbors
+                // check each neighboring node
+                for (int i = 0; i < mask.Length; i++)
                 {
                     nextPosition = position + directions[mask[i]];
-                    if (OutOfBounds(nextPosition)) { continue; }    // node is out of bounds
+                    if (OutOfBounds(nextPosition)) { continue; }
 
                     nextIndex = Flatten(nextPosition);
-                    if (costField[nextIndex] == 255) { continue; }  // node is obstructed
+                    if (ObstructedNode(nextIndex)) { continue; }
 
                     cost = Convert.ToUInt16(intField[index] + costField[nextIndex]);
-                    if (intField[nextIndex] == ushort.MaxValue || cost < intField[nextIndex])
+                    if (NotExplored(nextIndex) || LargeCostDiff(cost, nextIndex))
                     {
                         intField[nextIndex] = cost;
                         open.Enqueue(nextPosition);
@@ -117,6 +124,37 @@ namespace VRoxel.Navigation
         {
             /// A[x,y,z] = A[ x * height * depth + y * depth + z ]
             return (point.x * size.y * size.z) + (point.y * size.z) + point.z;
+        }
+
+        /// <summary>
+        /// Checks if the next node has a lower integration cost and
+        /// the difference is greater than the minimum cost difference
+        /// </summary>
+        /// <param name="cost">The new cost to move to this node</param>
+        /// <param name="index">The index for the node in the integration field</param>
+        public bool LargeCostDiff(int cost, int index)
+        {
+            bool lowerCost = cost < intField[index];
+            bool largeDiff = intField[index] - cost > minCostDiff;
+            return lowerCost && largeDiff;
+        }
+
+        /// <summary>
+        /// Checks if the node has already been added to the open list
+        /// </summary>
+        /// <param name="index">The index for the node in the integration field</param>
+        public bool NotExplored(int index)
+        {
+            return intField[index] == ushort.MaxValue;
+        }
+
+        /// <summary>
+        /// Checks if a node is obstructed in the cost field
+        /// </summary>
+        /// <param name="index">The index for the node in the cost field</param>
+        public bool ObstructedNode(int index)
+        {
+            return costField[index] == byte.MaxValue;
         }
 
         /// <summary>

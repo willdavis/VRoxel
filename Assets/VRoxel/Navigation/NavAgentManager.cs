@@ -41,6 +41,12 @@ namespace VRoxel.Navigation
         public BlockManager blockManager;
 
         /// <summary>
+        /// the minimum cost difference between two nodes.
+        /// Prevents overlap due to small cost differences
+        /// </summary>
+        public int minCostDifference;
+
+        /// <summary>
         /// The size of the spatial buckets used to parition the map
         /// </summary>
         public int3 spatialBucketSize;
@@ -469,6 +475,7 @@ namespace VRoxel.Navigation
             UpdateIntFieldJob intJob = new UpdateIntFieldJob()
             {
                 directions = m_directions,
+                minCostDiff = minCostDifference,
                 costField = m_costFields[archetype],
                 intField = m_intFields[archetype],
                 open = m_openNodes[archetype],

@@ -47,6 +47,7 @@ namespace NavigationJobSpecs
             {
                 size = size,
                 open = open,
+                minCostDiff = 10,
                 targets = targets,
                 directions = directions,
                 costField = costField,
