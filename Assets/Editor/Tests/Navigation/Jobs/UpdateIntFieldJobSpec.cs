@@ -26,7 +26,10 @@ namespace NavigationJobSpecs
             NativeArray<byte> costField = new NativeArray<byte>(flatSize, Allocator.Persistent);
             NativeArray<ushort> intField = new NativeArray<ushort>(flatSize, Allocator.Persistent);
             NativeArray<int3> directions = new NativeArray<int3>(27, Allocator.Persistent);
+            NativeList<int3> targets = new NativeList<int3>(Allocator.Persistent);
             NativeQueue<int3> open = new NativeQueue<int3>(Allocator.Persistent);
+
+            targets.Add(int3.zero);
 
             for (int i = 0; i < flatSize; i++)
             {
@@ -39,12 +42,12 @@ namespace NavigationJobSpecs
                 Vector3Int dir = Direction3Int.Directions[i];
                 directions[i] = new int3(dir.x, dir.y, dir.z);
             }
-            
+
             UpdateIntFieldJob job = new UpdateIntFieldJob()
             {
                 size = size,
                 open = open,
-                goal = int3.zero,
+                targets = targets,
                 directions = directions,
                 costField = costField,
                 intField = intField
@@ -59,9 +62,10 @@ namespace NavigationJobSpecs
             Assert.AreEqual(6, intField[3]);
 
             open.Dispose();
+            directions.Dispose();
             costField.Dispose();
             intField.Dispose();
-            directions.Dispose();
+            targets.Dispose();
         }
     }
 }

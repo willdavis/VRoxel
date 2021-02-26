@@ -7,7 +7,7 @@ using Unity.Burst;
 namespace VRoxel.Navigation
 {
     /// <summary>
-    /// Updates the integration field around a goal position
+    /// Builds an integration field around one or more target positions
     /// </summary>
     [BurstCompile]
     public struct UpdateIntFieldJob : IJob
@@ -18,22 +18,20 @@ namespace VRoxel.Navigation
         public int3 size;
 
         /// <summary>
-        /// the goal where all paths lead to
+        /// a list of target positions the field will point towards
         /// </summary>
-        public int3 goal;
+        [ReadOnly] public NativeList<int3> targets;
 
         /// <summary>
         /// a reference to all 27 directions
         /// </summary>
-        [ReadOnly]
-        public NativeArray<int3> directions;
+        [ReadOnly] public NativeArray<int3> directions;
 
         /// <summary>
         /// the movement costs for each block in the world.
         /// Blocks with a value of 255 are obstructed.
         /// </summary>
-        [ReadOnly]
-        public NativeArray<byte> costField;
+        [ReadOnly] public NativeArray<byte> costField;
 
         /// <summary>
         /// the integrated cost values for each block in the world.
@@ -48,14 +46,23 @@ namespace VRoxel.Navigation
 
         public void Execute()
         {
-            if (OutOfBounds(goal)) { return; }
-
-            int flatSize = size.x * size.y * size.z;
-            int flatIndex = Flatten(goal);
-
             open.Clear();
-            open.Enqueue(goal);         // queue the goal position as the first open node
-            intField[flatIndex] = 0;    // set the goal position integration cost to zero
+
+            // set each target position's integration cost to zero
+            // and add each position to the frontier nodes (open list)
+            for (int i = 0; i < targets.Length; i++)
+            {
+                if (OutOfBounds(targets[i]))
+                    continue;
+
+                int flatIndex = Flatten(targets[i]);
+                open.Enqueue(targets[i]);
+                intField[flatIndex] = 0;
+            }
+
+            // return if no target positions are valid
+            if (open.Count == 0)
+                return;
 
             ushort cost;
             int index, nextIndex;

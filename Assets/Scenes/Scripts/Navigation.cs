@@ -34,6 +34,8 @@ public class Navigation : MonoBehaviour
     public Vector2Int goalPosition;
     public GameObject goal;
 
+    List<Vector3Int> m_goalPositions = new List<Vector3Int>();
+
     void Awake()
     {
         if (agentManager == null)
@@ -47,6 +49,8 @@ public class Navigation : MonoBehaviour
 
         if (world == null)
             world = GetComponent<World>();
+
+        m_goalPositions.Add(Vector3Int.zero);
     }
 
     void OnDestroy()
@@ -119,7 +123,8 @@ public class Navigation : MonoBehaviour
         goal.transform.position = GetGoalScenePosition();
 
         // generate the flow field
-        agentManager.UpdateFlowFields(GetGoalGridPosition(), updateHandle).Complete();
+        m_goalPositions[0] = GetGoalGridPosition();
+        agentManager.UpdateFlowFields(m_goalPositions, updateHandle).Complete();
         initialized = true;
     }
 
@@ -128,20 +133,20 @@ public class Navigation : MonoBehaviour
         handle.Complete(); // ensure the height map is updated
         moveHandle.Complete(); // ensure agents are done moving
 
-        Vector3Int goal = GetGoalGridPosition();
-        updateHandle = agentManager.UpdateFlowFields(goal, handle);
+        m_goalPositions[0] = GetGoalGridPosition();
+        updateHandle = agentManager.UpdateFlowFields(m_goalPositions, handle);
     }
 
     void UpdateGoalPostPosition()
     {
         Vector3 goalPosition = GetGoalScenePosition();
-        Vector3Int goalGridPoint = GetGoalGridPosition();
+        m_goalPositions[0] = GetGoalGridPosition();
 
         if (goal.transform.position == goalPosition) { return; }
         goal.transform.position = goalPosition;
 
         updateHandle.Complete();
-        updateHandle = agentManager.UpdateFlowFields(goalGridPoint, updateHandle);
+        updateHandle = agentManager.UpdateFlowFields(m_goalPositions, updateHandle);
     }
 
     /// <summary>
