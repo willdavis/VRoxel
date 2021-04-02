@@ -20,6 +20,12 @@ namespace VRoxel.Core.Chunks
         public float textureScale;
 
         /// <summary>
+        /// The offset to use when sampling textures from the terrain atlas.
+        /// This helps prevent visible lines between the voxels
+        /// </summary>
+        public float textureOffset;
+
+        /// <summary>
         /// Flags if chunk faces on the edge of the world should render
         /// </summary>
         public bool renderWorldEdges;
@@ -227,20 +233,20 @@ namespace VRoxel.Core.Chunks
                     return;
             }
 
-            faceUV.x = textureScale * texture.x + textureScale;
-            faceUV.y = textureScale * texture.y;
+            faceUV.x = textureScale * texture.x + textureScale - textureOffset;
+            faceUV.y = textureScale * texture.y + textureOffset;
             uvs.Add(faceUV);
 
-            faceUV.x = textureScale * texture.x + textureScale;
-            faceUV.y = textureScale * texture.y + textureScale;
+            faceUV.x = textureScale * texture.x + textureScale - textureOffset;
+            faceUV.y = textureScale * texture.y + textureScale - textureOffset;
             uvs.Add(faceUV);
 
-            faceUV.x = textureScale * texture.x;
-            faceUV.y = textureScale * texture.y + textureScale;
+            faceUV.x = textureScale * texture.x + textureOffset;
+            faceUV.y = textureScale * texture.y + textureScale - textureOffset;
             uvs.Add(faceUV);
 
-            faceUV.x = textureScale * texture.x;
-            faceUV.y = textureScale * texture.y;
+            faceUV.x = textureScale * texture.x + textureOffset;
+            faceUV.y = textureScale * texture.y + textureOffset;
             uvs.Add(faceUV);
         }
 

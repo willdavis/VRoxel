@@ -16,4 +16,5 @@ MonoBehaviour:
   sizeScale: 1
   material: {fileID: 2100000, guid: 7c8819ba9885214409d65f8fdb2753b0, type: 2}
   textureScale: 0.0625
+  textureOffset: 0.002
   collidable: 1
