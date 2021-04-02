@@ -227,20 +227,20 @@ namespace VRoxel.Core.Chunks
                     return;
             }
 
-            faceUV.x = textureScale * texture.x + textureScale;
-            faceUV.y = textureScale * texture.y;
+            faceUV.x = textureScale * texture.x + textureScale - 0.01f;
+            faceUV.y = textureScale * texture.y + 0.01f;
             uvs.Add(faceUV);
 
-            faceUV.x = textureScale * texture.x + textureScale;
-            faceUV.y = textureScale * texture.y + textureScale;
+            faceUV.x = textureScale * texture.x + textureScale - 0.01f;
+            faceUV.y = textureScale * texture.y + textureScale - 0.01f;
             uvs.Add(faceUV);
 
-            faceUV.x = textureScale * texture.x;
-            faceUV.y = textureScale * texture.y + textureScale;
+            faceUV.x = textureScale * texture.x + 0.01f;
+            faceUV.y = textureScale * texture.y + textureScale - 0.01f;
             uvs.Add(faceUV);
 
-            faceUV.x = textureScale * texture.x;
-            faceUV.y = textureScale * texture.y;
+            faceUV.x = textureScale * texture.x + 0.01f;
+            faceUV.y = textureScale * texture.y + 0.01f;
             uvs.Add(faceUV);
         }
 
