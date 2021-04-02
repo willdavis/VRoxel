@@ -31,6 +31,12 @@ namespace VRoxel.Core.Data
         public float textureScale = 1f;
 
         /// <summary>
+        /// The offset to use when sampling textures from the terrain atlas.
+        /// This helps prevent visible lines around the textures.
+        /// </summary>
+        public float textureOffset = 0f;
+
+        /// <summary>
         /// Flags if the Chunk needs a collision mesh
         /// </summary>
         public bool collidable = true;

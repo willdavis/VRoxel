@@ -100,9 +100,12 @@ namespace VRoxel.Core
             job.chunkSize = new int3(chunk.size.x, chunk.size.y, chunk.size.z);
             job.chunkOffset = new int3(chunk.offset.x, chunk.offset.y, chunk.offset.z);
             job.worldSize = new int3(m_world.size.x, m_world.size.y, m_world.size.z);
-            job.textureScale = chunk.configuration.textureScale;
             job.renderWorldEdges = m_world.renderWorldEdges;
             job.worldScale = m_world.scale;
+
+            // configure texture settings for the mesh
+            job.textureScale = chunk.configuration.textureScale;
+            job.textureOffset = chunk.configuration.textureOffset;
 
             job.cubeFaces = m_cubeFaces;
             job.cubeVertices = m_cubeVertices;
