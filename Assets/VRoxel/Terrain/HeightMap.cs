@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Jobs;
 
+using VRoxel.Core.Chunks;
 using VRoxel.Terrain.HeightMaps;
 
 namespace VRoxel.Terrain
@@ -23,6 +24,11 @@ namespace VRoxel.Terrain
         /// A reference to the 3D array of voxel terrain
         /// </summary>
         public NativeArray<byte> voxels;
+
+        /// <summary>
+        /// A reference to the metadata for blocks in the voxel terrain
+        /// </summary>
+        public NativeArray<Block> blocks;
 
         /// <summary>
         /// The cached 2D array of terrain height values
@@ -71,6 +77,7 @@ namespace VRoxel.Terrain
             {
                 data = m_data,
                 voxels = voxels,
+                blocks = blocks,
                 size = new int3(
                     size.x,
                     size.y,

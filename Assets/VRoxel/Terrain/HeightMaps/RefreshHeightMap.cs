@@ -3,6 +3,8 @@ using Unity.Mathematics;
 using Unity.Jobs;
 using Unity.Burst;
 
+using VRoxel.Core.Chunks;
+
 namespace VRoxel.Terrain.HeightMaps
 {
     /// <summary>
@@ -15,6 +17,11 @@ namespace VRoxel.Terrain.HeightMaps
         /// The dimensions of the height map and voxels
         /// </summary>
         public int3 size;
+
+        /// <summary>
+        /// The metadata about each voxel terrain block
+        /// </summary>
+        [ReadOnly] public NativeArray<Block> blocks;
 
         /// <summary>
         /// The 3D array of voxel terrain blocks
@@ -50,11 +57,13 @@ namespace VRoxel.Terrain.HeightMaps
         }
 
         /// <summary>
-        /// Test if the voxel is solid
+        /// Test if the voxel is collidable
         /// </summary>
         public bool Solid(int3 point)
         {
-            return voxels[Flatten(point)] != 0;
+            byte voxel = voxels[Flatten(point)];
+            Block block = blocks[voxel];
+            return block.collidable;
         }
 
         /// <summary>
