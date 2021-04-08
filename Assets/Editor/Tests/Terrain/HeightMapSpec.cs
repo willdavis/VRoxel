@@ -1,8 +1,11 @@
 ﻿using NUnit.Framework;
-using VRoxel.Terrain;
-using UnityEngine;
+
 using Unity.Collections;
 using Unity.Jobs;
+using UnityEngine;
+
+using VRoxel.Terrain;
+using VRoxel.Core.Chunks;
 
 namespace TerrainSpecs
 {
@@ -44,8 +47,10 @@ namespace TerrainSpecs
             GameObject obj = new GameObject();
             HeightMap map = obj.AddComponent<HeightMap>();
             NativeArray<byte> voxels = new NativeArray<byte>(1, Allocator.Persistent);
+            NativeArray<Block> blocks = new NativeArray<Block>(1, Allocator.Persistent);
 
             map.voxels = voxels;
+            map.blocks = blocks;
             map.size = Vector3Int.one;
             map.Initialize();
 
@@ -56,6 +61,7 @@ namespace TerrainSpecs
             Assert.AreEqual(true, handle.IsCompleted);
 
             voxels.Dispose();
+            blocks.Dispose();
             map.Dispose();
         }
     }
